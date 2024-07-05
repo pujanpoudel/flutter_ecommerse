@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'package:ecommerse_demo/auth/sign_in_pagr.dart';
-import 'package:ecommerse_demo/home_page.dart';
+import 'package:ecommerse_demo/view/auth/sign_in_pagr.dart';
+import 'package:ecommerse_demo/view/dashboard_page.dart';
 import 'package:flutter/material.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -30,8 +30,8 @@ class _SplashScreenState extends State<SplashScreen>
     _controller.forward();
 
     Timer(const Duration(seconds: 3), () {
-      Navigator.of(context)
-          .pushReplacement(MaterialPageRoute(builder: (_) => SignInPage()));
+      Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const DashboardPage()));
     });
   }
 

@@ -1,9 +1,6 @@
-import 'package:ecommerse_demo/auth/sign_up_page.dart';
-import 'package:ecommerse_demo/home_page.dart';
+import 'package:ecommerse_demo/view/auth/sign_up_page.dart';
 import 'package:ecommerse_demo/utils/colors.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
@@ -18,6 +15,7 @@ class _SignInPageState extends State<SignInPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      
       backgroundColor: AppColors.whiteColor,
       body: Padding(
         padding: const EdgeInsets.all(10.0),
@@ -121,7 +119,7 @@ class _SignInPageState extends State<SignInPage> {
                   padding: const EdgeInsets.only(right: 10),
                   child: GestureDetector(
                     child: const Text(
-                      'Already have an account?',
+                      'Don\'t have an account? SIGN UP',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -137,7 +135,7 @@ class _SignInPageState extends State<SignInPage> {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 30),
             Center(
               child: SizedBox(
                 height: 50,
@@ -145,7 +143,8 @@ class _SignInPageState extends State<SignInPage> {
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (context) => const HomePage()),
+                      MaterialPageRoute(
+                          builder: (context) => const SignUpPage()),
                     );
                   },
                   style: ElevatedButton.styleFrom(
@@ -161,7 +160,57 @@ class _SignInPageState extends State<SignInPage> {
                 ),
               ),
             ),
+            const SizedBox(height: 100),
+            const Center(
+              child: Text(
+                'or sign up with',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(
+              height: 30,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildSocialButton(
+                  imageUrl: 'assets/facebook.png',
+                  onPressed: () => (),
+                ),
+                const SizedBox(width: 50),
+                _buildSocialButton(
+                  imageUrl: 'assets/google.png',
+                  onPressed: () => (),
+                ),
+                const SizedBox(width: 50),
+                _buildSocialButton(
+                  imageUrl: 'assets/apple.png',
+                  onPressed: () => (),
+                ),
+              ],
+            ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSocialButton(
+      {required String imageUrl, required Function onPressed}) {
+    return InkWell(
+      onTap: () => onPressed(),
+      child: Container(
+        width: 50.0,
+        height: 50.0,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          image: DecorationImage(
+            image: AssetImage(imageUrl),
+            fit: BoxFit.cover,
+          ),
         ),
       ),
     );
