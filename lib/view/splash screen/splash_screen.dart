@@ -1,7 +1,6 @@
 import 'dart:async';
-import 'package:ecommerse_demo/view/auth/sign_in_pagr.dart';
-import 'package:ecommerse_demo/view/dashboard_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_ecommerce/view/landing%20page/landing_page.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -30,8 +29,8 @@ class _SplashScreenState extends State<SplashScreen>
     _controller.forward();
 
     Timer(const Duration(seconds: 3), () {
-      Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const DashboardPage()));
+      Navigator.of(context)
+          .pushReplacement(MaterialPageRoute(builder: (_) => LandingPage()));
     });
   }
 

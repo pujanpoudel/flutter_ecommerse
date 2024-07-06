@@ -1,21 +1,14 @@
-import 'package:ecommerse_demo/view/auth/sign_up_page.dart';
-import 'package:ecommerse_demo/utils/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../../controller/login_controller.dart';
+import '../../utils/colors.dart';
 
-class SignInPage extends StatefulWidget {
-  const SignInPage({super.key});
-
-  @override
-  State<SignInPage> createState() => _SignInPageState();
-}
-
-class _SignInPageState extends State<SignInPage> {
-  bool _obscureText = true;
+class SignInPage extends GetView<LoginController> {
+  const SignInPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      
       backgroundColor: AppColors.whiteColor,
       body: Padding(
         padding: const EdgeInsets.all(10.0),
@@ -37,13 +30,12 @@ class _SignInPageState extends State<SignInPage> {
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: AppColors.creamColor,
-                //border: Border.all(color: Colors.grey),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Column(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Padding(
+                  const Padding(
                     padding: EdgeInsets.only(left: 10),
                     child: Text(
                       'Email',
@@ -54,9 +46,10 @@ class _SignInPageState extends State<SignInPage> {
                     ),
                   ),
                   Padding(
-                    padding: EdgeInsets.only(left: 10),
+                    padding: const EdgeInsets.only(left: 10),
                     child: TextField(
-                      decoration: InputDecoration(
+                      controller: controller.emailController,
+                      decoration: const InputDecoration(
                         hintText: 'Enter your email',
                         border: InputBorder.none,
                       ),
@@ -70,7 +63,6 @@ class _SignInPageState extends State<SignInPage> {
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: AppColors.creamColor,
-                //border: Border.all(color: Colors.grey),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Column(
@@ -88,76 +80,79 @@ class _SignInPageState extends State<SignInPage> {
                   ),
                   Padding(
                     padding: const EdgeInsets.only(left: 10),
-                    child: TextField(
-                      obscureText: _obscureText,
-                      decoration: InputDecoration(
-                        hintText: 'Enter your password',
-                        border: InputBorder.none,
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscureText
-                                ? Icons.visibility
-                                : Icons.visibility_off,
+                    child: Obx(() => TextField(
+                          controller: controller.passwordController,
+                          obscureText: controller.obscureText.value,
+                          decoration: InputDecoration(
+                            hintText: 'Enter your password',
+                            border: InputBorder.none,
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                controller.obscureText.value
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                              ),
+                              onPressed: controller.togglePasswordVisibility,
+                            ),
                           ),
-                          onPressed: () {
-                            setState(() {
-                              _obscureText = !_obscureText;
-                            });
-                          },
-                        ),
-                      ),
-                    ),
+                        )),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 20),
             Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(right: 10),
+                  padding: const EdgeInsets.only(left: 10),
                   child: GestureDetector(
+                    onTap: controller.navigateToSignUp,
                     child: const Text(
-                      'Don\'t have an account? SIGN UP',
+                      'New here? SIGN UP',
                       style: TextStyle(
+                        color: AppColors.mainColor,
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    onTap: () {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                            builder: (context) => const SignUpPage()),
-                      );
-                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(right: 10),
+                  child: TextButton(
+                    onPressed: controller.navigateToForgotPassword,
+                    child: const Text(
+                      'Forgot Password?',
+                      style: TextStyle(
+                        color: AppColors.mainColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 20),
             Center(
               child: SizedBox(
                 height: 50,
                 width: 250,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                          builder: (context) => const SignUpPage()),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    backgroundColor: AppColors.mainColor,
-                    textStyle: const TextStyle(fontSize: 24),
-                    //padding: const EdgeInsets.symmetric(vertical: 15),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(50),
-                    ),
-                  ),
-                  child: const Text('LOGIN'),
-                ),
+                child: Obx(() => ElevatedButton(
+                      onPressed:
+                          controller.isLoading.value ? null : controller.login,
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        backgroundColor: AppColors.mainColor,
+                        textStyle: const TextStyle(fontSize: 24),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(50),
+                        ),
+                      ),
+                      child: controller.isLoading.value
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text('Login'),
+                    )),
               ),
             ),
             const SizedBox(height: 100),
@@ -170,25 +165,23 @@ class _SignInPageState extends State<SignInPage> {
                 ),
               ),
             ),
-            const SizedBox(
-              height: 30,
-            ),
+            const SizedBox(height: 30),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _buildSocialButton(
                   imageUrl: 'assets/facebook.png',
-                  onPressed: () => (),
+                  onPressed: () {},
                 ),
                 const SizedBox(width: 50),
                 _buildSocialButton(
                   imageUrl: 'assets/google.png',
-                  onPressed: () => (),
+                  onPressed: () {},
                 ),
                 const SizedBox(width: 50),
                 _buildSocialButton(
                   imageUrl: 'assets/apple.png',
-                  onPressed: () => (),
+                  onPressed: () {},
                 ),
               ],
             ),
@@ -198,10 +191,12 @@ class _SignInPageState extends State<SignInPage> {
     );
   }
 
-  Widget _buildSocialButton(
-      {required String imageUrl, required Function onPressed}) {
+  Widget _buildSocialButton({
+    required String imageUrl,
+    required VoidCallback onPressed,
+  }) {
     return InkWell(
-      onTap: () => onPressed(),
+      onTap: onPressed,
       child: Container(
         width: 50.0,
         height: 50.0,

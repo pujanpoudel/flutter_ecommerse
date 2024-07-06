@@ -1,6 +1,7 @@
-import 'package:ecommerse_demo/view/auth/sign_in_pagr.dart';
-import 'package:ecommerse_demo/utils/colors.dart';
 import 'package:flutter/material.dart';
+
+import '../../utils/colors.dart';
+import 'sign_in_pagr.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
