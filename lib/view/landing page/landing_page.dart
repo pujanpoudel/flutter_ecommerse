@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../../controller/auth_controller.dart';
 import '../../utils/colors.dart';
 import '../auth/sign_in_page.dart';
 
@@ -43,7 +45,7 @@ class LandingPage extends StatelessWidget {
               Expanded(
                 child: Center(
                   child: Image.asset(
-                    'assets/landing page.png', 
+                    'assets/landing page.png',
                     fit: BoxFit.contain,
                   ),
                 ),
@@ -51,8 +53,8 @@ class LandingPage extends StatelessWidget {
               const SizedBox(height: 40),
               ElevatedButton(
                 onPressed: () {
-                  Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (_) => SignInPage()));
+                  Get.put(AuthController(authRepo: Get.find()));
+                  _navigateToSignIn();
                 },
                 style: ElevatedButton.styleFrom(
                   foregroundColor: AppColors.whiteColor,
@@ -63,12 +65,22 @@ class LandingPage extends StatelessWidget {
                   ),
                   minimumSize: const Size(double.infinity, 50),
                 ),
-                child: const Text(
-                  "Let's Get Started",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Let's Get Started ",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Icon(
+                      Icons.arrow_circle_right_sharp,
+                      size: 30,
+                      color: AppColors.whiteColor,
+                    )
+                  ],
                 ),
               ),
               const SizedBox(height: 50),
@@ -76,6 +88,15 @@ class LandingPage extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  void _navigateToSignIn() {
+    Get.to(
+      () => SignInPage(),
+      transition: Transition.rightToLeft,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeInOut,
     );
   }
 }

@@ -1,12 +1,13 @@
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../controller/sign_in_controller.dart';
-import '../repo/sign_in_repo.dart';
+import '../controller/auth_controller.dart';
+import '../repo/auth_repo.dart';
 
 class AppBinding extends Bindings {
   @override
   void dependencies() async {
+
     // Initialize SharedPreferences
     final sharedPreferences = await SharedPreferences.getInstance();
     
@@ -14,7 +15,7 @@ class AppBinding extends Bindings {
     Get.put<SharedPreferences>(sharedPreferences);
 
     // Register other dependencies
-    Get.put(SignInRepo(sharedPreferences: Get.find()));
-    Get.put(SignInController(signInRepo: Get.find()));
+    Get.put(AuthRepo(sharedPreferences: Get.find()));
+    Get.put(AuthController(authRepo: Get.find()));
   }
 }

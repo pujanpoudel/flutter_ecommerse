@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_ecommerce/utils/colors.dart';
+import 'package:flutter_ecommerce/view/auth/sign_in_page.dart';
+import 'package:get/get.dart';
+
+import '../verification/otp_verification_page.dart';
 
 class ForgotPasswordPage extends StatelessWidget {
   const ForgotPasswordPage({super.key});
@@ -9,14 +13,14 @@ class ForgotPasswordPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.whiteColor,
       body: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(10.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               margin: const EdgeInsets.only(top: 100),
               child: const Text(
-                'Forgot Password',
+                'Forgot Password?',
                 style: TextStyle(
                   fontSize: 40,
                   fontWeight: FontWeight.bold,
@@ -42,7 +46,7 @@ class ForgotPasswordPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: EdgeInsets.only(left: 10),
+                    padding: EdgeInsets.only(left: 5),
                     child: Text(
                       'Email',
                       style: TextStyle(
@@ -52,7 +56,7 @@ class ForgotPasswordPage extends StatelessWidget {
                     ),
                   ),
                   Padding(
-                    padding: EdgeInsets.only(left: 10),
+                    padding: EdgeInsets.only(left: 5),
                     child: TextField(
                       decoration: InputDecoration(
                         hintText: 'Enter your email',
@@ -70,7 +74,7 @@ class ForgotPasswordPage extends StatelessWidget {
                 width: 250,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Implement password reset logic here
+                    Get.to(() => OTPVerificationPage());
                   },
                   style: ElevatedButton.styleFrom(
                     foregroundColor: Colors.white,
@@ -87,22 +91,41 @@ class ForgotPasswordPage extends StatelessWidget {
             const SizedBox(height: 20),
             Center(
               child: TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // Go back to sign in page
-                },
-                child: const Text(
-                  'Back to Sign In',
-                  style: TextStyle(
-                    color: AppColors.mainColor,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                onPressed: _goBackToSignIn,
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Back to Sign In',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(
+                      width: 5,
+                    ),
+                    Icon(
+                      Icons.arrow_circle_left,
+                      size: 30,
+                      color: AppColors.mainColor,
+                    )
+                  ],
                 ),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  void _goBackToSignIn() {
+    Get.off(
+      () => SignInPage(),
+      transition: Transition.rightToLeft,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeInOut,
     );
   }
 }

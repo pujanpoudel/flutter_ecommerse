@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../../controller/auth_controller.dart';
 import '../../utils/colors.dart';
-import 'sign_in_page.dart';
 
-class SignUpPage extends StatefulWidget {
-  const SignUpPage({super.key});
+class SignUpPage extends StatelessWidget {
+  final AuthController controller =
+      Get.put(AuthController(authRepo: Get.find()));
+  final RxBool obscureTextPassword = true.obs;
+  final RxBool obscureTextConfirmPassword = true.obs;
 
-  @override
-  State<SignUpPage> createState() => _SignUpPageState();
-}
-
-class _SignUpPageState extends State<SignUpPage> {
-  bool _obscureText = true;
+  SignUpPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +23,7 @@ class _SignUpPageState extends State<SignUpPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  margin: const EdgeInsets.only(top: 100, left: 20),
+                  margin: const EdgeInsets.only(top: 30),
                   child: const Text(
                     'Sign Up',
                     style: TextStyle(
@@ -34,213 +33,64 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                Container(
-                  padding: const EdgeInsets.all(5),
-                  decoration: BoxDecoration(
-                    color: AppColors.creamColor,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(left: 10),
-                        child: Text(
-                          'Full Name',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(left: 10),
-                        child: TextField(
-                          decoration: InputDecoration(
-                            hintText: 'Enter your Full Name',
-                            border: InputBorder.none,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                _buildInputField(
+                    label: 'Full Name',
+                    hint: 'Enter your Full Name',
+                    controller: controller.fullNameController),
                 const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.all(5),
-                  decoration: BoxDecoration(
-                    color: AppColors.creamColor,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(left: 10),
-                        child: Text(
-                          'Email',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(left: 10),
-                        child: TextField(
-                          decoration: InputDecoration(
-                            hintText: 'Enter your Email',
-                            border: InputBorder.none,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                _buildInputField(
+                    label: 'Email',
+                    hint: 'Enter your Email',
+                    controller: controller.emailController),
                 const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.all(5),
-                  decoration: BoxDecoration(
-                    color: AppColors.creamColor,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.only(left: 10),
-                        child: Text(
-                          'Set Password',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 10),
-                        child: TextField(
-                          obscureText: _obscureText,
-                          decoration: InputDecoration(
-                            hintText: 'Set a new password',
-                            border: InputBorder.none,
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscureText
-                                    ? Icons.visibility
-                                    : Icons.visibility_off,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  _obscureText = !_obscureText;
-                                });
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                Obx(() => _buildPasswordField(
+                    label: 'Set Password',
+                    hint: 'Set a new password',
+                    obscureText: obscureTextPassword.value,
+                    controller: controller.passwordController,
+                    toggleObscureText: () {
+                      obscureTextPassword.value = !obscureTextPassword.value;
+                    })),
                 const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.all(5),
-                  decoration: BoxDecoration(
-                    color: AppColors.creamColor,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.only(left: 10),
-                        child: Text(
-                          'Confirm Password',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 10),
-                        child: TextField(
-                          obscureText: _obscureText,
-                          decoration: InputDecoration(
-                            hintText: 'Confirm your password',
-                            border: InputBorder.none,
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscureText
-                                    ? Icons.visibility
-                                    : Icons.visibility_off,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  _obscureText = !_obscureText;
-                                });
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                Obx(() => _buildPasswordField(
+                    label: 'Confirm Password',
+                    hint: 'Confirm your password',
+                    obscureText: obscureTextConfirmPassword.value,
+                    controller: controller.confirmPasswordController,
+                    toggleObscureText: () {
+                      obscureTextConfirmPassword.value =
+                          !obscureTextConfirmPassword.value;
+                    })),
                 const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.all(5),
-                  decoration: BoxDecoration(
-                    color: AppColors.creamColor,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(left: 10),
-                        child: Text(
-                          'Phone Number',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(left: 10),
-                        child: TextField(
-                          decoration: InputDecoration(
-                            hintText: 'Enter your Phone Number',
-                            border: InputBorder.none,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                _buildInputField(
+                    label: 'Phone Number',
+                    hint: 'Enter your Phone Number',
+                    controller: controller.phoneNumberController),
                 const SizedBox(height: 15),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.only(right: 10),
-                      child: GestureDetector(
-                        child: const Text(
-                          'Already have an account? SIGN IN',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        onTap: () {
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(
-                                builder: (context) => const SignInPage()),
-                          );
-                        },
-                      ),
-                    ),
+                        padding: const EdgeInsets.only(right: 10),
+                        child: Row(
+                          children: [
+                            GestureDetector(
+                              onTap: controller.navigateToSignIn,
+                              child: const Text(
+                                'Sign In',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            const Icon(
+                              Icons.arrow_right_alt,
+                              size: 40,
+                              color: AppColors.mainColor,
+                            ),
+                          ],
+                        )),
                   ],
                 ),
                 const SizedBox(height: 15),
@@ -248,23 +98,23 @@ class _SignUpPageState extends State<SignUpPage> {
                   child: SizedBox(
                     height: 50,
                     width: 250,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(
-                              builder: (context) => const SignInPage()),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        backgroundColor: AppColors.mainColor,
-                        textStyle: const TextStyle(fontSize: 24),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(50),
-                        ),
-                      ),
-                      child: const Text('Sign Up'),
-                    ),
+                    child: Obx(() => ElevatedButton(
+                          onPressed: controller.isLoading.value
+                              ? null
+                              : controller.navigateToVerifyEmail,
+                          style: ElevatedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            backgroundColor: AppColors.mainColor,
+                            textStyle: const TextStyle(fontSize: 24),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                          ),
+                          child: controller.isLoading.value
+                              ? const CircularProgressIndicator(
+                                  color: Colors.white)
+                              : const Text('Sign Up'),
+                        )),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -277,25 +127,23 @@ class _SignUpPageState extends State<SignUpPage> {
                     ),
                   ),
                 ),
-                const SizedBox(
-                  height: 20,
-                ),
+                const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     _buildSocialButton(
                       imageUrl: 'assets/facebook.png',
-                      onPressed: () => (),
+                      onPressed: () {},
                     ),
                     const SizedBox(width: 50),
                     _buildSocialButton(
                       imageUrl: 'assets/google.png',
-                      onPressed: () => (),
+                      onPressed: () {},
                     ),
                     const SizedBox(width: 50),
                     _buildSocialButton(
                       imageUrl: 'assets/apple.png',
-                      onPressed: () => (),
+                      onPressed: () {},
                     ),
                   ],
                 ),
@@ -307,10 +155,99 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  Widget _buildSocialButton(
-      {required String imageUrl, required Function onPressed}) {
+  Widget _buildInputField({
+    required String label,
+    required String hint,
+    required TextEditingController controller,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(5),
+      decoration: BoxDecoration(
+        color: AppColors.creamColor,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 10),
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 10),
+            child: TextField(
+              controller: controller,
+              decoration: InputDecoration(
+                hintText: hint,
+                border: InputBorder.none,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPasswordField({
+    required String label,
+    required String hint,
+    required bool obscureText,
+    required TextEditingController controller,
+    required VoidCallback toggleObscureText,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(5),
+      decoration: BoxDecoration(
+        color: AppColors.creamColor,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 10),
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 10),
+            child: TextField(
+              controller: controller,
+              obscureText: obscureText,
+              decoration: InputDecoration(
+                hintText: hint,
+                border: InputBorder.none,
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    obscureText ? Icons.visibility : Icons.visibility_off,
+                  ),
+                  onPressed: toggleObscureText,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSocialButton({
+    required String imageUrl,
+    required VoidCallback onPressed,
+  }) {
     return InkWell(
-      onTap: () => onPressed(),
+      onTap: onPressed,
       child: Container(
         width: 50.0,
         height: 50.0,

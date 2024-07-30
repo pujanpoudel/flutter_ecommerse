@@ -1,25 +1,39 @@
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../utils/app_constants.dart';
 
-class SignUpRepo extends GetxService {
+class AuthRepo extends GetxService {
   final String baseUrl = AppConstants.BASE_URL;
   final SharedPreferences sharedPreferences;
 
-  SignUpRepo({required this.sharedPreferences});
+  AuthRepo({required this.sharedPreferences});
 
   Future<Response<dynamic>> signUp(String fullName, String email,
       String password, String phoneNumber) async {
     try {
       final response = await GetConnect().post(
-        '$baseUrl+signup/',
+        '$baseUrl/signup',
         {
           'full_name': fullName,
           'email': email,
           'password': password,
           'confirm_password': password,
           'phone': phoneNumber,
+        },
+      );
+      return response;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Response<dynamic>> signIn(String email, String password) async {
+    try {
+      final response = await GetConnect().post(
+        '$baseUrl/login',
+        {
+          'email': email,
+          'password': password,
         },
       );
       return response;
