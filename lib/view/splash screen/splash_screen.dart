@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_ecommerce/view/landing%20page/landing_page.dart';
 
 class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
   @override
   _SplashScreenState createState() => _SplashScreenState();
 }

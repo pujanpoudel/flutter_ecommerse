@@ -1,12 +1,12 @@
 import 'package:get/get.dart';
 import '../view/auth/forgot_password_page.dart';
-import '../view/auth/sign_in_pagr.dart';
+import '../view/auth/sign_in_page.dart';
 import '../view/auth/sign_up_page.dart';
 import '../view/product/home_page.dart';
 import '../view/splash screen/splash_screen.dart';
 
 class RouteHelper {
-  static const String initial = '/';
+  static const String initial = '/splash-screen';
   static const String signIn = '/sign-in';
   static const String signUp = '/sign-up';
   static const String forgotPassword = '/forgot-password';
@@ -32,14 +32,5 @@ class RouteHelper {
     GetPage(name: forgotPassword, page: () => ForgotPasswordPage()),
     GetPage(name: home, page: () => HomePage()),
 
-    // GetPage(
-    //   name: productDetail,
-    //   page: () {
-    //     var productId = Get.parameters['productId'];
-    //     return ProductDetailPage(productId: int.parse(productId!));
-    //   },
-    // ),
-    // GetPage(name: cart, page: () => CartPage()),
-    // GetPage(name: profile, page: () => ProfilePage()),
   ];
 }

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:get/route_manager.dart';
-
 import '../../utils/colors.dart';
-import '../auth/sign_in_pagr.dart';
+import '../auth/sign_in_page.dart';
 
 class LandingPage extends StatelessWidget {
+  const LandingPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -43,7 +43,7 @@ class LandingPage extends StatelessWidget {
               Expanded(
                 child: Center(
                   child: Image.asset(
-                    'assets/landing page.png', // Replace with your image
+                    'assets/landing page.png', 
                     fit: BoxFit.contain,
                   ),
                 ),
@@ -51,7 +51,8 @@ class LandingPage extends StatelessWidget {
               const SizedBox(height: 40),
               ElevatedButton(
                 onPressed: () {
-                  Get.to(SignInPage());
+                  Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (_) => SignInPage()));
                 },
                 style: ElevatedButton.styleFrom(
                   foregroundColor: AppColors.whiteColor,
