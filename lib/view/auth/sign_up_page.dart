@@ -23,7 +23,7 @@ class SignUpPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  margin: const EdgeInsets.only(top: 30),
+                  margin: const EdgeInsets.only(top: 10),
                   child: const Text(
                     'Sign Up',
                     style: TextStyle(
@@ -37,12 +37,12 @@ class SignUpPage extends StatelessWidget {
                     label: 'Full Name',
                     hint: 'Enter your Full Name',
                     controller: controller.fullNameController),
-                const SizedBox(height: 8),
+                const SizedBox(height: 5),
                 _buildInputField(
                     label: 'Email',
                     hint: 'Enter your Email',
                     controller: controller.emailController),
-                const SizedBox(height: 8),
+                const SizedBox(height: 5),
                 Obx(() => _buildPasswordField(
                     label: 'Set Password',
                     hint: 'Set a new password',
@@ -51,7 +51,7 @@ class SignUpPage extends StatelessWidget {
                     toggleObscureText: () {
                       obscureTextPassword.value = !obscureTextPassword.value;
                     })),
-                const SizedBox(height: 8),
+                const SizedBox(height: 5),
                 Obx(() => _buildPasswordField(
                     label: 'Confirm Password',
                     hint: 'Confirm your password',
@@ -61,12 +61,17 @@ class SignUpPage extends StatelessWidget {
                       obscureTextConfirmPassword.value =
                           !obscureTextConfirmPassword.value;
                     })),
-                const SizedBox(height: 8),
+                const SizedBox(height: 5),
                 _buildInputField(
                     label: 'Phone Number',
                     hint: 'Enter your Phone Number',
                     controller: controller.phoneNumberController),
-                const SizedBox(height: 15),
+                const SizedBox(height: 5),
+                _buildInputField(
+                    label: 'Address',
+                    hint: 'Enter your Delivery Address',
+                    controller: controller.addressController),
+                const SizedBox(height: 10),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -93,11 +98,11 @@ class SignUpPage extends StatelessWidget {
                         )),
                   ],
                 ),
-                const SizedBox(height: 15),
+                const SizedBox(height: 10),
                 Center(
                   child: SizedBox(
                     height: 50,
-                    width: 250,
+                    width: 200,
                     child: Obx(() => ElevatedButton(
                           onPressed: controller.isLoading.value
                               ? null
@@ -117,7 +122,7 @@ class SignUpPage extends StatelessWidget {
                         )),
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 15),
                 const Center(
                   child: Text(
                     'or sign up with',
@@ -127,7 +132,7 @@ class SignUpPage extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 15),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -135,12 +140,12 @@ class SignUpPage extends StatelessWidget {
                       imageUrl: 'assets/facebook.png',
                       onPressed: () {},
                     ),
-                    const SizedBox(width: 50),
+                    const SizedBox(width: 30),
                     _buildSocialButton(
                       imageUrl: 'assets/google.png',
                       onPressed: () {},
                     ),
-                    const SizedBox(width: 50),
+                    const SizedBox(width: 30),
                     _buildSocialButton(
                       imageUrl: 'assets/apple.png',
                       onPressed: () {},

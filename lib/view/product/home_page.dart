@@ -1,121 +1,154 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../utils/colors.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  // ignore: library_private_types_in_public_api
+  _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _animation;
+class _HomePageState extends State<HomePage> {
+  int _currentIndex = 0;
 
-  final List<String> carouselImages = [
-    'assets/img/1.jpg',
-    'assets/img/2.jpg',
-    'assets/img/3.jpg',
-    'assets/img/4.jpg',
-    'assets/img/5.jpg',
-    'assets/img/6.jpg',
-    'assets/img/7.jpg',
-    'assets/img/8.jpg',
-  ];
-
-  final List<Map<String, dynamic>> products = [
-    {'name': 'Product 1', 'price': 19.99, 'image': 'assets/img/4.jpg'},
-    {'name': 'Product 2', 'price': 29.99, 'image': 'assets/img/5.jpg'},
-    {'name': 'Product 3', 'price': 39.99, 'image': 'assets/img/6.jpg'},
-    {'name': 'Product 5', 'price': 49.99, 'image': 'assets/img/7.jpg'},
-    {'name': 'Product 6', 'price': 59.99, 'image': 'assets/img/8.jpg'},
-    {'name': 'Product 7', 'price': 69.99, 'image': 'assets/img/9.jpg'},
-    {'name': 'Product 8', 'price': 79.99, 'image': 'assets/img/10.jpg'},
-    {'name': 'Product 9', 'price': 89.99, 'image': 'assets/img/11.jpg'},
-    {'name': 'Product 10', 'price': 99.99, 'image': 'assets/img/12.jpg'},
-    {'name': 'Product 11', 'price': 9.99, 'image': 'assets/img/1.jpg'},
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 500),
-      vsync: this,
-    );
-    _animation = CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    );
-    _animationController.forward();
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Quick Cart'),
+        title: const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Delivery address', style: TextStyle(fontSize: 12, color: Colors.grey)),
+            Row(
+              children: [
+                Text(' Khairahani, Chitwan', style: TextStyle(fontSize: 14)),
+                Icon(Icons.arrow_drop_down)
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          IconButton(icon: const Icon(Icons.shopping_cart), onPressed: () {}),
+          IconButton(icon: const Icon(Icons.notifications), onPressed: () {}),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildCarousel(),
-            const SizedBox(height: 20),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                'Featured Products',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: 'Search here...',
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
               ),
             ),
-            const SizedBox(height: 10),
+            CarouselSlider(
+              options: CarouselOptions(
+                height: 180.0,
+                enlargeCenterPage: true,
+                autoPlay: true,
+              ),
+              items: [1, 2, 3,4,5].map((i) {
+                return Builder(
+                  builder: (BuildContext context) {
+                    return Container(
+                      width: MediaQuery.of(context).size.width,
+                      margin: const EdgeInsets.symmetric(horizontal: 5.0),
+                      decoration: BoxDecoration(
+                        color: i == 1 ? Colors.orange : Colors.blue,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Center(
+                        child: Image.asset(
+                          'assets/apple.png',
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    );
+                  },
+                );
+              }).toList(),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text('Category', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold)),
+            ),
+            SizedBox(
+              height: 100,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  _buildCategoryItem(Icons.shopping_bag, 'Apparel'),
+                  _buildCategoryItem(Icons.school, 'School'),
+                  _buildCategoryItem(Icons.sports_soccer, 'Sports'),
+                  _buildCategoryItem(Icons.devices, 'Electronic'),
+                  _buildCategoryItem(Icons.grid_view, 'All'),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Recent product', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold)),
+                  TextButton(onPressed: () {}, child: const Text('Filters')),
+                ],
+              ),
+            ),
             _buildProductGrid(),
           ],
         ),
       ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search),
+            label: 'Search',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_cart),
+            label: 'Cart',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile', backgroundColor: AppColors.mainColor
+          ),
+        ],
+      ),
     );
   }
-  Widget _buildCarousel() {
-    return CarouselSlider(
-      options: CarouselOptions(
-        height: 200,
-        aspectRatio: 16 / 9,
-        viewportFraction: 0.8,
-        initialPage: 0,
-        enableInfiniteScroll: true,
-        reverse: false,
-        autoPlay: true,
-        autoPlayInterval: const Duration(seconds: 3),
-        autoPlayAnimationDuration: const Duration(milliseconds: 800),
-        autoPlayCurve: Curves.fastOutSlowIn,
-        enlargeCenterPage: true,
-        scrollDirection: Axis.horizontal,
+
+  Widget _buildCategoryItem(IconData icon, String label) {
+    return SizedBox(
+      width: 80,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 30),
+          const SizedBox(height: 5),
+          Text(label, style: GoogleFonts.poppins(fontSize: 12)),
+        ],
       ),
-      items: carouselImages.map((String imageUrl) {
-        return Builder(
-          builder: (BuildContext context) {
-            return Container(
-              width: MediaQuery.of(context).size.width,
-              margin: const EdgeInsets.symmetric(horizontal: 5.0),
-              decoration: BoxDecoration(
-                color: Colors.grey,
-                borderRadius: BorderRadius.circular(8),
-                image: DecorationImage(
-                  image: AssetImage(imageUrl),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            );
-          },
-        );
-      }).toList(),
     );
   }
 
@@ -123,62 +156,49 @@ class _HomePageState extends State<HomePage>
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         childAspectRatio: 0.75,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
       ),
-      itemCount: products.length,
+      itemCount: 20,
       itemBuilder: (context, index) {
-        return FadeTransition(
-          opacity: _animation,
-          child: _buildProductCard(products[index]),
-        );
-      },
-    );
-  }
-
-  Widget _buildProductCard(Map<String, dynamic> product) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(8)),
-                image: DecorationImage(
-                  image: AssetImage(product['image']),
-                  fit: BoxFit.cover,
+        return Card(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Container(
+                  color: AppColors.creamColor,
+                  child: Center(
+                    child: Image.asset(
+                      'assets/apple.png',
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  product['name'],
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Product Name', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+                    Text('\$19.99', style: GoogleFonts.poppins(color: Colors.green)),
+                    ElevatedButton(
+                      onPressed: () {},
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.creamColor,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      ),
+                      child: const Text('Add to cart'),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  '\$${product['price'].toStringAsFixed(2)}',
-                  style: const TextStyle(fontSize: 14, color: Colors.green),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

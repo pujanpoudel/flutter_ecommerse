@@ -9,7 +9,7 @@ class AuthRepo extends GetxService {
   AuthRepo({required this.sharedPreferences});
 
   Future<Response<dynamic>> signUp(String fullName, String email,
-      String password, String phoneNumber) async {
+      String password, String address, String phoneNumber) async {
     try {
       final response = await GetConnect().post(
         '$baseUrl/signup',
@@ -17,17 +17,24 @@ class AuthRepo extends GetxService {
           'full_name': fullName,
           'email': email,
           'password': password,
+          'address': address,
           'confirm_password': password,
           'phone': phoneNumber,
         },
       );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        await saveUserEmail(email);
+      }
+
       return response;
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<Response<dynamic>> signIn(String email, String password) async {
+  Future<Response<dynamic>> signIn(
+      String email, String password, bool rememberMe) async {
     try {
       final response = await GetConnect().post(
         '$baseUrl/login',
@@ -36,10 +43,40 @@ class AuthRepo extends GetxService {
           'password': password,
         },
       );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        await saveUserEmail(email);
+        if (rememberMe) {
+          await saveUserPassword(password);
+        } else {
+          await clearUserPassword();
+        }
+      }
+
       return response;
     } catch (e) {
       rethrow;
     }
+  }
+
+  Future<bool> saveUserEmail(String email) async {
+    return await sharedPreferences.setString('user_email', email);
+  }
+
+  String getUserEmail() {
+    return sharedPreferences.getString('user_email') ?? "";
+  }
+
+  Future<bool> saveUserPassword(String password) async {
+    return await sharedPreferences.setString('user_password', password);
+  }
+
+  String getUserPassword() {
+    return sharedPreferences.getString('user_password') ?? "";
+  }
+
+  Future<bool> clearUserPassword() async {
+    return await sharedPreferences.remove('user_password');
   }
 
   Future<bool> saveUserToken(String token) async {
@@ -56,5 +93,9 @@ class AuthRepo extends GetxService {
 
   Future<bool> clearUserToken() async {
     return await sharedPreferences.remove('user_token');
+  }
+
+  bool isRememberMeChecked() {
+    return sharedPreferences.containsKey('user_password');
   }
 }

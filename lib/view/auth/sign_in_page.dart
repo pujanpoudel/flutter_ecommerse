@@ -94,7 +94,24 @@ class SignInPage extends StatelessWidget {
                         )),
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 5),
+                Obx(() => Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          "Remember Me",
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        Checkbox(
+                          activeColor: AppColors.mainColor,
+                          value: controller.rememberMe.value,
+                          onChanged: (newValue) {
+                            controller.toggleRememberMe();
+                          },
+                        ),
+                      ],
+                    )),
+                const SizedBox(height: 5),
                 Center(
                   child: SizedBox(
                     height: 50,

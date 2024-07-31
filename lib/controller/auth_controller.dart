@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_ecommerce/view/auth/forgot_password_page.dart';
-import 'package:flutter_ecommerce/view/product/home_page.dart';
 import 'package:get/get.dart';
 import '../repo/auth_repo.dart';
+import '../view/auth/forgot_password_page.dart';
 import '../view/auth/sign_in_page.dart';
 import '../view/auth/sign_up_page.dart';
+import '../view/product/home_page.dart';
 import '../view/verification/email_verification_page.dart';
 
 class AuthController extends GetxController {
@@ -15,14 +15,34 @@ class AuthController extends GetxController {
   var confirmPasswordController = TextEditingController();
   var fullNameController = TextEditingController();
   var phoneNumberController = TextEditingController();
+  var addressController = TextEditingController();
 
   var isLoading = false.obs;
   var obscureText = true.obs;
+  var rememberMe = false.obs;
 
   AuthController({required this.authRepo});
 
+  @override
+  void onInit() {
+    super.onInit();
+    checkRememberMe();
+  }
+
+  void checkRememberMe() {
+    if (authRepo.isRememberMeChecked()) {
+      emailController.text = authRepo.getUserEmail();
+      passwordController.text = authRepo.getUserPassword();
+      rememberMe.value = true;
+    }
+  }
+
   void toggleObscureText() {
     obscureText.value = !obscureText.value;
+  }
+
+  void toggleRememberMe() {
+    rememberMe.value = !rememberMe.value;
   }
 
   Future<void> signUp() async {
@@ -36,6 +56,7 @@ class AuthController extends GetxController {
       fullNameController.text,
       emailController.text,
       passwordController.text,
+      addressController.text,
       phoneNumberController.text,
     );
     isLoading.value = false;
@@ -54,20 +75,32 @@ class AuthController extends GetxController {
     final response = await authRepo.signIn(
       emailController.text,
       passwordController.text,
+      rememberMe.value,
     );
     isLoading.value = false;
 
     if (response.isOk) {
       String token = response.body['token'];
       await authRepo.saveUserToken(token);
-      // Navigate to the next page or do something after successful sign-in
+      navigateToHomePage();
     } else {
       Get.snackbar('Error', response.statusText ?? 'Unknown error');
     }
   }
 
+  Future<void> signOut() async {
+    await authRepo.clearUserToken();
+    if (!rememberMe.value) {
+      await authRepo.clearUserPassword();
+    }
+    navigateToSignIn();
+  }
+
   void navigateToSignUp() {
-    Get.to(() => SignUpPage());
+    Get.to(() => SignUpPage(),
+     transition: Transition.rightToLeft,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeInOut,);
   }
 
   void navigateToSignIn() {
@@ -91,13 +124,23 @@ class AuthController extends GetxController {
     Get.to(() => const ForgotPasswordPage());
   }
 
-  void navigateToSignInpAfterVerificatoin() {
+  void navigateToSignInAfterVerification() {
     Get.to(
-      () => SignUpPage(),
+      () => SignInPage(),
       transition: Transition.rightToLeft,
       duration: const Duration(milliseconds: 500),
       curve: Curves.easeInOut,
     );
+  }
+
+  Future<void> updateEmail(String newEmail) async {
+    isLoading.value = true;
+    // Implement the API call to update email
+    // For now, we'll just update it locally
+    await authRepo.saveUserEmail(newEmail);
+    emailController.text = newEmail;
+    isLoading.value = false;
+    Get.snackbar('Success', 'Email updated successfully');
   }
 
   @override
@@ -107,6 +150,7 @@ class AuthController extends GetxController {
     confirmPasswordController.dispose();
     fullNameController.dispose();
     phoneNumberController.dispose();
+    addressController.dispose();
     super.onClose();
   }
 }

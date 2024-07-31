@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_ecommerce/view/auth/forgot_password_page.dart';
 import 'package:get/get.dart';
 import '../../utils/colors.dart';
 import 'email_verified_page.dart';
@@ -44,7 +43,7 @@ class OTPController extends GetxController {
 }
 
 class OTPVerificationPage extends StatelessWidget {
-  OTPVerificationPage({Key? key}) : super(key: key);
+  OTPVerificationPage({super.key});
 
   final OTPController controller = Get.put(OTPController());
 
@@ -101,7 +100,7 @@ class OTPVerificationPage extends StatelessWidget {
                   ),
                   TextButton(
                     onPressed: () {
-                      Get.to(() => const ForgotPasswordPage());
+                      //Get.to(() => EditEmailPage(currentEmail: userEmail));
                     },
                     child: const Text(
                       'Edit?',

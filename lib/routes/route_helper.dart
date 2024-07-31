@@ -1,10 +1,10 @@
-import 'package:flutter_ecommerce/view/verification/email_verification_page.dart';
 import 'package:get/get.dart';
 import '../view/auth/forgot_password_page.dart';
 import '../view/auth/sign_in_page.dart';
 import '../view/auth/sign_up_page.dart';
 import '../view/product/home_page.dart';
 import '../view/splash screen/splash_screen.dart';
+import '../view/verification/email_verification_page.dart';
 
 class RouteHelper {
   static const String initial = '/splash-screen';

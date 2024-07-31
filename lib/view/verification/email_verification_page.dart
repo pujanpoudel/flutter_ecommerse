@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_ecommerce/view/auth/sign_in_page.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../repo/auth_repo.dart';
 import '../../utils/colors.dart';
+import 'otp_verification_page.dart';
 
 class EmailVerificationPage extends StatelessWidget {
   const EmailVerificationPage({super.key});
@@ -48,8 +50,42 @@ class EmailVerificationPage extends StatelessWidget {
                 ),
               ),
               ElevatedButton(
-                onPressed: () {
-                  Get.to(() => SignInPage());
+                onPressed: () async {
+                  final AuthRepo authRepo =
+                      Get.find<AuthRepo>(); // Get the AuthRepo instance
+                  final String email =
+                      authRepo.getUserEmail(); // Get the user's email
+
+                  // First, try to launch the default mail app
+                  final Uri emailLaunchUri = Uri(
+                    scheme: 'mailto',
+                    path: email,
+                  );
+
+                  try {
+                    if (await canLaunchUrl(emailLaunchUri)) {
+                      await launchUrl(emailLaunchUri);
+                    } else {
+                      // If the mail app can't be launched, try opening Gmail in the browser
+                      final Uri gmailInBrowserUri =
+                          Uri.parse('https://mail.google.com/');
+                      if (await canLaunchUrl(gmailInBrowserUri)) {
+                        await launchUrl(gmailInBrowserUri,
+                            mode: LaunchMode.externalApplication);
+                      } else {
+                        // If Gmail can't be opened in the browser, show an error message
+                        Get.snackbar('Error',
+                            'Unable to open email application or Gmail');
+                      }
+                    }
+                  } catch (e) {
+                    // If any error occurs during the process, show a generic error message
+                    Get.snackbar('Error',
+                        'An error occurred while trying to open email: $e');
+                  }
+
+                  // Navigate to OTP verification page after attempting to open email
+                  Get.to(() => OTPVerificationPage());
                 },
                 style: ElevatedButton.styleFrom(
                   foregroundColor: AppColors.whiteColor,
@@ -75,7 +111,7 @@ class EmailVerificationPage extends StatelessWidget {
                     // Implement resend email logic
                   },
                   child: const Text(
-                    "Resend email",
+                    "Resend Email",
                     style: TextStyle(
                       color: AppColors.mainColor,
                       fontSize: 16,

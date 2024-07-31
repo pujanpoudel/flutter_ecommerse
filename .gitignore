@@ -44,3 +44,7 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 .env
+assets/
+.flutter-plugins-dependencies
+flutter-plugins
+Quick_cart.iml.env

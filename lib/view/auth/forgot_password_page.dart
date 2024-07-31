@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_ecommerce/utils/colors.dart';
-import 'package:flutter_ecommerce/view/auth/sign_in_page.dart';
 import 'package:get/get.dart';
-
+import '../../utils/colors.dart';
 import '../verification/otp_verification_page.dart';
+import 'sign_in_page.dart';
 
 class ForgotPasswordPage extends StatelessWidget {
   const ForgotPasswordPage({super.key});
