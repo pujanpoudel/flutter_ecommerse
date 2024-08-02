@@ -46,7 +46,24 @@ class SignInPage extends StatelessWidget {
                       controller.obscureText.value,
                       controller.toggleObscureText,
                     )),
-                const SizedBox(height: 20),
+                const SizedBox(height: 5),
+                Obx(() => Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Checkbox(
+                          activeColor: AppColors.mainColor,
+                          value: controller.rememberMe.value,
+                          onChanged: (newValue) {
+                            controller.toggleRememberMe();
+                          },
+                        ),
+                        const Text(
+                          "Remember Me",
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        
+                      ],
+                    )),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -94,23 +111,6 @@ class SignInPage extends StatelessWidget {
                         )),
                   ],
                 ),
-                const SizedBox(height: 5),
-                Obx(() => Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text(
-                          "Remember Me",
-                          style: TextStyle(fontSize: 16),
-                        ),
-                        Checkbox(
-                          activeColor: AppColors.mainColor,
-                          value: controller.rememberMe.value,
-                          onChanged: (newValue) {
-                            controller.toggleRememberMe();
-                          },
-                        ),
-                      ],
-                    )),
                 const SizedBox(height: 5),
                 Center(
                   child: SizedBox(

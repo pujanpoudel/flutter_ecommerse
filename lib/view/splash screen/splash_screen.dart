@@ -20,7 +20,7 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 1),
       vsync: this,
     );
 
@@ -28,10 +28,9 @@ class _SplashScreenState extends State<SplashScreen>
     _scaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
-
     _controller.forward();
 
-    Timer(const Duration(seconds: 3), () {
+    Timer(const Duration(seconds:2), () {
       Navigator.of(context)
           .pushReplacement(MaterialPageRoute(builder: (_) => const LandingPage()));
     });
