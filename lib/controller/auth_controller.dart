@@ -61,10 +61,11 @@ class AuthController extends GetxController {
     );
     isLoading.value = false;
 
-    if (response.isOk) {
+    if (response.statusCode == 201) {
       String token = response.body['token'];
       await authRepo.saveUserToken(token);
       Get.offAll(() => const EmailVerificationPage());
+      print(response.statusCode.toString());
     } else {
       Get.snackbar('Error', response.statusText ?? 'Unknown error');
     }
@@ -79,7 +80,7 @@ class AuthController extends GetxController {
     );
     isLoading.value = false;
 
-    if (response.isOk) {
+    if (response.statusCode == 200) {
       String token = response.body['token'];
       await authRepo.saveUserToken(token);
       navigateToHomePage();
@@ -97,10 +98,12 @@ class AuthController extends GetxController {
   }
 
   void navigateToSignUp() {
-    Get.to(() => SignUpPage(),
-     transition: Transition.rightToLeft,
+    Get.to(
+      () => SignUpPage(),
+      transition: Transition.rightToLeft,
       duration: const Duration(milliseconds: 500),
-      curve: Curves.easeInOut,);
+      curve: Curves.easeInOut,
+    );
   }
 
   void navigateToSignIn() {

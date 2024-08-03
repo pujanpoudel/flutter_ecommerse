@@ -5,7 +5,7 @@ import 'routes/route_helper.dart';
 import 'utils/app_bindings.dart'; // Adjust the import path accordingly
 
 Future<void> main() async {
-    await dotenv.load(fileName: ".env");
+  await dotenv.load(fileName: ".env");
   runApp(const MyApp());
 }
 

@@ -113,6 +113,7 @@ class SignUpPage extends StatelessWidget {
                             textStyle: const TextStyle(fontSize: 24),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(50),
+                              
                             ),
                           ),
                           child: controller.isLoading.value

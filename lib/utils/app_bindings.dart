@@ -9,7 +9,6 @@ class AppBinding extends Bindings {
   void dependencies() async {
     final sharedPreferences = await SharedPreferences.getInstance();
     Get.lazyPut(() => sharedPreferences);
-
     Get.put(AuthRepo(sharedPreferences: Get.find()));
     Get.put(AuthController(authRepo: Get.find()));
   }

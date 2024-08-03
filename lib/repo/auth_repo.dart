@@ -26,6 +26,7 @@ class AuthRepo extends GetxService {
       if (response.statusCode == 200 || response.statusCode == 201) {
         await saveUserEmail(email);
       }
+      print(response.statusCode.toString());
 
       return response;
     } catch (e) {

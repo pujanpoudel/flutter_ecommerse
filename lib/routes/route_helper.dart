@@ -29,7 +29,8 @@ class RouteHelper {
   static String getProfile() => profile;
 
   static List<GetPage> routes = [
-    GetPage(name: initial, page: () => const SplashScreen()),
+    // GetPage(name: initial, page: () => const SplashScreen()),
+    GetPage(name: initial, page: () => SplashScreen()),
     GetPage(name: signIn, page: () => SignInPage()),
     GetPage(name: signUp, page: () => SignUpPage()),
     GetPage(name: forgotPassword, page: () => const ForgotPasswordPage()),
