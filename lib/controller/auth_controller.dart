@@ -16,7 +16,6 @@ class AuthController extends GetxController {
   var fullNameController = TextEditingController();
   var phoneNumberController = TextEditingController();
   var addressController = TextEditingController();
-
   var isLoading = false.obs;
   var obscureText = true.obs;
   var rememberMe = false.obs;
@@ -61,11 +60,13 @@ class AuthController extends GetxController {
     );
     isLoading.value = false;
 
+    print('Response code: ${response.statusCode}');
+    print('Response: ${response.body}');
+
     if (response.statusCode == 201) {
       String token = response.body['token'];
       await authRepo.saveUserToken(token);
       Get.offAll(() => const EmailVerificationPage());
-      print(response.statusCode.toString());
     } else {
       Get.snackbar('Error', response.statusText ?? 'Unknown error');
     }
