@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:quick_cart/models/user_model.dart';
+import 'package:quick_cart/repo/user_repo.dart';
 import '../repo/auth_repo.dart';
 import '../view/auth/forgot_password_page.dart';
 import '../view/auth/sign_in_page.dart';
@@ -9,7 +12,9 @@ import '../view/verification/email_verification_page.dart';
 
 class AuthController extends GetxController {
   final AuthRepo authRepo;
+  final UserRepo userRepo;
 
+  var user = UserModel().obs;
   var emailController = TextEditingController();
   var passwordController = TextEditingController();
   var confirmPasswordController = TextEditingController();
@@ -19,13 +24,16 @@ class AuthController extends GetxController {
   var isLoading = false.obs;
   var obscureText = true.obs;
   var rememberMe = false.obs;
+  var profilePicturePath = ''.obs;
 
-  AuthController({required this.authRepo});
+  AuthController({required this.authRepo, required this.userRepo});
 
   @override
   void onInit() {
     super.onInit();
     checkRememberMe();
+    fetchUserProfile();
+    loadProfilePicture();
   }
 
   void checkRememberMe() {
@@ -34,6 +42,10 @@ class AuthController extends GetxController {
       passwordController.text = authRepo.getUserPassword();
       rememberMe.value = true;
     }
+  }
+
+  void loadProfilePicture() {
+    profilePicturePath.value = authRepo.getProfilePicture() ?? '';
   }
 
   void toggleObscureText() {
@@ -45,29 +57,32 @@ class AuthController extends GetxController {
   }
 
   Future<void> signUp() async {
-    if (passwordController.text != confirmPasswordController.text) {
-      Get.snackbar('Error', 'Passwords do not match');
-      return;
-    }
-
     isLoading.value = true;
     try {
       final response = await authRepo.signUp(
         fullNameController.text,
         emailController.text,
         passwordController.text,
-        addressController.text,
+        confirmPasswordController.text,
         phoneNumberController.text,
+        addressController.text,
       );
       isLoading.value = false;
 
       print('SignUp Response code: ${response.statusCode}');
       print('SignUp Response body: ${response.body}');
 
-      if (response.statusCode == 201) {
-        String token = response.body['token'];
-        await authRepo.saveUserToken(token);
-        Get.offAll(() => const EmailVerificationPage());
+      if (response.statusCode == 200) {
+        final data = response.body['data'];
+        final accessToken = data['access_token'] as String?;
+        final refreshToken = data['refresh_token'] as String?;
+
+        if (accessToken != null && refreshToken != null) {
+          await authRepo.saveUserToken(accessToken);
+          navigateToVerifyEmail();
+        } else {
+          Get.snackbar('Error', 'Invalid response data. Please try again.');
+        }
       } else {
         Get.snackbar('Error', response.statusText ?? 'Unknown error');
       }
@@ -75,6 +90,55 @@ class AuthController extends GetxController {
       isLoading.value = false;
       print('SignUp Error: $e');
       Get.snackbar('Error', 'Failed to sign up. Please try again.');
+    }
+  }
+
+  Future<void> pickProfilePicture() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      profilePicturePath.value = pickedFile.path;
+      await authRepo.saveProfilePicture(pickedFile.path);
+    }
+  }
+
+  Future<void> fetchUserProfile() async {
+    try {
+      String token = authRepo.getUserToken();
+      final response = await userRepo.getUserProfile(token);
+      if (response.statusCode == 200) {
+        user.value = UserModel.fromJson(response.body['data']);
+        fullNameController.text = user.value.fullName ?? '';
+        emailController.text = user.value.email ?? '';
+        phoneNumberController.text = user.value.phone ?? '';
+      } else {
+        Get.snackbar('Error', 'Failed to load user profile');
+      }
+    } catch (e) {
+      print('FetchUserProfile Error: $e');
+      Get.snackbar('Error', 'Failed to load user profile');
+    }
+  }
+
+  Future<void> updateProfile() async {
+    try {
+      String token = authRepo.getUserToken();
+      UserModel updatedUser = user.value.copyWith(
+        fullName: fullNameController.text,
+        email: emailController.text,
+        phone: phoneNumberController.text,
+      );
+      final response = await userRepo.updateUserProfile(updatedUser, token);
+      if (response.statusCode == 200) {
+        user.value = updatedUser;
+        Get.snackbar('Success', 'Profile updated successfully');
+      } else {
+        Get.snackbar('Error', 'Failed to update profile');
+      }
+    } catch (e) {
+      print('UpdateProfile Error: $e');
+      Get.snackbar('Error', 'Failed to update profile');
     }
   }
 
@@ -92,9 +156,20 @@ class AuthController extends GetxController {
       print('SignIn Response body: ${response.body}');
 
       if (response.statusCode == 200) {
-        String token = response.body['token'];
-        await authRepo.saveUserToken(token);
-        navigateToHomePage();
+        final data = response.body['data'];
+
+        // Safely access the tokens and handle potential null values
+        final accessToken = data['access_token'] as String?;
+        final refreshToken = data['refresh_token'] as String?;
+
+        if (accessToken != null && refreshToken != null) {
+          await authRepo.saveUserToken(accessToken);
+          navigateToHomePage();
+        } else {
+          Get.snackbar('Error', 'Invalid response data. Please try again.');
+        }
+      } else if (response.statusCode == 401) {
+        Get.snackbar('Error', 'Invalid email or password');
       } else {
         Get.snackbar('Error', response.statusText ?? 'Unknown error');
       }
@@ -128,7 +203,7 @@ class AuthController extends GetxController {
 
   void navigateToHomePage() {
     Get.to(
-      () => const HomePage(),
+      () => HomePage(),
       transition: Transition.downToUp,
       duration: const Duration(milliseconds: 500),
       curve: Curves.easeInOut,

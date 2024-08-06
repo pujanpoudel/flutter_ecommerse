@@ -53,7 +53,7 @@ class LandingPage extends StatelessWidget {
               const SizedBox(height: 40),
               ElevatedButton(
                 onPressed: () {
-                  Get.put(AuthController(authRepo: Get.find()));
+                  Get.put(AuthController(authRepo: Get.find(), userRepo: Get.find()));
                   _navigateToSignIn();
                 },
                 style: ElevatedButton.styleFrom(

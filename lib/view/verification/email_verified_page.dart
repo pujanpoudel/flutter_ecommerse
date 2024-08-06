@@ -24,7 +24,6 @@ class EmailVerifiedPage extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -63,7 +62,7 @@ class EmailVerifiedPage extends StatelessWidget {
               const SizedBox(height: 60),
               ElevatedButton(
                 onPressed: () {
-                  Get.to(() => const HomePage());
+                  Get.to(() => HomePage());
                 },
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.white,

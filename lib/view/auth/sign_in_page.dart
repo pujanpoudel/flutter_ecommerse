@@ -5,7 +5,7 @@ import '../../utils/colors.dart';
 
 class SignInPage extends StatelessWidget {
   final AuthController controller =
-      Get.put(AuthController(authRepo: Get.find()));
+      Get.put(AuthController(authRepo: Get.find(), userRepo: Get.find()));
 
   SignInPage({super.key});
 
@@ -61,7 +61,6 @@ class SignInPage extends StatelessWidget {
                           "Remember Me",
                           style: TextStyle(fontSize: 16),
                         ),
-                        
                       ],
                     )),
                 Row(

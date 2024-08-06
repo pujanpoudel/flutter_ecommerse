@@ -84,7 +84,7 @@ class ChangePasswordPage extends StatelessWidget {
               try {
                 controller.changePassword();
                 // If changePassword is successful, navigate to HomePage
-                Get.offAll(() => const HomePage());
+                Get.offAll(() => HomePage());
               } catch (e) {
                 // Handle any errors that occur during password change
                 Get.snackbar('Error', 'Failed to change password: $e');

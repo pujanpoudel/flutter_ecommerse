@@ -9,7 +9,7 @@ class AuthRepo extends GetxService {
   AuthRepo({required this.sharedPreferences});
 
   Future<Response<dynamic>> signUp(String fullName, String email,
-      String password, String address, String phoneNumber) async {
+      String password, String address, String phoneNumber, String text) async {
     try {
       final response = await GetConnect().post(
         '$baseUrl/signup',
@@ -35,6 +35,14 @@ class AuthRepo extends GetxService {
       print('SignUp Error: $e');
       rethrow;
     }
+  }
+
+  Future<bool> saveProfilePicture(String path) async {
+    return await sharedPreferences.setString('profile_picture', path);
+  }
+
+  String? getProfilePicture() {
+    return sharedPreferences.getString('profile_picture');
   }
 
   Future<Response<dynamic>> signIn(

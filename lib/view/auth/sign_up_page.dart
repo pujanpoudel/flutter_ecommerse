@@ -5,7 +5,7 @@ import '../../utils/colors.dart';
 
 class SignUpPage extends StatelessWidget {
   final AuthController controller =
-      Get.put(AuthController(authRepo: Get.find()));
+      Get.put(AuthController(authRepo: Get.find(), userRepo: Get.find()));
   final RxBool obscureTextPassword = true.obs;
   final RxBool obscureTextConfirmPassword = true.obs;
 
@@ -106,14 +106,16 @@ class SignUpPage extends StatelessWidget {
                     child: Obx(() => ElevatedButton(
                           onPressed: controller.isLoading.value
                               ? null
-                              : controller.navigateToVerifyEmail,
+                              : () async {
+                                  print('Sign Up button pressed');
+                                  await controller.signUp();
+                                },
                           style: ElevatedButton.styleFrom(
                             foregroundColor: Colors.white,
                             backgroundColor: AppColors.mainColor,
                             textStyle: const TextStyle(fontSize: 24),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(50),
-                              
                             ),
                           ),
                           child: controller.isLoading.value
