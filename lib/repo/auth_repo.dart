@@ -23,13 +23,16 @@ class AuthRepo extends GetxService {
         },
       );
 
+      print('SignUp Response code: ${response.statusCode}');
+      print('SignUp Response body: ${response.body}');
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         await saveUserEmail(email);
       }
-      print(response.statusCode.toString());
 
       return response;
     } catch (e) {
+      print('SignUp Error: $e');
       rethrow;
     }
   }
@@ -45,6 +48,9 @@ class AuthRepo extends GetxService {
         },
       );
 
+      print('SignIn Response code: ${response.statusCode}');
+      print('SignIn Response body: ${response.body}');
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         await saveUserEmail(email);
         if (rememberMe) {
@@ -56,6 +62,7 @@ class AuthRepo extends GetxService {
 
       return response;
     } catch (e) {
+      print('SignIn Error: $e');
       rethrow;
     }
   }
