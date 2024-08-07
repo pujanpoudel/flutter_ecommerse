@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:quick_cart/controller/product_controller.dart';
 import 'package:quick_cart/models/product_model.dart';
 import 'package:quick_cart/utils/skeleton_loader_widget.dart';
+import 'package:quick_cart/view/profile/profile_page.dart';
 import '../../utils/colors.dart';
 import 'product_detail_page.dart';
 
@@ -69,7 +70,20 @@ class HomePage extends StatelessWidget {
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 0,
-        onTap: (index) {},
+        onTap: (index) {
+          if (index == 0) {
+            Get.to(() => HomePage());
+          }
+          if (index == 1) {
+            Get.to(() => ());
+          }
+          if (index == 2) {
+            Get.to(() => ());
+          }
+          if (index == 3) {
+            Get.to(() => ProfilePage());
+          }
+        },
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
