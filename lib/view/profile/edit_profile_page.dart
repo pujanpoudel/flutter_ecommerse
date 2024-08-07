@@ -1,11 +1,11 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:multiavatar/multiavatar.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:quick_cart/controller/auth_controller.dart';
-import 'package:quick_cart/utils/colors.dart';
+import '../../utils/colors.dart';
+
 
 class EditProfilePage extends StatelessWidget {
   final AuthController controller = Get.find<AuthController>();
@@ -24,7 +24,10 @@ class EditProfilePage extends StatelessWidget {
           onPressed: () => Get.back(),
         ),
         title: const Text('Edit Profile',
-            style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+            style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.bold)),
       ),
       body: Obx(() => SingleChildScrollView(
             child: Column(
@@ -72,16 +75,11 @@ class EditProfilePage extends StatelessWidget {
                 const CircleAvatar(
                   backgroundColor: Colors.white,
                   radius: 20,
-                  child: Icon(Icons.camera_alt, color: AppColors.mainColor, size: 20),
+                  child: Icon(Icons.camera_alt,
+                      color: AppColors.mainColor, size: 20),
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 15),
-          const Text(
-            'Edit Your Profile',
-            style: TextStyle(
-                fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
           ),
         ],
       ),
@@ -99,15 +97,19 @@ class EditProfilePage extends StatelessWidget {
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 15),
-          _buildInputField(Icons.person, 'Full Name', 'Enter your full name', controller.fullNameController),
-          _buildInputField(Icons.email, 'Email', 'Enter your email', controller.emailController),
-          _buildInputField(Icons.phone, 'Phone Number', 'Enter your phone number', controller.phoneNumberController),
+          _buildInputField(Icons.person, 'Full Name', 'Enter your full name',
+              controller.fullNameController),
+          _buildInputField(Icons.email, 'Email', 'Enter your email',
+              controller.emailController),
+          _buildInputField(Icons.phone, 'Phone Number',
+              'Enter your phone number', controller.phoneNumberController),
         ],
       ),
     );
   }
 
-  Widget _buildInputField(IconData icon, String label, String hint, TextEditingController textController) {
+  Widget _buildInputField(IconData icon, String label, String hint,
+      TextEditingController textController) {
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
       decoration: BoxDecoration(
@@ -121,7 +123,8 @@ class EditProfilePage extends StatelessWidget {
           labelText: label,
           hintText: hint,
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         ),
       ),
     );
@@ -130,10 +133,28 @@ class EditProfilePage extends StatelessWidget {
   Widget _buildActionButtons() {
     return Container(
       padding: const EdgeInsets.all(20),
-      child: Row(
+      child: Column(
         children: [
-          Expanded(
-            child: OutlinedButton(
+          SizedBox(
+            width: 200, // Make button take full width of the container
+            child: ElevatedButton.icon(
+              onPressed: () => controller.updateProfile(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.mainColor,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+              icon: const Icon(Icons.save, color: Colors.white),
+              label: const Text('Save Changes'),
+            ),
+          ),
+          const SizedBox(height: 15),
+          SizedBox(
+            width: 200, // Make button take full width of the container
+            child: OutlinedButton.icon(
               onPressed: () => Get.back(),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.mainColor,
@@ -143,22 +164,8 @@ class EditProfilePage extends StatelessWidget {
                 ),
                 padding: const EdgeInsets.symmetric(vertical: 12),
               ),
-              child: const Text('Cancel'),
-            ),
-          ),
-          const SizedBox(width: 15),
-          Expanded(
-            child: ElevatedButton(
-              onPressed: controller.updateProfile,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.mainColor,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-              child: const Text('Save Changes'),
+              icon: const Icon(Icons.cancel, color: AppColors.mainColor),
+              label: const Text('Cancel'),
             ),
           ),
         ],

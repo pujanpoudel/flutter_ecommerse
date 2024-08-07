@@ -1,8 +1,9 @@
 import 'package:get/get.dart';
-import '../models/user_model.dart';
-import '../repo/user_repo.dart';
-import '../repo/auth_repo.dart';
-import 'auth_controller.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:quick_cart/controller/auth_controller.dart';
+import 'package:quick_cart/models/user_model.dart';
+import 'package:quick_cart/repo/auth_repo.dart';
+import 'package:quick_cart/repo/user_repo.dart';
 
 class UserController extends GetxController {
   final UserRepo userRepo;
@@ -11,6 +12,8 @@ class UserController extends GetxController {
 
   var user = UserModel().obs;
   var isLoading = false.obs;
+  var profilePicturePath = ''.obs;
+  var isProfilePageVisible = false.obs; // Add this line
 
   UserController({required this.userRepo, required this.authRepo});
 
@@ -28,11 +31,11 @@ class UserController extends GetxController {
       if (response.statusCode == 200) {
         user.value = UserModel.fromJson(response.body['data']);
       } else {
-        Get.snackbar('Error', 'Failed to load user profile');
+        showProfilePageSnackbar('Error', 'Failed to load user profile');
       }
     } catch (e) {
       print('FetchUserProfile Error: $e');
-      Get.snackbar('Error', 'Failed to load user profile');
+      showProfilePageSnackbar('Error', 'Failed to load user profile');
     } finally {
       isLoading(false);
     }
@@ -54,13 +57,13 @@ class UserController extends GetxController {
       final response = await userRepo.updateUserProfile(updatedUser, token);
       if (response.statusCode == 200) {
         user.value = updatedUser;
-        Get.snackbar('Success', 'Profile updated successfully');
+        showProfilePageSnackbar('Success', 'Profile updated successfully');
       } else {
-        Get.snackbar('Error', 'Failed to update profile');
+        showProfilePageSnackbar('Error', 'Failed to update profile');
       }
     } catch (e) {
       print('UpdateUserProfile Error: $e');
-      Get.snackbar('Error', 'Failed to update profile');
+      showProfilePageSnackbar('Error', 'Failed to update profile');
     } finally {
       isLoading(false);
     }
@@ -69,4 +72,24 @@ class UserController extends GetxController {
   String get fullName => user.value.fullName ?? '';
   String get email => user.value.email ?? '';
   String get phone => user.value.phone ?? '';
+
+  Future<void> pickProfilePicture() async {
+    final ImagePicker picker = ImagePicker();
+    try {
+      final XFile? pickedFile =
+          await picker.pickImage(source: ImageSource.gallery);
+      if (pickedFile != null) {
+        profilePicturePath.value = pickedFile.path;
+      }
+    } catch (e) {
+      print('PickProfilePicture Error: $e');
+      showProfilePageSnackbar('Error', 'Failed to pick profile picture');
+    }
+  }
+
+  void showProfilePageSnackbar(String title, String message) {
+    if (isProfilePageVisible.value) {
+      Get.snackbar(title, message);
+    }
+  }
 }

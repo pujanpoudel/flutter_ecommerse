@@ -11,7 +11,6 @@ class UserRepo extends GetxService {
         '$baseUrl/accounts/me',
         headers: {'Authorization': 'Bearer $token'},
       );
-
       return response;
     } catch (e) {
       print('GetUserProfile Error: $e');
@@ -22,11 +21,10 @@ class UserRepo extends GetxService {
   Future<Response<dynamic>> updateUserProfile(UserModel user, String token) async {
     try {
       final response = await GetConnect().put(
-        '$baseUrl/user/profile',
+        '$baseUrl/accounts/me',
         user.toJson(),
         headers: {'Authorization': 'Bearer $token'},
       );
-
       return response;
     } catch (e) {
       print('UpdateUserProfile Error: $e');

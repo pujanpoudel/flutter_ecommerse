@@ -3,114 +3,79 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
 import 'package:quick_cart/controller/product_controller.dart';
+import 'package:quick_cart/controller/user_controller.dart';
 import 'package:quick_cart/models/product_model.dart';
+import 'package:quick_cart/utils/bottom_nav_bar_widget.dart';
 import 'package:quick_cart/utils/skeleton_loader_widget.dart';
-import 'package:quick_cart/view/profile/profile_page.dart';
 import '../../utils/colors.dart';
 import 'product_detail_page.dart';
 
 class HomePage extends StatelessWidget {
   final ProductController productController = Get.find<ProductController>();
+  final UserController userController = Get.find<UserController>();
 
   HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: AppColors.creamColor,
-        title: const Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Delivery address',
-                style: TextStyle(fontSize: 12, color: Colors.grey)),
-            Row(
+    return MainLayout(
+        currentIndex: 0,
+        body: Scaffold(
+          appBar: AppBar(
+            backgroundColor: AppColors.creamColor,
+            title: const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(' Khairahani, Chitwan', style: TextStyle(fontSize: 14)),
-                Icon(Icons.arrow_drop_down),
+                Text('Delivery address',
+                    style: TextStyle(fontSize: 12, color: Colors.grey)),
+                Row(
+                  children: [
+                    Text(' Khairahani, Chitwan',
+                        style: TextStyle(fontSize: 14)),
+                    Icon(Icons.arrow_drop_down),
+                  ],
+                ),
               ],
             ),
-          ],
-        ),
-        actions: [
-          IconButton(icon: const Icon(Icons.shopping_cart), onPressed: () {}),
-          IconButton(icon: const Icon(Icons.notifications), onPressed: () {}),
-        ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: productController.fetchProducts,
-        child: Obx(() {
-          if (productController.isLoading.value) {
-            return _buildSkeletonLoader();
-          } else if (productController.errorMessage.value.isNotEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(productController.errorMessage.value),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: productController.fetchProducts,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.mainColor,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+            actions: [
+              IconButton(
+                  icon: const Icon(Icons.shopping_cart), onPressed: () {}),
+              IconButton(
+                  icon: const Icon(Icons.notifications), onPressed: () {}),
+            ],
+          ),
+          body: RefreshIndicator(
+            onRefresh: productController.fetchProducts,
+            child: Obx(() {
+              if (productController.isLoading.value) {
+                return _buildSkeletonLoader();
+              } else if (productController.errorMessage.value.isNotEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(productController.errorMessage.value),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: productController.fetchProducts,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.mainColor,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text('Retry'),
                       ),
-                    ),
-                    child: const Text('Retry'),
+                    ],
                   ),
-                ],
-              ),
-            );
-          } else {
-            return _buildContent();
-          }
-        }),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        onTap: (index) {
-          if (index == 0) {
-            Get.to(() => HomePage());
-          }
-          if (index == 1) {
-            Get.to(() => ());
-          }
-          if (index == 2) {
-            Get.to(() => ());
-          }
-          if (index == 3) {
-            Get.to(() => ProfilePage());
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
+                );
+              } else {
+                return _buildContent();
+              }
+            }),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            label: 'Search',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart),
-            label: 'Cart',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-            backgroundColor: AppColors.mainColor,
-          ),
-        ],
-        backgroundColor: AppColors.whiteColor,
-        selectedItemColor: AppColors.mainColor,
-        unselectedItemColor: Colors.grey,
-        type: BottomNavigationBarType.fixed,
-        showSelectedLabels: true,
-        showUnselectedLabels: false,
-      ),
-    );
+        ));
   }
 
   Widget _buildSkeletonLoader() {
