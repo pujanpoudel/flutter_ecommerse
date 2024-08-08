@@ -3,7 +3,7 @@ import '../utils/colors.dart';
 import '../utils/dimensions.dart';
 
 class CustomLoader extends StatelessWidget {
-  const CustomLoader({Key? key}) : super(key: key);
+  const CustomLoader({super.key});
 
   @override
   Widget build(BuildContext context) {

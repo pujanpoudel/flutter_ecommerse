@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:quick_cart/view/product/home_page.dart';
 import '../../utils/colors.dart';
-import '../auth/change_password_page.dart';
 
 class EmailVerifiedPage extends StatelessWidget {
   const EmailVerifiedPage({super.key});
@@ -62,7 +62,7 @@ class EmailVerifiedPage extends StatelessWidget {
               const SizedBox(height: 60),
               ElevatedButton(
                 onPressed: () {
-                  Get.to(() => ChangePasswordPage());
+                  Get.to(() => HomePage());
                 },
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.white,

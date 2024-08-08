@@ -12,7 +12,7 @@ class CustomButton extends StatelessWidget {
   final double? fontSize;
   final double radius;
   final IconData? icon;
-  const CustomButton({Key? key,
+  const CustomButton({super.key,
     this.onPressed,
     required this.buttonText,
     this.transparent=false,
@@ -22,7 +22,7 @@ class CustomButton extends StatelessWidget {
     this.fontSize,
     this.radius=5,
     this.icon
-  }) : super(key:key);
+  });
 
   @override
   Widget build(BuildContext context) {

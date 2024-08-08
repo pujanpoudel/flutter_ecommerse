@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../utils/colors.dart';
+import '../product/home_page.dart';
 
 class ChangePasswordController extends GetxController {
   final TextEditingController newPasswordController = TextEditingController();
@@ -73,29 +74,38 @@ class ChangePasswordPage extends StatelessWidget {
                 )),
                 const SizedBox(height: 40),
                 Center(
-                  child: SizedBox(
-                    height: 50,
-                    width: 250,
-                    child: Obx(() => ElevatedButton(
-                      onPressed: controller.isLoading.value
-                          ? null
-                          : controller.changePassword,
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        backgroundColor: AppColors.mainColor,
-                        textStyle: const TextStyle(fontSize: 18),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(50),
-                        ),
-                      ),
-                      child: controller.isLoading.value
-                          ? const CircularProgressIndicator(
-                        color: Colors.white,
-                      )
-                          : const Text('Change Password'),
-                    )),
-                  ),
-                ),
+  child: SizedBox(
+    height: 50,
+    width: 250,
+    child: Obx(() => ElevatedButton(
+      onPressed: controller.isLoading.value
+          ? null
+          : () async {
+              try {
+                controller.changePassword();
+                // If changePassword is successful, navigate to HomePage
+                Get.offAll(() => HomePage());
+              } catch (e) {
+                // Handle any errors that occur during password change
+                Get.snackbar('Error', 'Failed to change password: $e');
+              }
+            },
+      style: ElevatedButton.styleFrom(
+        foregroundColor: Colors.white,
+        backgroundColor: AppColors.mainColor,
+        textStyle: const TextStyle(fontSize: 18),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(50),
+        ),
+      ),
+      child: controller.isLoading.value
+          ? const CircularProgressIndicator(
+              color: Colors.white,
+            )
+          : const Text('Change Password'),
+    )),
+  ),
+),
               ],
             ),
           ),

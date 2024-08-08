@@ -4,7 +4,7 @@ import '../../repo/auth_repo.dart';
 import '../../utils/colors.dart';
 
 class EditEmailPage extends StatefulWidget {
-  const EditEmailPage({Key? key}) : super(key: key);
+  const EditEmailPage({super.key});
 
   @override
   _EditEmailPageState createState() => _EditEmailPageState();

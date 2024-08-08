@@ -46,62 +46,10 @@ class SignInPage extends StatelessWidget {
                       controller.obscureText.value,
                       controller.toggleObscureText,
                     )),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Padding(
-                        padding: const EdgeInsets.only(left: 10),
-                        child: Row(
-                          children: [
-                            GestureDetector(
-                              onTap: controller.navigateToSignUp,
-                              child: const Text(
-                                'Sign Up',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            const Icon(
-                              Icons.arrow_right_alt,
-                              size: 40,
-                              color: AppColors.mainColor,
-                            ),
-                          ],
-                        )),
-                    Padding(
-                        padding: const EdgeInsets.only(right: 10),
-                        child: Row(
-                          children: [
-                            GestureDetector(
-                              onTap: controller.navigateToForgotPassword,
-                              child: const Text(
-                                'Forgot Password?',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            const Icon(
-                              Icons.arrow_right_alt,
-                              size: 40,
-                              color: AppColors.mainColor,
-                            ),
-                          ],
-                        )),
-                  ],
-                ),
                 const SizedBox(height: 5),
                 Obx(() => Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        const Text(
-                          "Remember Me",
-                          style: TextStyle(fontSize: 16),
-                        ),
                         Checkbox(
                           activeColor: AppColors.mainColor,
                           value: controller.rememberMe.value,
@@ -109,13 +57,17 @@ class SignInPage extends StatelessWidget {
                             controller.toggleRememberMe();
                           },
                         ),
+                        const Text(
+                          "Remember Me",
+                          style: TextStyle(fontSize: 16),
+                        ),
                       ],
                     )),
-                const SizedBox(height: 5),
+                const SizedBox(height: 10),
                 Center(
                   child: SizedBox(
                     height: 50,
-                    width: 250,
+                    width: 200,
                     child: Obx(() => ElevatedButton(
                           onPressed: controller.isLoading.value
                               ? null
@@ -136,7 +88,59 @@ class SignInPage extends StatelessWidget {
                         )),
                   ),
                 ),
-                const SizedBox(height: 100),
+                const SizedBox(height: 20),
+                Column(
+                  children: [
+                    Padding(
+                        padding: const EdgeInsets.only(left: 10),
+                        child: Center(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              GestureDetector(
+                                onTap: controller.navigateToSignUp,
+                                child: const Text(
+                                  'Sign Up?',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              const Icon(
+                                Icons.arrow_right_alt,
+                                size: 40,
+                                color: AppColors.mainColor,
+                              ),
+                            ],
+                          ),
+                        )),
+                    const SizedBox(height: 10),
+                    Padding(
+                        padding: const EdgeInsets.only(right: 10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            GestureDetector(
+                              onTap: controller.navigateToForgotPassword,
+                              child: const Text(
+                                'Forgot Password?',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            const Icon(
+                              Icons.arrow_right_alt,
+                              size: 40,
+                              color: AppColors.mainColor,
+                            ),
+                          ],
+                        )),
+                  ],
+                ),
+                const SizedBox(height: 50),
                 const Center(
                   child: Text(
                     'or Sign In with',

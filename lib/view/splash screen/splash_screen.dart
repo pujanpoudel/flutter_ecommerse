@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-
-import '../landing page/landing_page.dart';
+import 'package:get/get.dart';
+import 'package:quick_cart/repo/auth_repo.dart';
+import 'package:quick_cart/view/auth/sign_in_page.dart';
+import 'package:quick_cart/view/landing%20page/landing_page.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -20,7 +22,7 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 1),
       vsync: this,
     );
 
@@ -28,13 +30,20 @@ class _SplashScreenState extends State<SplashScreen>
     _scaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
-
     _controller.forward();
 
-    Timer(const Duration(seconds: 3), () {
-      Navigator.of(context)
-          .pushReplacement(MaterialPageRoute(builder: (_) => const LandingPage()));
-    });
+    Timer(const Duration(seconds: 2), _navigateToNextPage);
+  }
+
+  void _navigateToNextPage() async {
+    final authRepo = Get.find<AuthRepo>();
+    bool isLoggedIn = authRepo.isLoggedIn();
+
+    if (isLoggedIn) {
+      Get.to(() => SignInPage());
+    } else {
+      Get.to(() => LandingPage());
+    }
   }
 
   @override

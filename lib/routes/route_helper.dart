@@ -33,7 +33,7 @@ class RouteHelper {
     GetPage(name: signIn, page: () => SignInPage()),
     GetPage(name: signUp, page: () => SignUpPage()),
     GetPage(name: forgotPassword, page: () => const ForgotPasswordPage()),
-    GetPage(name: home, page: () => const HomePage()),
+    GetPage(name: home, page: () => HomePage()),
     GetPage(name: emailVerification, page: () => const EmailVerificationPage()),
   ];
 }

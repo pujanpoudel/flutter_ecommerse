@@ -53,8 +53,9 @@ class LandingPage extends StatelessWidget {
               const SizedBox(height: 40),
               ElevatedButton(
                 onPressed: () {
-                  Get.put(AuthController(authRepo: Get.find()));
-                  _navigateToSignIn();
+                  Get.put(AuthController(
+                      authRepo: Get.find()));
+                  _navigateToSignUp();
                 },
                 style: ElevatedButton.styleFrom(
                   foregroundColor: AppColors.whiteColor,
@@ -91,7 +92,7 @@ class LandingPage extends StatelessWidget {
     );
   }
 
-  void _navigateToSignIn() {
+  void _navigateToSignUp() {
     Get.to(
       () => SignInPage(),
       transition: Transition.rightToLeft,

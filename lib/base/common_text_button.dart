@@ -5,7 +5,7 @@ import 'big_text.dart';
 
 class CommonTextButton extends StatelessWidget {
   final String text;
-  const CommonTextButton({Key? key, required this.text}): super(key:key);
+  const CommonTextButton({super.key, required this.text});
 
   @override
   Widget build(BuildContext context) {
