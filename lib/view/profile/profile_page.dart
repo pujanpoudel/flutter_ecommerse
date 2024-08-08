@@ -19,24 +19,18 @@ class ProfilePage extends StatelessWidget {
 
     return MainLayout(
       currentIndex: 3,
-      body: Scaffold(
-        backgroundColor: AppColors.whiteColor,
-        appBar: AppBar(
-          backgroundColor: AppColors.mainColor,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () {
-              userController.isProfilePageVisible.value = false;
-              Get.back();
-            },
-          ),
-          title: const Text(
-            'My Profile',
-            style: TextStyle(
-                color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
-          ),
+      appBar: AppBar(
+        backgroundColor: AppColors.mainColor,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        title: const Text(
+          'My Profile',
+          style: TextStyle(
+              color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
         ),
+      ),
+      body: Scaffold(
+        backgroundColor: AppColors.creamColor,
         body: Obx(() => userController.isLoading.value
             ? const Center(child: CircularProgressIndicator())
             : SingleChildScrollView(
@@ -56,8 +50,8 @@ class ProfilePage extends StatelessWidget {
   Widget _buildProfileHeader() {
     final UserController controller = Get.find<UserController>();
     return Container(
-      color: AppColors.mainColor,
-      padding: const EdgeInsets.only(bottom: 30),
+      color: AppColors.creamColor,
+      // padding: const EdgeInsets.only(bottom: 30),
       child: Column(
         children: [
           const SizedBox(height: 20),
@@ -70,7 +64,7 @@ class ProfilePage extends StatelessWidget {
               height: 120,
             ),
           ),
-          const SizedBox(height: 15),
+          // const SizedBox(height: 15),
           Text(
             controller.fullName,
             style: const TextStyle(

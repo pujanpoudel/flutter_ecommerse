@@ -10,7 +10,7 @@ class Product {
   final String? size;
   final Color color;
   final Vendor vendor;
-  final ProductType type;
+  final Type type;
 
   Product({
     required this.id,
@@ -31,7 +31,7 @@ class Product {
     return Product(
       id: json['id'],
       name: json['name'],
-      price: json['price'].toDouble(),
+      price: json['price'],
       description: json['description'],
       image: json['image'],
       category: Category.fromJson(json['category']),
@@ -40,7 +40,7 @@ class Product {
       size: json['size'],
       color: Color.fromJson(json['color']),
       vendor: Vendor.fromJson(json['vendor']),
-      type: ProductType.fromJson(json['type']),
+      type: Type.fromJson(json['type']),
     );
   }
 }
@@ -50,7 +50,11 @@ class Category {
   final String name;
   final String description;
 
-  Category({required this.id, required this.name, required this.description});
+  Category({
+    required this.id,
+    required this.name,
+    required this.description,
+  });
 
   factory Category.fromJson(Map<String, dynamic> json) {
     return Category(
@@ -65,7 +69,10 @@ class Color {
   final String id;
   final String hex;
 
-  Color({required this.id, required this.hex});
+  Color({
+    required this.id,
+    required this.hex,
+  });
 
   factory Color.fromJson(Map<String, dynamic> json) {
     return Color(
@@ -79,7 +86,10 @@ class Vendor {
   final String id;
   final String storeName;
 
-  Vendor({required this.id, required this.storeName});
+  Vendor({
+    required this.id,
+    required this.storeName,
+  });
 
   factory Vendor.fromJson(Map<String, dynamic> json) {
     return Vendor(
@@ -89,15 +99,19 @@ class Vendor {
   }
 }
 
-class ProductType {
+class Type {
   final String id;
   final String name;
   final String description;
 
-  ProductType({required this.id, required this.name, required this.description});
+  Type({
+    required this.id,
+    required this.name,
+    required this.description,
+  });
 
-  factory ProductType.fromJson(Map<String, dynamic> json) {
-    return ProductType(
+  factory Type.fromJson(Map<String, dynamic> json) {
+    return Type(
       id: json['id'],
       name: json['name'],
       description: json['description'],

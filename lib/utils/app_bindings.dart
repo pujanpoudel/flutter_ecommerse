@@ -14,15 +14,15 @@ class AppBinding extends Bindings {
       final sharedPreferences = await SharedPreferences.getInstance();
       return sharedPreferences;
     }).then((sharedPreferences) {
-      // Initialize dependencies that require SharedPreferences after it is ready
-      Get.lazyPut(() => AuthRepo(sharedPreferences: sharedPreferences));
+      Get.lazyPut(() => AuthRepo(sharedPreferences: Get.find()));
       Get.lazyPut(() => UserRepo());
       Get.lazyPut(() => AuthController(
           authRepo: Get.find<AuthRepo>(),
           userRepo: Get.find<UserRepo>()));
       Get.lazyPut(() => ProductRepo());
-      Get.lazyPut(() => ProductController(productRepo: Get.find<ProductRepo>()));
-      Get.lazyPut(() => UserController(userRepo: Get.find(), authRepo: Get.find()));
+    Get.lazyPut(() => ProductController(productRepo: Get.find<ProductRepo>()));
+    Get.lazyPut(() => UserController(
+        userRepo: Get.find<UserRepo>(), authRepo: Get.find<AuthRepo>()));
     });
   }
 }

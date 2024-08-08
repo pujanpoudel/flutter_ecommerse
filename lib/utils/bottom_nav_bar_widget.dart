@@ -7,12 +7,19 @@ import 'package:quick_cart/view/profile/profile_page.dart';
 class MainLayout extends StatelessWidget {
   final Widget body;
   final int currentIndex;
+  final PreferredSizeWidget? appBar;
 
-  const MainLayout({super.key, required this.body, required this.currentIndex});
+  const MainLayout({
+    super.key,
+    required this.body,
+    required this.currentIndex,
+    this.appBar,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: appBar,
       body: body,
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: currentIndex,
@@ -24,7 +31,7 @@ class MainLayout extends StatelessWidget {
             // Get.to(() => SearchPage());
           }
           if (index == 2) {
-            // Get.to(() => CartPage());
+            // Get.to(() => CartHistoryPage());
           }
           if (index == 3) {
             Get.to(() => ProfilePage());
@@ -40,7 +47,7 @@ class MainLayout extends StatelessWidget {
             label: 'Search',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart),
+            icon: Icon(Icons.history),
             label: 'Cart',
           ),
           BottomNavigationBarItem(

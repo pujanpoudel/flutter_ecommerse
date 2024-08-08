@@ -40,9 +40,9 @@ class _SplashScreenState extends State<SplashScreen>
     bool isLoggedIn = authRepo.isLoggedIn();
 
     if (isLoggedIn) {
-      Get.to(SignInPage());
+      Get.to(() => SignInPage());
     } else {
-      Get.to(const LandingPage());
+      Get.to(() => LandingPage());
     }
   }
 

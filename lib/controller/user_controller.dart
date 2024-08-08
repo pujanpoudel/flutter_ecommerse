@@ -13,7 +13,7 @@ class UserController extends GetxController {
   var user = UserModel().obs;
   var isLoading = false.obs;
   var profilePicturePath = ''.obs;
-  var isProfilePageVisible = false.obs; // Add this line
+  var isProfilePageVisible = false.obs;
 
   UserController({required this.userRepo, required this.authRepo});
 

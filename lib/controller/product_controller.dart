@@ -4,7 +4,7 @@ import '../repo/product_repo.dart';
 
 class ProductController extends GetxController {
   final ProductRepo productRepo;
-  
+
   var isLoading = true.obs;
   var products = <Product>[].obs;
   var errorMessage = ''.obs;
@@ -24,7 +24,7 @@ class ProductController extends GetxController {
     errorMessage.value = '';
 
     try {
-      final response = await productRepo.fetchProducts();
+      final response = await productRepo.fetchProducts(currentPage.value);
 
       if (response['success'] == true) {
         final data = response['data'];
@@ -32,7 +32,11 @@ class ProductController extends GetxController {
         currentPage.value = data['current_page'];
 
         final List<dynamic> productList = data['data'];
-        products.value = productList.map((json) => Product.fromJson(json)).toList();
+        if (currentPage.value == 1) {
+          products.value = productList.map((json) => Product.fromJson(json)).toList();
+        } else {
+          products.addAll(productList.map((json) => Product.fromJson(json)).toList());
+        }
       } else {
         errorMessage.value = response['message'] ?? 'Failed to load products';
       }
@@ -43,10 +47,15 @@ class ProductController extends GetxController {
     }
   }
 
-  void refreshProducts() {
+  Future<void> refreshProducts() async {
     currentPage.value = 1;
-    fetchProducts();
+    await fetchProducts();
   }
 
-  // Add more methods as needed, e.g., for pagination, filtering, etc.
+  Future<void> loadMoreProducts() async {
+    if (currentPage.value < totalPages.value) {
+      currentPage.value++;
+      await fetchProducts();
+    }
+  }
 }

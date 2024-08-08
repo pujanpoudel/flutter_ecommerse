@@ -6,7 +6,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:quick_cart/controller/auth_controller.dart';
 import '../../utils/colors.dart';
 
-
 class EditProfilePage extends StatelessWidget {
   final AuthController controller = Get.find<AuthController>();
 
@@ -15,7 +14,7 @@ class EditProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.whiteColor,
+      backgroundColor: AppColors.creamColor,
       appBar: AppBar(
         backgroundColor: AppColors.mainColor,
         elevation: 0,
@@ -33,7 +32,8 @@ class EditProfilePage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _buildProfileHeader(),
+                const SizedBox(height: 20),
+                _buildDefaultAvatar(),
                 _buildEditForm(),
                 _buildActionButtons(),
               ],
@@ -42,46 +42,37 @@ class EditProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileHeader() {
-    return Container(
-      color: AppColors.mainColor,
-      padding: const EdgeInsets.only(bottom: 30),
-      child: Column(
-        children: [
-          const SizedBox(height: 20),
-          GestureDetector(
-            onTap: () => controller.pickProfilePicture(),
-            child: Stack(
-              alignment: Alignment.bottomRight,
-              children: [
-                CircleAvatar(
-                  radius: 60,
-                  backgroundColor: Colors.white,
-                  child: controller.profilePicturePath.value.isNotEmpty
-                      ? ClipOval(
-                          child: Image.file(
-                            File(controller.profilePicturePath.value),
-                            fit: BoxFit.cover,
-                            width: 120,
-                            height: 120,
-                          ),
-                        )
-                      : SvgPicture.string(
-                          multiavatar(controller.user.value.fullName ?? 'User'),
-                          width: 120,
-                          height: 120,
-                        ),
-                ),
-                const CircleAvatar(
-                  backgroundColor: Colors.white,
-                  radius: 20,
-                  child: Icon(Icons.camera_alt,
-                      color: AppColors.mainColor, size: 20),
-                ),
-              ],
+  Widget buildProfileImage() {
+    return Obx(() {
+      if (controller.profilePicturePath.value.isNotEmpty) {
+        final file = File(controller.profilePicturePath.value);
+        if (file.existsSync()) {
+          return ClipOval(
+            child: Image.file(
+              file,
+              fit: BoxFit.cover,
+              width: 120,
+              height: 120,
+              errorBuilder: (context, error, stackTrace) {
+                print('Error loading image: $error');
+                return _buildDefaultAvatar();
+              },
             ),
-          ),
-        ],
+          );
+        }
+      }
+      return _buildDefaultAvatar();
+    });
+  }
+
+  Widget _buildDefaultAvatar() {
+    return CircleAvatar(
+      radius: 60,
+      backgroundColor: Colors.white,
+      child: SvgPicture.string(
+        multiavatar(controller.user.value.fullName ?? 'User'),
+        width: 120,
+        height: 120,
       ),
     );
   }
@@ -136,7 +127,7 @@ class EditProfilePage extends StatelessWidget {
       child: Column(
         children: [
           SizedBox(
-            width: 200, // Make button take full width of the container
+            width: 250,
             child: ElevatedButton.icon(
               onPressed: () => controller.updateProfile(),
               style: ElevatedButton.styleFrom(
@@ -151,9 +142,9 @@ class EditProfilePage extends StatelessWidget {
               label: const Text('Save Changes'),
             ),
           ),
-          const SizedBox(height: 15),
+          const SizedBox(height: 20),
           SizedBox(
-            width: 200, // Make button take full width of the container
+            width: 250,
             child: OutlinedButton.icon(
               onPressed: () => Get.back(),
               style: OutlinedButton.styleFrom(

@@ -3,9 +3,8 @@ import 'dart:convert';
 import '../utils/app_constants.dart';
 
 class ProductRepo {
-  Future<Map<String, dynamic>> fetchProducts() async {
-    final response = await http.get(Uri.parse('${AppConstants.BASE_URL}/products'));
-
+  Future<Map<String, dynamic>> fetchProducts(int value) async {
+    final response = await http.get(Uri.parse('${AppConstants.BASE_URL}/get/products'));
     if (response.statusCode == 200) {
       return json.decode(response.body);
     } else {
