@@ -5,7 +5,7 @@ import '../../utils/colors.dart';
 
 class SignUpPage extends StatelessWidget {
   final AuthController controller =
-      Get.put(AuthController(authRepo: Get.find(), userRepo: Get.find()));
+      Get.put(AuthController(authRepo: Get.find()));
   final RxBool obscureTextPassword = true.obs;
   final RxBool obscureTextConfirmPassword = true.obs;
 
@@ -71,34 +71,7 @@ class SignUpPage extends StatelessWidget {
                     label: 'Address',
                     hint: 'Enter your Delivery Address',
                     controller: controller.addressController),
-                const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Padding(
-                        padding: const EdgeInsets.only(right: 10),
-                        child: Row(
-                          children: [
-                            GestureDetector(
-                              onTap: controller.navigateToSignIn,
-                              child: const Text(
-                                'Sign In',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            const Icon(
-                              Icons.arrow_right_alt,
-                              size: 40,
-                              color: AppColors.mainColor,
-                            ),
-                          ],
-                        )),
-                  ],
-                ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 15),
                 Center(
                   child: SizedBox(
                     height: 50,
@@ -124,6 +97,31 @@ class SignUpPage extends StatelessWidget {
                               : const Text('Sign Up'),
                         )),
                   ),
+                ),
+                const SizedBox(height: 15),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap: controller.navigateToSignIn,
+                          child: const Text(
+                            'Sign In',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const Icon(
+                          Icons.arrow_right_alt,
+                          size: 40,
+                          color: AppColors.mainColor,
+                        ),
+                      ],
+                    )
+                  ],
                 ),
                 const SizedBox(height: 15),
                 const Center(

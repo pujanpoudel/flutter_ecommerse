@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:quick_cart/models/auth_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/app_constants.dart';
 
@@ -8,19 +9,17 @@ class AuthRepo extends GetxService {
 
   AuthRepo({required this.sharedPreferences});
 
-  Future<Response<dynamic>> signUp(String fullName, String email,
-      String password, String address, String phoneNumber, String text) async {
+  Future<Response<dynamic>> signUp(String fullName, String email, String password, String address, String phoneNumber, String text) async {
     try {
       final response = await GetConnect().post(
         '$baseUrl/signup',
-        {
-          'full_name': fullName,
-          'email': email,
-          'password': password,
-          'address': address,
-          'confirm_password': password,
-          'phone': phoneNumber,
-        },
+        AuthModel(
+          fullName: fullName,
+          phone: phoneNumber,
+          email: email,
+          password: password,
+          address: address,
+        ).toJson(),
       );
 
       print('SignUp Response code: ${response.statusCode}');
@@ -37,16 +36,7 @@ class AuthRepo extends GetxService {
     }
   }
 
-  Future<bool> saveProfilePicture(String path) async {
-    return await sharedPreferences.setString('profile_picture', path);
-  }
-
-  String? getProfilePicture() {
-    return sharedPreferences.getString('profile_picture');
-  }
-
-  Future<Response<dynamic>> signIn(
-      String email, String password, bool rememberMe) async {
+  Future<Response<dynamic>> signIn(String email, String password, bool rememberMe) async {
     try {
       final response = await GetConnect().post(
         '$baseUrl/login',
@@ -75,6 +65,60 @@ class AuthRepo extends GetxService {
     }
   }
 
+  Future<Response<dynamic>> resetPassword(String email) async {
+    try {
+      final response = await GetConnect().post(
+        '$baseUrl/forget/password',
+        {
+          'email': email,
+        },
+      );
+
+      print('Reset Password Response code: ${response.statusCode}');
+      print('Reset Password Response body: ${response.body}');
+
+      return response;
+    } catch (e) {
+      print('Reset Password Error: $e');
+      rethrow;
+    }
+  }
+
+  Future<Response<dynamic>> getUserProfile(String token) async {
+    try {
+      final response = await GetConnect().get(
+        '$baseUrl/accounts/me',
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      return response;
+    } catch (e) {
+      print('GetUserProfile Error: $e');
+      rethrow;
+    }
+  }
+
+  Future<Response<dynamic>> updateUserProfile(AuthModel user, String token) async {
+    try {
+      final response = await GetConnect().put(
+        '$baseUrl/accounts/me',
+        user.toJson(),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      return response;
+    } catch (e) {
+      print('UpdateUserProfile Error: $e');
+      rethrow;
+    }
+  }
+
+  Future<bool> saveProfilePicture(String path) async {
+    return await sharedPreferences.setString('profile_picture', path);
+  }
+
+  String? getProfilePicture() {
+    return sharedPreferences.getString('profile_picture');
+  }
+
   Future<bool> saveUserEmail(String email) async {
     return await sharedPreferences.setString('user_email', email);
   }
@@ -95,6 +139,10 @@ class AuthRepo extends GetxService {
     return await sharedPreferences.remove('user_password');
   }
 
+  Future<bool> clearUserEmail() async {
+    return await sharedPreferences.remove('user_email');
+  }
+
   Future<bool> saveUserToken(String token) async {
     return await sharedPreferences.setString('user_token', token);
   }
@@ -113,5 +161,13 @@ class AuthRepo extends GetxService {
 
   bool isRememberMeChecked() {
     return sharedPreferences.containsKey('user_password');
+  }
+
+  Future<void> signOut({required bool rememberMe}) async {
+    await clearUserToken();
+    if (!rememberMe) {
+      await clearUserEmail();
+      await clearUserPassword();
+    }
   }
 }

@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:quick_cart/models/user_model.dart';
-import 'package:quick_cart/repo/user_repo.dart';
-import '../repo/auth_repo.dart';
-import '../view/auth/forgot_password_page.dart';
-import '../view/auth/sign_in_page.dart';
-import '../view/auth/sign_up_page.dart';
-import '../view/product/home_page.dart';
-import '../view/verification/email_verification_page.dart';
+import 'package:quick_cart/models/auth_model.dart';
+import 'package:quick_cart/repo/auth_repo.dart';
+import 'package:quick_cart/view/auth/forgot_password_page.dart';
+import 'package:quick_cart/view/auth/sign_in_page.dart';
+import 'package:quick_cart/view/auth/sign_up_page.dart';
+import 'package:quick_cart/view/product/home_page.dart';
+import 'package:quick_cart/view/verification/email_verification_page.dart';
+import 'package:quick_cart/view/verification/otp_verification_page.dart';
 
 class AuthController extends GetxController {
   final AuthRepo authRepo;
-  final UserRepo userRepo;
 
-  var user = UserModel().obs;
+  var user = AuthModel().obs;
   var emailController = TextEditingController();
   var passwordController = TextEditingController();
   var confirmPasswordController = TextEditingController();
@@ -25,8 +24,9 @@ class AuthController extends GetxController {
   var obscureText = true.obs;
   var rememberMe = false.obs;
   var profilePicturePath = ''.obs;
+  var isProfilePageVisible = false.obs;
 
-  AuthController({required this.authRepo, required this.userRepo});
+  AuthController({required this.authRepo});
 
   @override
   void onInit() {
@@ -59,18 +59,24 @@ class AuthController extends GetxController {
   Future<void> signUp() async {
     isLoading.value = true;
     try {
-      final response = await authRepo.signUp(
-        fullNameController.text,
-        emailController.text,
-        passwordController.text,
-        confirmPasswordController.text,
-        phoneNumberController.text,
-        addressController.text,
+      final signUpBody = AuthModel(
+        fullName: fullNameController.text,
+        email: emailController.text,
+        password: passwordController.text,
+        address: addressController.text,
+        phone: phoneNumberController.text,
       );
-      isLoading.value = false;
 
-      print('SignUp Response code: ${response.statusCode}');
-      print('SignUp Response body: ${response.body}');
+      final response = await authRepo.signUp(
+        signUpBody.fullName!,
+        signUpBody.email!,
+        signUpBody.password!,
+        signUpBody.address!,
+        signUpBody.phone!,
+        confirmPasswordController.text,
+      );
+
+      isLoading.value = false;
 
       if (response.statusCode == 200) {
         final data = response.body['data'];
@@ -88,57 +94,7 @@ class AuthController extends GetxController {
       }
     } catch (e) {
       isLoading.value = false;
-      print('SignUp Error: $e');
       Get.snackbar('Error', 'Failed to sign up. Please try again.');
-    }
-  }
-
-  Future<void> pickProfilePicture() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedFile != null) {
-      profilePicturePath.value = pickedFile.path;
-      await authRepo.saveProfilePicture(pickedFile.path);
-    }
-  }
-
-  Future<void> fetchUserProfile() async {
-    try {
-      String token = authRepo.getUserToken();
-      final response = await userRepo.getUserProfile(token);
-      if (response.statusCode == 200) {
-        user.value = UserModel.fromJson(response.body['data']);
-        fullNameController.text = user.value.fullName ?? '';
-        emailController.text = user.value.email ?? '';
-        phoneNumberController.text = user.value.phone ?? '';
-      } else {
-        Get.snackbar('Error', 'Failed to load user profile');
-      }
-    } catch (e) {
-      print('FetchUserProfile Error: $e');
-      Get.snackbar('Error', 'Failed to load user profile');
-    }
-  }
-
-  Future<void> updateProfile() async {
-    try {
-      String token = authRepo.getUserToken();
-      UserModel updatedUser = user.value.copyWith(
-        fullName: fullNameController.text,
-        email: emailController.text,
-        phone: phoneNumberController.text,
-      );
-      final response = await userRepo.updateUserProfile(updatedUser, token);
-      if (response.statusCode == 200) {
-        user.value = updatedUser;
-        Get.snackbar('Success', 'Profile updated successfully');
-      } else {
-        Get.snackbar('Error', 'Failed to update profile');
-      }
-    } catch (e) {
-      print('UpdateProfile Error: $e');
-      Get.snackbar('Error', 'Failed to update profile');
     }
   }
 
@@ -152,13 +108,8 @@ class AuthController extends GetxController {
       );
       isLoading.value = false;
 
-      print('SignIn Response code: ${response.statusCode}');
-      print('SignIn Response body: ${response.body}');
-
       if (response.statusCode == 200) {
         final data = response.body['data'];
-
-        // Safely access the tokens and handle potential null values
         final accessToken = data['access_token'] as String?;
         final refreshToken = data['refresh_token'] as String?;
 
@@ -175,26 +126,113 @@ class AuthController extends GetxController {
       }
     } catch (e) {
       isLoading.value = false;
-      print('SignIn Error: $e');
       Get.snackbar('Error', 'Failed to sign in. Please try again.');
     }
   }
 
   Future<void> signOut() async {
     await authRepo.clearUserToken();
+
     if (!rememberMe.value) {
+      await authRepo.clearUserEmail();
       await authRepo.clearUserPassword();
+
+      // Clear the controllers' text
+      emailController.clear();
+      passwordController.clear();
     }
     navigateToSignIn();
   }
 
+  Future<void> resetPassword() async {
+    isLoading.value = true;
+    try {
+      final response = await authRepo.resetPassword(emailController.text);
+      isLoading.value = false;
+
+      if (response.statusCode == 200) {
+        Get.snackbar('Success', 'Password reset link sent to your email');
+        navigateToOTPVerificationPage();
+      } else {
+        Get.snackbar('Error', response.statusText ?? 'Unknown error');
+      }
+    } catch (e) {
+      isLoading.value = false;
+      Get.snackbar('Error', 'Failed to reset password. Please try again.');
+    }
+  }
+
+  Future<void> fetchUserProfile() async {
+    isLoading.value = true;
+    try {
+      String token = authRepo.getUserToken();
+      final response = await authRepo.getUserProfile(token);
+      if (response.statusCode == 200) {
+        user.value = AuthModel.fromJson(response.body['data']);
+        fullNameController.text = user.value.fullName ?? '';
+        emailController.text = user.value.email ?? '';
+        phoneNumberController.text = user.value.phone ?? '';
+        addressController.text = user.value.address ?? '';
+      } else {
+        _showProfilePageSnackbar('Error', 'Failed to load user profile');
+      }
+    } catch (e) {
+      _showProfilePageSnackbar('Error', 'Failed to load user profile');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> updateProfile({
+    String? fullName,
+    String? email,
+    String? phone,
+    String? address,
+  }) async {
+    isLoading.value = true;
+    try {
+      String token = authRepo.getUserToken();
+      AuthModel updatedUser = user.value.copyWith(
+        fullName: fullName ?? user.value.fullName,
+        email: email ?? user.value.email,
+        phone: phone ?? user.value.phone,
+        address: address ?? user.value.address,
+      );
+      final response = await authRepo.updateUserProfile(updatedUser, token);
+      if (response.statusCode == 200) {
+        user.value = updatedUser;
+        _showProfilePageSnackbar('Success', 'Profile updated successfully');
+      } else {
+        _showProfilePageSnackbar('Error', 'Failed to update profile');
+      }
+    } catch (e) {
+      _showProfilePageSnackbar('Error', 'Failed to update profile');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> pickProfilePicture() async {
+    final picker = ImagePicker();
+    try {
+      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+      if (pickedFile != null) {
+        profilePicturePath.value = pickedFile.path;
+        await authRepo.saveProfilePicture(pickedFile.path);
+      }
+    } catch (e) {
+      _showProfilePageSnackbar('Error', 'Failed to pick profile picture');
+    }
+  }
+
+  void _showProfilePageSnackbar(String title, String message) {
+    if (isProfilePageVisible.value) {
+      Get.snackbar(title, message);
+    }
+  }
+
   void navigateToSignUp() {
-    Get.to(
-      () => SignUpPage(),
-      transition: Transition.rightToLeft,
-      duration: const Duration(milliseconds: 500),
-      curve: Curves.easeInOut,
-    );
+    Get.to(() => SignUpPage());
   }
 
   void navigateToSignIn() {
@@ -202,12 +240,7 @@ class AuthController extends GetxController {
   }
 
   void navigateToHomePage() {
-    Get.to(
-      () => HomePage(),
-      transition: Transition.downToUp,
-      duration: const Duration(milliseconds: 500),
-      curve: Curves.easeInOut,
-    );
+    Get.to(() => HomePage());
   }
 
   void navigateToVerifyEmail() {
@@ -218,13 +251,8 @@ class AuthController extends GetxController {
     Get.to(() => const ForgotPasswordPage());
   }
 
-  void navigateToSignInAfterVerification() {
-    Get.to(
-      () => SignInPage(),
-      transition: Transition.rightToLeft,
-      duration: const Duration(milliseconds: 500),
-      curve: Curves.easeInOut,
-    );
+  void navigateToOTPVerificationPage() {
+    Get.to(() => OTPVerificationPage());
   }
 
   Future<void> updateEmail(String newEmail) async {
@@ -232,12 +260,11 @@ class AuthController extends GetxController {
     try {
       await authRepo.saveUserEmail(newEmail);
       emailController.text = newEmail;
-      isLoading.value = false;
       Get.snackbar('Success', 'Email updated successfully');
     } catch (e) {
-      isLoading.value = false;
-      print('Update email error: $e');
       Get.snackbar('Error', 'Failed to update email. Please try again.');
+    } finally {
+      isLoading.value = false;
     }
   }
 

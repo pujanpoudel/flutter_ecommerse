@@ -3,19 +3,18 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:multiavatar/multiavatar.dart';
 import 'package:quick_cart/controller/auth_controller.dart';
-import 'package:quick_cart/controller/user_controller.dart';
 import 'package:quick_cart/utils/bottom_nav_bar_widget.dart';
 import 'package:quick_cart/utils/colors.dart';
 import 'package:quick_cart/view/profile/edit_profile_page.dart';
 
 class ProfilePage extends StatelessWidget {
-  final UserController userController = Get.find<UserController>();
+  final AuthController authController = Get.find<AuthController>();
 
   ProfilePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    userController.isProfilePageVisible.value = true;
+    authController.isProfilePageVisible.value = true;
 
     return MainLayout(
       currentIndex: 3,
@@ -31,7 +30,7 @@ class ProfilePage extends StatelessWidget {
       ),
       body: Scaffold(
         backgroundColor: AppColors.creamColor,
-        body: Obx(() => userController.isLoading.value
+        body: Obx(() => authController.isLoading.value
             ? const Center(child: CircularProgressIndicator())
             : SingleChildScrollView(
                 child: Column(
@@ -48,58 +47,58 @@ class ProfilePage extends StatelessWidget {
   }
 
   Widget _buildProfileHeader() {
-    final UserController controller = Get.find<UserController>();
-    return Container(
-      color: AppColors.creamColor,
-      // padding: const EdgeInsets.only(bottom: 30),
-      child: Column(
-        children: [
-          const SizedBox(height: 20),
-          CircleAvatar(
-            radius: 60,
-            backgroundColor: Colors.white,
-            child: SvgPicture.string(
-              multiavatar(controller.user.value.fullName ?? 'User'),
-              width: 120,
-              height: 120,
-            ),
+  final AuthController controller = Get.find<AuthController>();
+  return Container(
+    color: AppColors.creamColor,
+    child: Column(
+      children: [
+        const SizedBox(height: 20),
+        CircleAvatar(
+          radius: 60,
+          backgroundColor: Colors.white,
+          child: SvgPicture.string(
+            multiavatar(controller.user.value.fullName ?? 'User'),
+            width: 120,
+            height: 120,
           ),
-          // const SizedBox(height: 15),
-          Text(
-            controller.fullName,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
+        ),
+        Text(
+          controller.user.value.fullName ?? 'User',
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
           ),
-          Text(
-            controller.email,
-            style: const TextStyle(fontSize: 14, color: Colors.white70),
-          ),
-        ],
-      ),
-    );
-  }
+        ),
+        Text(
+          controller.user.value.email ?? 'No Email',
+          style: const TextStyle(fontSize: 14, color: Colors.white70),
+        ),
+      ],
+    ),
+  );
+}
+
 
   Widget _buildProfileInfo() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Personal Information',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 15),
-          _buildInfoItem(Icons.person, 'Full Name', userController.fullName),
-          _buildInfoItem(Icons.email, 'Email', userController.email),
-          _buildInfoItem(Icons.phone, 'Phone', userController.phone),
-        ],
-      ),
-    );
-  }
+  return Container(
+    padding: const EdgeInsets.all(20),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Personal Information',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 15),
+        _buildInfoItem(Icons.person, 'Full Name', authController.user.value.fullName ?? 'No Name'),
+        _buildInfoItem(Icons.email, 'Email', authController.user.value.email ?? 'No Email'),
+        _buildInfoItem(Icons.phone, 'Phone', authController.user.value.phone ?? 'No Phone'),
+      ],
+    ),
+  );
+}
+
 
   Widget _buildInfoItem(IconData icon, String label, String value) {
     return Container(
@@ -127,7 +126,7 @@ class ProfilePage extends StatelessWidget {
             width: 200,
             child: ElevatedButton.icon(
               onPressed: () {
-                userController.isProfilePageVisible.value = false;
+                authController.isProfilePageVisible.value = false;
                 Get.to(() => EditProfilePage());
               },
               style: ElevatedButton.styleFrom(
@@ -147,7 +146,7 @@ class ProfilePage extends StatelessWidget {
             width: 200,
             child: OutlinedButton.icon(
               onPressed: () {
-                userController.isProfilePageVisible.value = false;
+                authController.isProfilePageVisible.value = false;
                 Get.find<AuthController>().signOut();
               },
               style: OutlinedButton.styleFrom(
