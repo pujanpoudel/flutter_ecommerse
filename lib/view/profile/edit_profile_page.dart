@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:multiavatar/multiavatar.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:quick_cart/controller/auth_controller.dart';
 import '../../utils/colors.dart';
 
@@ -28,53 +29,88 @@ class EditProfilePage extends StatelessWidget {
                 fontSize: 24,
                 fontWeight: FontWeight.bold)),
       ),
-      body: Obx(() => SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 20),
-                _buildDefaultAvatar(),
-                _buildEditForm(),
-                _buildActionButtons(),
-              ],
-            ),
-          )),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SizedBox(height: 20),
+            _buildProfileImage(), // Profile Image
+            const SizedBox(height: 15), // Added spacing
+            _buildFilePickerButton(), // File Picker Button below the Avatar
+            _buildEditForm(),
+            _buildActionButtons(),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget buildProfileImage() {
-    return Obx(() {
-      if (controller.profilePicturePath.value.isNotEmpty) {
-        final file = File(controller.profilePicturePath.value);
-        if (file.existsSync()) {
-          return ClipOval(
-            child: Image.file(
-              file,
-              fit: BoxFit.cover,
-              width: 120,
-              height: 120,
-              errorBuilder: (context, error, stackTrace) {
-                print('Error loading image: $error');
-                return _buildDefaultAvatar();
-              },
+  Widget _buildProfileImage() {
+    return Center(
+      child: Obx(() {
+        // Ensure that the profile picture path is an observable variable
+        return Stack(
+          alignment: Alignment.bottomRight,
+          children: [
+            if (controller.profilePicturePath.value.isNotEmpty)
+              ClipOval(
+                child: Container(
+                  width: 120, // Container to define the size
+                  height: 120,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                        color: AppColors.mainColor, width: 3), // Add border
+                  ),
+                  child: FittedBox(
+                    fit: BoxFit.cover,
+                    child: Image.file(
+                      File(controller.profilePicturePath.value),
+                      errorBuilder: (context, error, stackTrace) {
+                        print('Error loading image: $error');
+                        return _buildDefaultAvatar();
+                      },
+                    ),
+                  ),
+                ),
+              )
+            else
+              _buildDefaultAvatar(),
+            Positioned(
+              bottom: 8,
+              right: 8,
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.mainColor,
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.refresh, color: Colors.white),
+                  onPressed: () {
+                    controller.refreshAvatar();
+                  },
+                ),
+              ),
             ),
-          );
-        }
-      }
-      return _buildDefaultAvatar();
-    });
+          ],
+        );
+      }),
+    );
   }
 
   Widget _buildDefaultAvatar() {
-    return CircleAvatar(
-      radius: 60,
-      backgroundColor: Colors.white,
-      child: SvgPicture.string(
-        multiavatar(controller.user.value.fullName ?? 'User'),
-        width: 120,
-        height: 120,
-      ),
-    );
+    return Obx(() {
+      // Making sure that the user's full name is an observable variable
+      return CircleAvatar(
+        radius: 60,
+        backgroundColor: Colors.white,
+        child: SvgPicture.string(
+          multiavatar(controller.user.value.fullName ?? 'User'),
+          width: 120,
+          height: 120,
+        ),
+      );
+    });
   }
 
   Widget _buildEditForm() {
@@ -163,4 +199,30 @@ class EditProfilePage extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildFilePickerButton() {
+  return Center(
+    child: SizedBox(
+      width: 200, // Set the desired width here
+      child: OutlinedButton.icon(
+        onPressed: () async {
+          FilePickerResult? result = await FilePicker.platform.pickFiles();
+          if (result != null) {
+            controller.updateProfilePicture(result.files.single.path!);
+          }
+        },
+        icon: const Icon(Icons.add_a_photo),
+        label: const Text('Upload Picture'),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.mainColor,
+          side: const BorderSide(color: AppColors.mainColor),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+        ),
+      ),
+    ),
+  );
+}
 }

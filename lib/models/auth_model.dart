@@ -5,6 +5,8 @@ class AuthModel {
   String? email;
   String? password;
   String? address;
+  String? avatarID;//for desplaying below avatar
+
   final DateTime? createdAt;
 
   AuthModel({

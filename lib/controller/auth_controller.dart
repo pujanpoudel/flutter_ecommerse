@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -9,6 +11,7 @@ import 'package:quick_cart/view/auth/sign_up_page.dart';
 import 'package:quick_cart/view/product/home_page.dart';
 import 'package:quick_cart/view/verification/email_verification_page.dart';
 import 'package:quick_cart/view/verification/otp_verification_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthController extends GetxController {
   final AuthRepo authRepo;
@@ -25,6 +28,7 @@ class AuthController extends GetxController {
   var rememberMe = false.obs;
   var profilePicturePath = ''.obs;
   var isProfilePageVisible = false.obs;
+  final String avatarKey = "userAvatar";
 
   AuthController({required this.authRepo});
 
@@ -34,6 +38,7 @@ class AuthController extends GetxController {
     checkRememberMe();
     fetchUserProfile();
     loadProfilePicture();
+    loadSavedAvatar();
   }
 
   void checkRememberMe() {
@@ -173,6 +178,8 @@ class AuthController extends GetxController {
         emailController.text = user.value.email ?? '';
         phoneNumberController.text = user.value.phone ?? '';
         addressController.text = user.value.address ?? '';
+        print('User Profile Response: ${response.body}');
+        print('User: ${user.value.toJson()}');
       } else {
         _showProfilePageSnackbar('Error', 'Failed to load user profile');
       }
@@ -209,6 +216,52 @@ class AuthController extends GetxController {
       _showProfilePageSnackbar('Error', 'Failed to update profile');
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  // Method to refresh the avatar
+  void refreshAvatar() async {
+    // Generate a random name or ID for a new avatar
+    String newAvatarId = generateRandomString(10); // You can use any logic here
+
+    // Update the user avatar with the new SVG
+    user.update((user) {
+      user?.avatarID = newAvatarId;
+    });
+
+    // Save the new avatar ID to SharedPreferences
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString(avatarKey, newAvatarId);
+  }
+
+  // Utility to generate a random string for the avatar ID
+  String generateRandomString(int length) {
+    const chars =
+        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    Random random = Random();
+
+    return String.fromCharCodes(
+      Iterable.generate(
+        length,
+        (_) => chars.codeUnitAt(random.nextInt(chars.length)),
+      ),
+    );
+  }
+
+  // Method to update profile picture
+  void updateProfilePicture(String path) {
+    profilePicturePath.value = path;
+  }
+
+  // Method to load saved avatar from SharedPreferences
+  Future<void> loadSavedAvatar() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? savedAvatar = prefs.getString(avatarKey);
+
+    if (savedAvatar != null) {
+      user.update((user) {
+        user?.fullName = savedAvatar;
+      });
     }
   }
 
