@@ -48,19 +48,17 @@ class EditProfilePage extends StatelessWidget {
   Widget _buildProfileImage() {
     return Center(
       child: Obx(() {
-        // Ensure that the profile picture path is an observable variable
         return Stack(
-          alignment: Alignment.bottomRight,
+          alignment: Alignment.center,
           children: [
             if (controller.profilePicturePath.value.isNotEmpty)
               ClipOval(
                 child: Container(
-                  width: 120, // Container to define the size
+                  width: 120,
                   height: 120,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(
-                        color: AppColors.mainColor, width: 3), // Add border
+                    border: Border.all(color: AppColors.mainBlackColor),
                   ),
                   child: FittedBox(
                     fit: BoxFit.cover,
@@ -77,21 +75,57 @@ class EditProfilePage extends StatelessWidget {
             else
               _buildDefaultAvatar(),
             Positioned(
-              bottom: 8,
-              right: 8,
+              bottom: 5,
+              right: 5,
               child: Container(
+                width: 30,
+                height: 30,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: AppColors.mainColor,
+                  border: Border.all(color: Colors.white, width: 2),
                 ),
                 child: IconButton(
-                  icon: const Icon(Icons.refresh, color: Colors.white),
+                  icon:
+                      const Icon(Icons.refresh, color: Colors.white, size: 16),
                   onPressed: () {
                     controller.refreshAvatar();
+                    Get.snackbar(
+                        'Avatar Updated', 'New avatar has been generated.',
+                        snackPosition: SnackPosition.TOP,
+                        backgroundColor: Colors.transparent,
+                        colorText: Colors.white);
                   },
+                  padding: EdgeInsets.zero,
                 ),
               ),
             ),
+            if (controller.profilePicturePath.value.isNotEmpty)
+              Positioned(
+                top: 5,
+                right: 5,
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.red,
+                    border: Border.all(color: Colors.white, width: 2),
+                  ),
+                  child: IconButton(
+                    icon:
+                        const Icon(Icons.close, color: Colors.white, size: 14),
+                    onPressed: () {
+                      controller.clearProfilePicture();
+                      Get.snackbar('Avatar Cleared', 'Avatar has been removed.',
+                          snackPosition: SnackPosition.TOP,
+                          backgroundColor: Colors.transparent,
+                          colorText: Colors.white);
+                    },
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
+              ),
           ],
         );
       }),
@@ -100,12 +134,12 @@ class EditProfilePage extends StatelessWidget {
 
   Widget _buildDefaultAvatar() {
     return Obx(() {
-      // Making sure that the user's full name is an observable variable
       return CircleAvatar(
         radius: 60,
         backgroundColor: Colors.white,
         child: SvgPicture.string(
-          multiavatar(controller.user.value.fullName ?? 'User'),
+          controller.user.value.avatarID ??
+              multiavatar(controller.user.value.avatarID ?? 'User'),
           width: 120,
           height: 120,
         ),
@@ -130,6 +164,8 @@ class EditProfilePage extends StatelessWidget {
               controller.emailController),
           _buildInputField(Icons.phone, 'Phone Number',
               'Enter your phone number', controller.phoneNumberController),
+          _buildInputField(Icons.map, 'Address', 'Enter your Address',
+              controller.addressController),
         ],
       ),
     );
@@ -165,7 +201,13 @@ class EditProfilePage extends StatelessWidget {
           SizedBox(
             width: 250,
             child: ElevatedButton.icon(
-              onPressed: () => controller.updateProfile(),
+              onPressed: () {
+                controller.updateProfile();
+                Get.snackbar('Profile Updated', 'Your changes have been saved.',
+                    snackPosition: SnackPosition.TOP,
+                    backgroundColor: Colors.transparent,
+                    colorText: Colors.white);
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.mainColor,
                 foregroundColor: Colors.white,
@@ -201,28 +243,33 @@ class EditProfilePage extends StatelessWidget {
   }
 
   Widget _buildFilePickerButton() {
-  return Center(
-    child: SizedBox(
-      width: 200, // Set the desired width here
-      child: OutlinedButton.icon(
-        onPressed: () async {
-          FilePickerResult? result = await FilePicker.platform.pickFiles();
-          if (result != null) {
-            controller.updateProfilePicture(result.files.single.path!);
-          }
-        },
-        icon: const Icon(Icons.add_a_photo),
-        label: const Text('Upload Picture'),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.mainColor,
-          side: const BorderSide(color: AppColors.mainColor),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
+    return Center(
+      child: SizedBox(
+        width: 200,
+        child: OutlinedButton.icon(
+          onPressed: () async {
+            FilePickerResult? result = await FilePicker.platform.pickFiles();
+            if (result != null) {
+              controller.updateProfilePicture(result.files.single.path!);
+              Get.snackbar(
+                  'Avatar Updated', 'Profile picture has been updated.',
+                  snackPosition: SnackPosition.BOTTOM,
+                  backgroundColor: Colors.transparent,
+                  colorText: Colors.white);
+            }
+          },
+          icon: const Icon(Icons.add_a_photo),
+          label: const Text('Upload Picture'),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: AppColors.mainColor,
+            side: const BorderSide(color: AppColors.mainColor),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30),
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 12),
           ),
-          padding: const EdgeInsets.symmetric(vertical: 12),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

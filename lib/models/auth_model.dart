@@ -4,9 +4,10 @@ class AuthModel {
   String? phone;
   String? email;
   String? password;
-  String? address;
-  String? avatarID;//for desplaying below avatar
+  String? confirm_password;
 
+  String? address;
+  String? avatarID;
   final DateTime? createdAt;
 
   AuthModel({
@@ -15,6 +16,7 @@ class AuthModel {
     this.phone,
     this.email,
     this.password,
+    this.confirm_password,
     this.address,
     this.createdAt,
   });
@@ -26,8 +28,11 @@ class AuthModel {
       phone: json['phone'],
       email: json['email'],
       password: json['password'],
+      confirm_password: json['confirm_password'],
       address: json['address'],
-      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : null,
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
+          : null,
     );
   }
 
@@ -38,6 +43,7 @@ class AuthModel {
       'phone': phone,
       'email': email,
       'password': password,
+      'confirm_password': confirm_password,
       'address': address,
       'created_at': createdAt?.toIso8601String(),
     };
@@ -49,6 +55,7 @@ class AuthModel {
     String? phone,
     String? email,
     String? password,
+    String? confirm_password,
     String? address,
     DateTime? createdAt,
   }) {
@@ -58,6 +65,7 @@ class AuthModel {
       phone: phone ?? this.phone,
       email: email ?? this.email,
       password: password ?? this.password,
+      confirm_password: confirm_password ?? this.confirm_password,
       address: address ?? this.address,
       createdAt: createdAt ?? this.createdAt,
     );

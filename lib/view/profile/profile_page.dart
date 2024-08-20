@@ -47,6 +47,7 @@ class ProfilePage extends StatelessWidget {
   }
 
   Widget _buildProfileHeader() {
+    final AuthController controller = Get.find<AuthController>();
     return Container(
       color: AppColors.creamColor,
       child: Column(
@@ -56,48 +57,52 @@ class ProfilePage extends StatelessWidget {
             radius: 60,
             backgroundColor: Colors.white,
             child: SvgPicture.string(
-              multiavatar(authController.user.value.avatarID ?? 'User'),
+              multiavatar(controller.user.value.fullName ?? 'User'),
               width: 120,
               height: 120,
             ),
           ),
-          Text(
-            authController.user.value.fullName ?? 'User',
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.mainColor,
-            ),
-          ),
-          Text(
-            authController.user.value.email ?? 'No Email',
-            style: const TextStyle(fontSize: 14, color: Colors.white70),
-          ),
+          // Text(
+          //   controller.user.value.fullName ?? 'User',
+          //   style: const TextStyle(
+          //     fontSize: 18,
+          //     fontWeight: FontWeight.bold,
+          //     color: Colors.white,
+          //   ),
+          // ),
+          // Text(
+          //   controller.user.value.email ?? 'No Email',
+          //   style: const TextStyle(fontSize: 14, color: Colors.white70),
+          // ),
         ],
       ),
     );
   }
 
   Widget _buildProfileInfo() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Personal Information',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 15),
-          _buildInfoItem(Icons.person, 'Full Name',
-              authController.user.value.fullName ?? ''),
-          _buildInfoItem(
-              Icons.email, 'Email', authController.user.value.email ?? ''),
-          _buildInfoItem(
-              Icons.phone, 'Phone', authController.user.value.phone ?? ''),
-        ],
-      ),
-    );
+    return Obx(() {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Personal Information',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 15),
+            _buildInfoItem(Icons.person, 'Full Name',
+                authController.user.value.fullName ?? 'No Name'),
+            _buildInfoItem(Icons.email, 'Email',
+                authController.user.value.email ?? 'No Email'),
+            _buildInfoItem(Icons.phone, 'Phone',
+                authController.user.value.phone ?? 'No Phone'),
+            _buildInfoItem(Icons.map, 'Address',
+                authController.user.value.address ?? 'No Address'),
+          ],
+        ),
+      );
+    });
   }
 
   Widget _buildInfoItem(IconData icon, String label, String value) {

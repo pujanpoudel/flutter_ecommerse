@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 import 'routes/route_helper.dart';
-import 'utils/app_bindings.dart'; // Adjust the import path accordingly
+import 'utils/app_bindings.dart'; 
 
 Future<void> main() async {
   await dotenv.load(fileName: ".env");

@@ -9,7 +9,14 @@ class AuthRepo extends GetxService {
 
   AuthRepo({required this.sharedPreferences});
 
-  Future<Response<dynamic>> signUp(String fullName, String email, String password, String address, String phoneNumber, String text) async {
+  Future<Response<dynamic>> signUp(
+      String fullName,
+      String email,
+      String password,
+      String confirmPassword,
+      String address,
+      String phoneNumber
+      ) async {
     try {
       final response = await GetConnect().post(
         '$baseUrl/signup',
@@ -18,6 +25,7 @@ class AuthRepo extends GetxService {
           phone: phoneNumber,
           email: email,
           password: password,
+          confirm_password: confirmPassword,
           address: address,
         ).toJson(),
       );
@@ -36,7 +44,8 @@ class AuthRepo extends GetxService {
     }
   }
 
-  Future<Response<dynamic>> signIn(String email, String password, bool rememberMe) async {
+  Future<Response<dynamic>> signIn(
+      String email, String password, bool rememberMe) async {
     try {
       final response = await GetConnect().post(
         '$baseUrl/login',
@@ -97,10 +106,11 @@ class AuthRepo extends GetxService {
     }
   }
 
-  Future<Response<dynamic>> updateUserProfile(AuthModel user, String token) async {
+  Future<Response<dynamic>> updateUserProfile(
+      AuthModel user, String token) async {
     try {
       final response = await GetConnect().put(
-        '$baseUrl/accounts/me',
+        '$baseUrl/accounts/update',
         user.toJson(),
         headers: {'Authorization': 'Bearer $token'},
       );

@@ -17,5 +17,5 @@ void showCustomSnackBar(String message,
       ),
       colorText: Colors.white,
       snackPosition: SnackPosition.TOP,
-      backgroundColor: Colors.redAccent);
+      backgroundColor: Colors.transparent);
 }
