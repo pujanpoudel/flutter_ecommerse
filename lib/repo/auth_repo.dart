@@ -15,8 +15,7 @@ class AuthRepo extends GetxService {
       String password,
       String confirmPassword,
       String address,
-      String phoneNumber
-      ) async {
+      String phoneNumber) async {
     try {
       final response = await GetConnect().post(
         '$baseUrl/signup',

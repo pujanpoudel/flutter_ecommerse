@@ -5,7 +5,6 @@ class AuthModel {
   String? email;
   String? password;
   String? confirm_password;
-
   String? address;
   String? avatarID;
   final DateTime? createdAt;
@@ -18,6 +17,7 @@ class AuthModel {
     this.password,
     this.confirm_password,
     this.address,
+    this.avatarID,
     this.createdAt,
   });
 
@@ -30,6 +30,7 @@ class AuthModel {
       password: json['password'],
       confirm_password: json['confirm_password'],
       address: json['address'],
+      avatarID: json['avatar_id'],
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
           : null,
@@ -45,6 +46,7 @@ class AuthModel {
       'password': password,
       'confirm_password': confirm_password,
       'address': address,
+      'avatar_id': avatarID,
       'created_at': createdAt?.toIso8601String(),
     };
   }
@@ -57,6 +59,7 @@ class AuthModel {
     String? password,
     String? confirm_password,
     String? address,
+    String? avatarID,
     DateTime? createdAt,
   }) {
     return AuthModel(
@@ -67,6 +70,7 @@ class AuthModel {
       password: password ?? this.password,
       confirm_password: confirm_password ?? this.confirm_password,
       address: address ?? this.address,
+      avatarID: avatarID ?? this.avatarID,
       createdAt: createdAt ?? this.createdAt,
     );
   }
