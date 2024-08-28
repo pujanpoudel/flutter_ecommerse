@@ -1,35 +1,33 @@
 class AuthModel {
-  final int? id;
+  late final
   String? fullName;
   String? phone;
   String? email;
   String? password;
-  String? confirm_password;
+  String? confirmPassword;
   String? address;
   String? avatarID;
   final DateTime? createdAt;
 
   AuthModel({
-    this.id,
     this.fullName,
-    this.phone,
     this.email,
-    this.password,
-    this.confirm_password,
+    this.phone,
     this.address,
+    this.password,
+    this.confirmPassword,
     this.avatarID,
     this.createdAt,
   });
 
   factory AuthModel.fromJson(Map<String, dynamic> json) {
     return AuthModel(
-      id: json['id'],
       fullName: json['full_name'],
-      phone: json['phone'],
       email: json['email'],
-      password: json['password'],
-      confirm_password: json['confirm_password'],
+      phone: json['phone'],
       address: json['address'],
+      password: json['password'],
+      confirmPassword: json['confirm_password'],
       avatarID: json['avatar_id'],
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
@@ -39,13 +37,12 @@ class AuthModel {
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
       'full_name': fullName,
-      'phone': phone,
       'email': email,
-      'password': password,
-      'confirm_password': confirm_password,
+      'phone': phone,
       'address': address,
+      'password': password,
+      'confirm_password': confirmPassword,
       'avatar_id': avatarID,
       'created_at': createdAt?.toIso8601String(),
     };
@@ -57,21 +54,31 @@ class AuthModel {
     String? phone,
     String? email,
     String? password,
-    String? confirm_password,
+    String? confirmPassword,
     String? address,
     String? avatarID,
     DateTime? createdAt,
   }) {
     return AuthModel(
-      id: id ?? this.id,
       fullName: fullName ?? this.fullName,
       phone: phone ?? this.phone,
       email: email ?? this.email,
       password: password ?? this.password,
-      confirm_password: confirm_password ?? this.confirm_password,
+      confirmPassword: confirmPassword ?? this.confirmPassword,
       address: address ?? this.address,
       avatarID: avatarID ?? this.avatarID,
       createdAt: createdAt ?? this.createdAt,
     );
+  }
+
+  Map<String, dynamic> toApiJson() {
+    return {
+      'email': email,
+      'full_name': fullName,
+      'phone': phone,
+      'address': address,
+      'password': password,
+      'confirm_password': confirmPassword,
+    };
   }
 }

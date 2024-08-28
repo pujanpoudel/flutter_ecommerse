@@ -10,21 +10,22 @@ class AuthRepo extends GetxService {
   AuthRepo({required this.sharedPreferences});
 
   Future<Response<dynamic>> signUp(
-      String fullName,
-      String email,
-      String password,
-      String confirmPassword,
-      String address,
-      String phoneNumber) async {
+    String fullName,
+    String email,
+    String password,
+    String confirmPassword,
+    String phoneNumber,
+    String address,
+  ) async {
     try {
       final response = await GetConnect().post(
         '$baseUrl/signup',
         AuthModel(
           fullName: fullName,
-          phone: phoneNumber,
           email: email,
           password: password,
-          confirm_password: confirmPassword,
+          confirmPassword: confirmPassword,
+          phone: phoneNumber,
           address: address,
         ).toJson(),
       );

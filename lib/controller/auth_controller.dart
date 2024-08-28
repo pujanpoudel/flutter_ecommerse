@@ -17,10 +17,10 @@ class AuthController extends GetxController {
   final AuthRepo authRepo;
 
   var user = AuthModel().obs;
+  var fullNameController = TextEditingController();
   var emailController = TextEditingController();
   var passwordController = TextEditingController();
   var confirmPasswordController = TextEditingController();
-  var fullNameController = TextEditingController();
   var phoneNumberController = TextEditingController();
   var addressController = TextEditingController();
   var isLoading = false.obs;
@@ -28,7 +28,7 @@ class AuthController extends GetxController {
   var rememberMe = false.obs;
   var profilePicturePath = ''.obs;
   var isProfilePageVisible = false.obs;
-  final String avatarKey = "userAvatar";
+  String avatarKey = "userAvatar";
 
   AuthController({required this.authRepo});
 
@@ -68,21 +68,22 @@ class AuthController extends GetxController {
         fullName: fullNameController.text,
         email: emailController.text,
         password: passwordController.text,
-        address: addressController.text,
+        confirmPassword: confirmPasswordController.text,
         phone: phoneNumberController.text,
-        confirm_password: confirmPasswordController.text,
+        address: addressController.text,
       );
 
       final response = await authRepo.signUp(
         signUpBody.fullName!,
         signUpBody.email!,
         signUpBody.password!,
-        signUpBody.address!,
+        signUpBody.confirmPassword!,
         signUpBody.phone!,
-        signUpBody.confirm_password!,
+        signUpBody.address!,
       );
 
       isLoading.value = false;
+      navigateToVerifyEmail();
 
       if (response.statusCode == 200) {
         final data = response.body['data'];
