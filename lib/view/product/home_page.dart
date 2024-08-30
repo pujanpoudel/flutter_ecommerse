@@ -4,6 +4,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:quick_cart/controller/product_controller.dart';
 import 'package:quick_cart/utils/bottom_nav_bar_widget.dart';
 import 'package:quick_cart/utils/skeleton_loader_widget.dart';
+import 'package:quick_cart/models/product_model.dart';
+import 'package:quick_cart/view/product/product_detail_page.dart';
 import '../../utils/colors.dart';
 
 class HomePage extends StatelessWidget {
@@ -16,67 +18,17 @@ class HomePage extends StatelessWidget {
     return MainLayout(
       currentIndex: 0,
       body: Scaffold(
-        appBar: AppBar(
-          backgroundColor: AppColors.mainColor,
-          elevation: 0,
-          automaticallyImplyLeading: false,
-          title: Row(
-            children: [
-              SvgPicture.asset(
-                'assets/delivery_icon.svg',
-                width: 100,
-                height: 70,
-              ),
-              const SizedBox(width: 5),
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Delivery address', style: TextStyle(fontSize: 14)),
-                  Row(
-                    children: [
-                      Text(' Khairahani, Chitwan',
-                          style: TextStyle(fontSize: 15)),
-                      Icon(Icons.arrow_drop_down),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ),
-          actions: [
-            IconButton(icon: const Icon(Icons.shopping_cart), onPressed: () {}),
-            IconButton(icon: const Icon(Icons.notifications), onPressed: () {}),
-          ],
-        ),
+        appBar: _buildAppBar(),
         body: RefreshIndicator(
           onRefresh: productController.refreshProducts,
           child: Obx(() {
-            if (productController.isLoading.value &&
+            if (productController.isLoading &&
                 productController.products.isEmpty) {
               return _buildSkeletonLoader();
-            } else if (productController.errorMessage.isNotEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(productController.errorMessage.value),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: productController.fetchProducts,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.mainColor,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text('Retry'),
-                    ),
-                  ],
-                ),
-              );
+            } else if (productController.error.isNotEmpty) {
+              return _buildErrorWidget();
             } else {
-              return _buildContent();
+              return _buildProductGrid();
             }
           }),
         ),
@@ -84,160 +36,49 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildSkeletonLoader() {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  AppBar _buildAppBar() {
+    return AppBar(
+      backgroundColor: AppColors.mainColor,
+      elevation: 0,
+      automaticallyImplyLeading: false,
+      title: Row(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: SkeletonLoader(
-              height: 50,
-              borderRadius: BorderRadius.circular(10),
-            ),
+          SvgPicture.asset(
+            'assets/delivery_icon.svg',
+            // width: 40,
+            // height: 40,
+            height: 70,
           ),
-          SkeletonLoader(
-            height: 180,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: SkeletonLoader(
-              width: 100,
-              height: 20,
-              borderRadius: BorderRadius.circular(5),
-            ),
-          ),
-          SizedBox(
-            height: 100,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: 5,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: SkeletonLoader(
-                    width: 80,
-                    height: 80,
-                    borderRadius: BorderRadius.circular(40),
-                  ),
-                );
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                SkeletonLoader(
-                  width: 150,
-                  height: 20,
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                SkeletonLoader(
-                  width: 80,
-                  height: 20,
-                  borderRadius: BorderRadius.circular(5),
-                ),
-              ],
-            ),
-          ),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 0.75,
-            ),
-            itemCount: 6,
-            itemBuilder: (context, index) {
-              return Card(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: SkeletonLoader(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SkeletonLoader(
-                            width: 100,
-                            height: 20,
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          const SizedBox(height: 5),
-                          SkeletonLoader(
-                            width: 80,
-                            height: 20,
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
+          const SizedBox(width: 10),
         ],
       ),
+      actions: [
+        IconButton(icon: const Icon(Icons.search), onPressed: () {}),
+        IconButton(icon: const Icon(Icons.shopping_cart), onPressed: () {}),
+      ],
     );
   }
 
-  Widget _buildContent() {
-    return NotificationListener<ScrollNotification>(
-      onNotification: (scrollNotification) {
-        if (scrollNotification is ScrollEndNotification &&
-            scrollNotification.metrics.extentAfter == 0 &&
-            !productController.isLoading.value &&
-            productController.currentPage.value <
-                productController.totalPages.value) {
-          productController.loadMoreProducts();
-        }
-        return false;
-      },
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildProductList(),
-            if (productController.isLoading.value &&
-                productController.products.isNotEmpty)
-              const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: CircularProgressIndicator(),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProductList() {
+  Widget _buildSkeletonLoader() {
     return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         childAspectRatio: 0.75,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
       ),
-      itemCount: productController.products.length,
+      itemCount: 6,
       itemBuilder: (context, index) {
-        final product = productController.products[index];
         return Card(
+          elevation: 2,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: Image.network(
-                  product.image,
-                  fit: BoxFit.cover,
-                  width: double.infinity,
+                child: SkeletonLoader(
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
               Padding(
@@ -245,17 +86,16 @@ class HomePage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      product.name,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    SkeletonLoader(
+                      width: double.infinity,
+                      height: 16,
+                      borderRadius: BorderRadius.circular(4),
                     ),
-                    Text(
-                      '\$${product.price}',
-                      style: const TextStyle(
-                        color: Colors.green,
-                      ),
+                    const SizedBox(height: 8),
+                    SkeletonLoader(
+                      width: 80,
+                      height: 16,
+                      borderRadius: BorderRadius.circular(4),
                     ),
                   ],
                 ),
@@ -264,6 +104,300 @@ class HomePage extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildErrorWidget() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(productController.error, style: const TextStyle(fontSize: 18)),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: productController.fetchProducts,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.mainColor,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
+            ),
+            child: const Text('Retry'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProductGrid() {
+    return NotificationListener<ScrollNotification>(
+      onNotification: (ScrollNotification scrollInfo) {
+        if (scrollInfo is ScrollEndNotification &&
+            scrollInfo.metrics.extentAfter == 0 &&
+            productController.currentPage < productController.totalPages) {
+          productController.loadMoreProducts();
+        }
+        return false;
+      },
+      child: GridView.builder(
+        padding: const EdgeInsets.all(16),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: 0.75,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+        ),
+        itemCount: productController.products.length +
+            (productController.isLoading ? 1 : 0),
+        itemBuilder: (context, index) {
+          if (index < productController.products.length) {
+            return _buildProductCard(productController.products[index]);
+          } else {
+            return const Center(child: CircularProgressIndicator());
+          }
+        },
+      ),
+    );
+  }
+
+  Widget _buildProductCard(Product product) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      child: InkWell(
+        onTap: () => Get.to(() => ProductDetailPage(productId: product.id)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: ClipRRect(
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(8)),
+                child: Image.network(
+                  product.image,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product.name,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 16),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '\$${product.price.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      color: AppColors.mainColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showProductDetails(Product product) {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(product.name,
+                style:
+                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text('\$${product.price.toStringAsFixed(2)}',
+                style:
+                    const TextStyle(fontSize: 18, color: AppColors.mainColor)),
+            const SizedBox(height: 16),
+            Text(product.description),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () => _showEditProductDialog(product),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.mainColor),
+                  child: const Text('Edit'),
+                ),
+                ElevatedButton(
+                  onPressed: () => _deleteProduct(product),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                  child: const Text('Delete'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showAddProductDialog(BuildContext context) {
+    final nameController = TextEditingController();
+    final priceController = TextEditingController();
+    final descriptionController = TextEditingController();
+
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Add New Product'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Name'),
+              ),
+              TextField(
+                controller: priceController,
+                decoration: const InputDecoration(labelText: 'Price'),
+                keyboardType: TextInputType.number,
+              ),
+              TextField(
+                controller: descriptionController,
+                decoration: const InputDecoration(labelText: 'Description'),
+                maxLines: 3,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final newProduct = Product(
+                id: DateTime.now().toString(), // Temporary ID
+                name: nameController.text,
+                price: double.tryParse(priceController.text) ?? 0,
+                description: descriptionController.text,
+                image: 'https://via.placeholder.com/150', // Placeholder image
+                category: Category(
+                    id: '1', name: 'Default', description: 'Default Category'),
+                stock: 0,
+                status: true,
+                vendor: Vendor(id: '1', storeName: 'Default Store'),
+                type: ProductType(
+                    id: '1', name: 'Default', description: 'Default Type'),
+              );
+              productController.addProduct(newProduct);
+              Get.back();
+            },
+            style:
+                ElevatedButton.styleFrom(backgroundColor: AppColors.mainColor),
+            child: const Text('Add'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEditProductDialog(Product product) {
+    final nameController = TextEditingController(text: product.name);
+    final priceController =
+        TextEditingController(text: product.price.toString());
+    final descriptionController =
+        TextEditingController(text: product.description);
+
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Edit Product'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Name'),
+              ),
+              TextField(
+                controller: priceController,
+                decoration: const InputDecoration(labelText: 'Price'),
+                keyboardType: TextInputType.number,
+              ),
+              TextField(
+                controller: descriptionController,
+                decoration: const InputDecoration(labelText: 'Description'),
+                maxLines: 3,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final updatedProduct = Product(
+                id: product.id,
+                name: nameController.text,
+                price: double.tryParse(priceController.text) ?? product.price,
+                description: descriptionController.text,
+                image: product.image,
+                category: product.category,
+                stock: product.stock,
+                status: product.status,
+                vendor: product.vendor,
+                type: product.type,
+              );
+              productController.updateProduct(updatedProduct);
+              Get.back();
+            },
+            style:
+                ElevatedButton.styleFrom(backgroundColor: AppColors.mainColor),
+            child: const Text('Update'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _deleteProduct(Product product) {
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Delete Product'),
+        content: Text('Are you sure you want to delete ${product.name}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              productController.deleteProduct(product.id);
+              Get.back(closeOverlays: true);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
     );
   }
 }

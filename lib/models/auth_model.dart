@@ -1,5 +1,4 @@
 class AuthModel {
-  late final
   String? fullName;
   String? phone;
   String? email;

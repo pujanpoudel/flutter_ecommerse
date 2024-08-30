@@ -1,7 +1,12 @@
 class ResponseModel {
-  final bool _isSuccess;
-  final String _message;
-  ResponseModel(this._isSuccess, this._message);
-  String get message => _message;
-  bool get isSuccess => _isSuccess;
+  final bool isSuccess;
+  final String message;
+
+  const ResponseModel(this.isSuccess, this.message);
+
+  // Named constructor for success responses
+  const ResponseModel.success(String message) : this(true, message);
+
+  // Named constructor for error responses
+  const ResponseModel.error(String message) : this(false, message);
 }

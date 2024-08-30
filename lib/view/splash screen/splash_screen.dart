@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quick_cart/repo/auth_repo.dart';
 import 'package:quick_cart/view/auth/sign_in_page.dart';
-import 'package:quick_cart/view/landing%20page/landing_page.dart';
+import '../landing page/landing_page.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -42,7 +42,7 @@ class _SplashScreenState extends State<SplashScreen>
     if (isLoggedIn) {
       Get.to(() => SignInPage());
     } else {
-      Get.to(() => LandingPage());
+      Get.to(() => const LandingPage());
     }
   }
 
