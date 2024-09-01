@@ -17,16 +17,18 @@ class AppBinding extends Bindings {
       // Initialize ApiClient
       Get.lazyPut(() => ApiClient(
             appBaseUrl: AppConstants.BASE_URL,
+            appBaseUrlProduct:AppConstants.BASE_URL_PRODUCT,
             sharedPreferences: sharedPreferences,
           ));
 
       // Initialize repositories
       Get.lazyPut(() => AuthRepo(sharedPreferences: sharedPreferences));
-      Get.lazyPut(() => ProductRepo(apiClient: Get.find<ApiClient>()));
+      Get.lazyPut(() => ProductRepo());
 
       // Initialize controllers
       Get.lazyPut(() => AuthController(authRepo: Get.find<AuthRepo>()));
-      Get.lazyPut(() => ProductController(productRepo: Get.find<ProductRepo>()));
+      Get.lazyPut(
+          () => ProductController(productRepo: Get.find<ProductRepo>()));
     });
   }
 }

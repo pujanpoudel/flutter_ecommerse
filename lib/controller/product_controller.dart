@@ -1,26 +1,20 @@
 import 'package:get/get.dart';
-import 'package:quick_cart/models/product_model.dart';
 import 'package:quick_cart/repo/product_repo.dart';
+import 'package:quick_cart/models/product_model.dart';
 
 class ProductController extends GetxController {
   final ProductRepo productRepo;
-
   ProductController({required this.productRepo});
 
-  final RxList<Product> _products = <Product>[].obs;
-  List<Product> get products => _products;
+  List<Product> get products => productRepo.products;
 
-  final RxBool _isLoading = false.obs;
-  bool get isLoading => _isLoading.value;
+  bool get isLoading => productRepo.isLoading.value;
 
-  final RxString _error = ''.obs;
-  String get error => _error.value;
+  String get error => productRepo.error.value;
 
-  final RxInt _currentPage = 1.obs;
-  int get currentPage => _currentPage.value;
+  int get currentPage => productRepo.currentPage.value;
 
-  final RxInt _totalPages = 1.obs;
-  int get totalPages => _totalPages.value;
+  int get totalPages => productRepo.totalPages.value;
 
   @override
   void onInit() {
@@ -28,84 +22,21 @@ class ProductController extends GetxController {
     fetchProducts();
   }
 
-  Future<void> fetchProducts() async {
-    _isLoading.value = true;
-    _error.value = '';
-
-    try {
-      await productRepo.fetchProducts(page: 1);
-      _products.assignAll(productRepo.products);
-      _currentPage.value = 1; // Reset current page to 1 after fetching
-      _totalPages.value = productRepo.totalPages; // Use totalPages from repo
-    } catch (e) {
-      _error.value = 'Failed to fetch products: ${e.toString()}';
-    } finally {
-      _isLoading.value = false;
-    }
-  }
-
-  Future<void> loadMoreProducts() async {
-    if (_isLoading.value || _currentPage.value >= _totalPages.value) {
-      return; // Prevent loading more if already loading or no more pages
-    }
-
-    _isLoading.value = true;
-
-    try {
-      _currentPage.value++;
-      await productRepo.fetchProducts(page: _currentPage.value);
-      _products.addAll(productRepo.products);
-    } catch (e) {
-      _error.value = 'Failed to load more products: ${e.toString()}';
-    } finally {
-      _isLoading.value = false;
-    }
-  }
-
-  Future<void> refreshProducts() async {
-    _isLoading.value = true;
-    _error.value = '';
-
-    try {
-      await productRepo.fetchProducts(page: 1);
-      _products.assignAll(productRepo.products);
-      _currentPage.value = 1; // Reset current page to 1 after refreshing
-      _totalPages.value = productRepo.totalPages; // Use totalPages from repo
-    } catch (e) {
-      _error.value = 'Failed to refresh products: ${e.toString()}';
-    } finally {
-      _isLoading.value = false;
-    }
+  Future<void> fetchProducts({int page = 1}) async {
+    await productRepo.getProducts(page: page);
   }
 
   Future<Product?> getProductById(String id) async {
     return await productRepo.getProductById(id);
   }
 
-  Future<void> addProduct(Product product) async {
-    try {
-      await productRepo.addProduct(product);
-      _products.assignAll(productRepo.products);
-    } catch (e) {
-      _error.value = 'Failed to add product: ${e.toString()}';
+  void loadMoreProducts() {
+    if (currentPage < totalPages && !isLoading) {
+      productRepo.loadMoreProducts();
     }
   }
 
-  Future<void> updateProduct(Product product) async {
-    try {
-      await productRepo.updateProduct(product);
-      _products.assignAll(productRepo.products);
-    } catch (e) {
-      _error.value = 'Failed to update product: ${e.toString()}';
-    }
-  }
-
-  Future<void> deleteProduct(String id) async {
-    try {
-      await productRepo.deleteProduct(id);
-      _products.assignAll(productRepo.products);
-    } catch (e) {
-      _error.value = 'Failed to delete product: ${e.toString()}';
-    }
+  Future<void> refreshProducts() async {
+    await productRepo.refreshProducts();
   }
 }

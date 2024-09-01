@@ -45,8 +45,6 @@ class HomePage extends StatelessWidget {
         children: [
           SvgPicture.asset(
             'assets/delivery_icon.svg',
-            // width: 40,
-            // height: 40,
             height: 70,
           ),
           const SizedBox(width: 10),
@@ -115,7 +113,7 @@ class HomePage extends StatelessWidget {
           Text(productController.error, style: const TextStyle(fontSize: 18)),
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: productController.fetchProducts,
+            onPressed: () => productController.fetchProducts(page: 1),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.mainColor,
               foregroundColor: Colors.white,
@@ -188,215 +186,20 @@ class HomePage extends StatelessWidget {
                   Text(
                     product.name,
                     style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 16),
-                    maxLines: 2,
+                        fontSize: 16, fontWeight: FontWeight.bold),
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '\$${product.price.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      color: AppColors.mainColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
+                    style: const TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                 ],
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  void _showProductDetails(Product product) {
-    Get.bottomSheet(
-      Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(product.name,
-                style:
-                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Text('\$${product.price.toStringAsFixed(2)}',
-                style:
-                    const TextStyle(fontSize: 18, color: AppColors.mainColor)),
-            const SizedBox(height: 16),
-            Text(product.description),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: () => _showEditProductDialog(product),
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.mainColor),
-                  child: const Text('Edit'),
-                ),
-                ElevatedButton(
-                  onPressed: () => _deleteProduct(product),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                  child: const Text('Delete'),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showAddProductDialog(BuildContext context) {
-    final nameController = TextEditingController();
-    final priceController = TextEditingController();
-    final descriptionController = TextEditingController();
-
-    Get.dialog(
-      AlertDialog(
-        title: const Text('Add New Product'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(labelText: 'Name'),
-              ),
-              TextField(
-                controller: priceController,
-                decoration: const InputDecoration(labelText: 'Price'),
-                keyboardType: TextInputType.number,
-              ),
-              TextField(
-                controller: descriptionController,
-                decoration: const InputDecoration(labelText: 'Description'),
-                maxLines: 3,
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final newProduct = Product(
-                id: DateTime.now().toString(), // Temporary ID
-                name: nameController.text,
-                price: double.tryParse(priceController.text) ?? 0,
-                description: descriptionController.text,
-                image: 'https://via.placeholder.com/150', // Placeholder image
-                category: Category(
-                    id: '1', name: 'Default', description: 'Default Category'),
-                stock: 0,
-                status: true,
-                vendor: Vendor(id: '1', storeName: 'Default Store'),
-                type: ProductType(
-                    id: '1', name: 'Default', description: 'Default Type'),
-              );
-              productController.addProduct(newProduct);
-              Get.back();
-            },
-            style:
-                ElevatedButton.styleFrom(backgroundColor: AppColors.mainColor),
-            child: const Text('Add'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showEditProductDialog(Product product) {
-    final nameController = TextEditingController(text: product.name);
-    final priceController =
-        TextEditingController(text: product.price.toString());
-    final descriptionController =
-        TextEditingController(text: product.description);
-
-    Get.dialog(
-      AlertDialog(
-        title: const Text('Edit Product'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(labelText: 'Name'),
-              ),
-              TextField(
-                controller: priceController,
-                decoration: const InputDecoration(labelText: 'Price'),
-                keyboardType: TextInputType.number,
-              ),
-              TextField(
-                controller: descriptionController,
-                decoration: const InputDecoration(labelText: 'Description'),
-                maxLines: 3,
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final updatedProduct = Product(
-                id: product.id,
-                name: nameController.text,
-                price: double.tryParse(priceController.text) ?? product.price,
-                description: descriptionController.text,
-                image: product.image,
-                category: product.category,
-                stock: product.stock,
-                status: product.status,
-                vendor: product.vendor,
-                type: product.type,
-              );
-              productController.updateProduct(updatedProduct);
-              Get.back();
-            },
-            style:
-                ElevatedButton.styleFrom(backgroundColor: AppColors.mainColor),
-            child: const Text('Update'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _deleteProduct(Product product) {
-    Get.dialog(
-      AlertDialog(
-        title: const Text('Delete Product'),
-        content: Text('Are you sure you want to delete ${product.name}?'),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              productController.deleteProduct(product.id);
-              Get.back(closeOverlays: true);
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete'),
-          ),
-        ],
       ),
     );
   }

@@ -1,17 +1,16 @@
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../utils/app_constants.dart';
 
 class ApiClient extends GetConnect implements GetxService {
   late String token;
-  final String appBaseUrl;
+  late String appBaseUrl;
   late SharedPreferences sharedPreferences;
 
   late Map<String, String> _mainHeaders;
 
-  ApiClient({required this.appBaseUrl, required this.sharedPreferences}) {
-    baseUrl = appBaseUrl;
+  ApiClient({required this.appBaseUrl, required this.sharedPreferences, required String appBaseUrlProduct}) {
+    appBaseUrl = AppConstants.BASE_URL;
     timeout = const Duration(seconds: 30);
     token = sharedPreferences.getString(AppConstants.LOGIN_TOKEN) ?? "";
     _mainHeaders = {
@@ -27,9 +26,9 @@ class ApiClient extends GetConnect implements GetxService {
     };
   }
 
-  Future<Response> getData(String uri, {Map<String, String>? headers}) async {
+  Future<Response> getData(String appBaseUrl, {Map<String, String>? headers}) async {
     try {
-      Response response = await get(uri, headers: headers ?? _mainHeaders);
+      Response response = await get(appBaseUrl, headers: headers ?? _mainHeaders);
 
       return response;
     } catch (e) {
@@ -37,10 +36,10 @@ class ApiClient extends GetConnect implements GetxService {
     }
   }
 
-  Future<Response> postData(String uri, dynamic body) async {
+  Future<Response> postData(String appBaseUrl, dynamic body) async {
     print(body.toString());
     try {
-      Response response = await post(uri, body, headers: _mainHeaders);
+      Response response = await post(appBaseUrl, body, headers: _mainHeaders);
       print(response.toString());
       return response;
     } catch (e) {

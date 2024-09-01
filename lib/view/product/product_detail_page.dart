@@ -50,6 +50,11 @@ class ProductDetailPage extends StatelessWidget {
       child: Image.network(
         product.image,
         fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => const Icon(Icons.error),
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return const Center(child: CircularProgressIndicator());
+        },
       ),
     );
   }
@@ -67,7 +72,10 @@ class ProductDetailPage extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             '\$${product.price.toStringAsFixed(2)}',
-            style: const TextStyle(fontSize: 20, color: AppColors.mainColor, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+                fontSize: 20,
+                color: AppColors.mainColor,
+                fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
           const Text(
@@ -92,7 +100,8 @@ class ProductDetailPage extends StatelessWidget {
       children: [
         _buildMetadataItem('Category', product.category.name),
         _buildMetadataItem('Stock', product.stock.toString()),
-        _buildMetadataItem('Status', product.status ? 'Available' : 'Unavailable'),
+        _buildMetadataItem(
+            'Status', product.status ? 'Available' : 'Unavailable'),
         _buildMetadataItem('Vendor', product.vendor.storeName),
         _buildMetadataItem('Type', product.type.name),
       ],
@@ -129,15 +138,6 @@ class ProductDetailPage extends StatelessWidget {
               foregroundColor: Colors.white,
             ),
           ),
-          ElevatedButton.icon(
-            onPressed: () => _showDeleteConfirmation(product),
-            icon: const Icon(Icons.delete),
-            label: const Text('Delete'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-          ),
         ],
       ),
     );
@@ -145,9 +145,12 @@ class ProductDetailPage extends StatelessWidget {
 
   void _showEditProductDialog(Product product) {
     final nameController = TextEditingController(text: product.name);
-    final priceController = TextEditingController(text: product.price.toString());
-    final descriptionController = TextEditingController(text: product.description);
-    final stockController = TextEditingController(text: product.stock.toString());
+    final priceController =
+        TextEditingController(text: product.price.toString());
+    final descriptionController =
+        TextEditingController(text: product.description);
+    final stockController =
+        TextEditingController(text: product.stock.toString());
 
     Get.dialog(
       AlertDialog(
@@ -183,51 +186,12 @@ class ProductDetailPage extends StatelessWidget {
             onPressed: () => Get.back(),
             child: const Text('Cancel'),
           ),
-          ElevatedButton(
-            onPressed: () {
-              final updatedProduct = Product(
-                id: product.id,
-                name: nameController.text,
-                price: double.tryParse(priceController.text) ?? product.price,
-                description: descriptionController.text,
-                image: product.image,
-                category: product.category,
-                stock: int.tryParse(stockController.text) ?? product.stock,
-                status: product.status,
-                vendor: product.vendor,
-                type: product.type,
-              );
-              productController.updateProduct(updatedProduct);
-              Get.back();
-              Get.snackbar('Success', 'Product updated successfully');
-            },
-            child: const Text('Update'),
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.mainColor),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showDeleteConfirmation(Product product) {
-    Get.dialog(
-      AlertDialog(
-        title: const Text('Delete Product'),
-        content: Text('Are you sure you want to delete ${product.name}?'),
-        actions: [
           TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
             onPressed: () {
-              productController.deleteProduct(product.id);
+              // Implement the update logic here.
               Get.back();
-              Get.back(); // Return to the HomePage
-              Get.snackbar('Success', 'Product deleted successfully');
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: const Text('Save'),
           ),
         ],
       ),
