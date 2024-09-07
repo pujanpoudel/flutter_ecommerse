@@ -229,8 +229,8 @@ class AuthController extends GetxController {
         // Ensure that the profile page is reloaded with the new data
         await fetchUserProfile();
 
-        // Use a combination of Get.offAll to remove previous routes and Get.to for navigation
-        Get.offAll(() => ProfilePage());
+        // Navigate back to the ProfilePage upon successful update
+        Get.off(() => const ProfilePage());
       } else {
         _showProfilePageSnackbar('Error', 'Failed to update profile');
       }
@@ -308,11 +308,11 @@ class AuthController extends GetxController {
   }
 
   void navigateToSignUp() {
-    Get.to(() => SignUpPage());
+    Get.to(() => const SignUpPage());
   }
 
   void navigateToProfilePage() {
-    Get.to(() => ProfilePage());
+    Get.to(() => const ProfilePage());
   }
 
   void navigateToSignIn() {
@@ -320,7 +320,7 @@ class AuthController extends GetxController {
   }
 
   void navigateToHomePage() {
-    Get.to(() => HomePage());
+    Get.to(() => const HomePage());
   }
 
   void navigateToVerifyEmail() {

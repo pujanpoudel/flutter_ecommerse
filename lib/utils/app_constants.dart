@@ -7,7 +7,7 @@ class AppConstants {
 
   static const String BASE_URL_PRODUCT =
       "https://me7bumyhff.execute-api.ap-south-1.amazonaws.com/dev";
-
+      
   //user and auth endpoints
   static const String SIGNUP_URL = "/signup";
   static const String LOGIN_URL = "/login";

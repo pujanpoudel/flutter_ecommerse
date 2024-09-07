@@ -1,64 +1,317 @@
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:quick_cart/controller/product_controller.dart';
 import 'package:quick_cart/utils/bottom_nav_bar_widget.dart';
 import 'package:quick_cart/utils/skeleton_loader_widget.dart';
 import 'package:quick_cart/models/product_model.dart';
 import 'package:quick_cart/view/product/product_detail_page.dart';
-import '../../utils/colors.dart';
+import 'package:quick_cart/utils/colors.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
   final ProductController productController = Get.find<ProductController>();
+  final ScrollController _scrollController = ScrollController();
+  final CarouselController _carouselController = CarouselController();
+    int _current = 0;
 
-  HomePage({super.key});
+
+  bool _isNavBarVisible = true;
+  bool _showAllCategories = false;
+
+  @override
+  void initState() {
+    super.initState();
+    productController.fetchCategories();
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.userScrollDirection ==
+        ScrollDirection.reverse) {
+      if (_isNavBarVisible) setState(() => _isNavBarVisible = false);
+    } else if (_scrollController.position.userScrollDirection ==
+        ScrollDirection.forward) {
+      if (!_isNavBarVisible) setState(() => _isNavBarVisible = true);
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return MainLayout(
       currentIndex: 0,
-      body: Scaffold(
-        appBar: _buildAppBar(),
-        body: RefreshIndicator(
-          onRefresh: productController.refreshProducts,
-          child: Obx(() {
-            if (productController.isLoading &&
-                productController.products.isEmpty) {
-              return _buildSkeletonLoader();
-            } else if (productController.error.isNotEmpty) {
-              return _buildErrorWidget();
-            } else {
-              return _buildProductGrid();
-            }
-          }),
+      isNavBarVisible: _isNavBarVisible,
+      body: RefreshIndicator(
+        onRefresh: productController.refreshProducts,
+        child: CustomScrollView(
+          controller: _scrollController,
+          slivers: [
+            SliverToBoxAdapter(child: _buildHeader()),
+            SliverToBoxAdapter(child: _buildCarousel()),
+            SliverToBoxAdapter(child: _buildCategories()),
+            _buildProductGrid(),
+          ],
         ),
       ),
     );
   }
 
-  AppBar _buildAppBar() {
-    return AppBar(
-      backgroundColor: AppColors.mainColor,
-      elevation: 0,
-      automaticallyImplyLeading: false,
-      title: Row(
+  Widget _buildHeader() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 40, 16, 16),
+      decoration: BoxDecoration(
+        color: AppColors.mainColor,
+        borderRadius: BorderRadius.circular(20)
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SvgPicture.asset(
-            'assets/delivery_icon.svg',
-            height: 70,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Location',
+                      style: TextStyle(
+                          color: Colors.white.withOpacity(0.7), fontSize: 12)),
+                  const Row(
+                    children: [
+                      Text('Parsa, Chitwan',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold)),
+                      Icon(Icons.arrow_drop_down, color: Colors.white),
+                    ],
+                  ),
+                ],
+              ),
+              const Icon(Icons.notifications_outlined, color: Colors.white),
+            ],
           ),
-          const SizedBox(width: 10),
+          const SizedBox(height: 16),
+          TextField(
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.white,
+              hintText: 'Search',
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: const Icon(Icons.filter_list),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
         ],
       ),
-      actions: [
-        IconButton(icon: const Icon(Icons.search), onPressed: () {}),
-        IconButton(icon: const Icon(Icons.shopping_cart), onPressed: () {}),
-      ],
     );
+  }
+
+  Widget _buildCarousel() {
+    return Obx(() {
+      if (productController.isLoading.value) {
+        return const Center(child: CircularProgressIndicator());
+      } else if (productController.products.isEmpty) {
+        return const Center(child: Text('No products available'));
+      } else {
+        final carouselProducts = productController.products.take(5).toList();
+        return Column(
+          children: [
+            CarouselSlider(
+              items: carouselProducts.map((product) {
+                return Builder(
+                  builder: (BuildContext context) {
+                    return Container(
+                      width: MediaQuery.of(context).size.width,
+                      margin: const EdgeInsets.symmetric(horizontal: 5.0),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(12),
+                        image: DecorationImage(
+                          image: NetworkImage(product.image),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      child: Stack(
+                        children: [
+                          Positioned(
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.bottomCenter,
+                                  end: Alignment.topCenter,
+                                  colors: [Colors.black.withOpacity(0.8), Colors.transparent],
+                                ),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    product.name,
+                                    style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(height: 5),
+                                  Text(
+                                    '\$${product.price.toStringAsFixed(2)}',
+                                    style: const TextStyle(color: Colors.white, fontSize: 16),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              }).toList(),
+              carouselController: _carouselController,
+              options: CarouselOptions(
+                autoPlay: true,
+                enlargeCenterPage: true,
+                aspectRatio: 2.0,
+                onPageChanged: (index, reason) {
+                  setState(() {
+                    _current = index;
+                  });
+                },
+              ),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: carouselProducts.asMap().entries.map((entry) {
+                return GestureDetector(
+                  onTap: () => _carouselController.animateToPage(entry.key),
+                  child: Container(
+                    width: 8.0,
+                    height: 8.0,
+                    margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black)
+                          .withOpacity(_current == entry.key ? 0.9 : 0.4),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        );
+      }
+    });
+  }
+
+  Widget _buildCategories() {
+    return Obx(() {
+      if (productController.isCategoriesLoading.value) {
+        return const Center(child: CircularProgressIndicator());
+      } else if (productController.categories.isEmpty) {
+        return const Center(child: Text('No categories available'));
+      } else {
+        final displayedCategories = _showAllCategories
+            ? productController.categories
+            : productController.categories.take(10).toList();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Categories',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _showAllCategories = !_showAllCategories;
+                      });
+                    },
+                    child: Text(_showAllCategories ? 'Show Less' : 'See All'),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: displayedCategories.map((category) {
+                  return ChoiceChip(
+                    label: Text(category.name),
+                    selected: category.isSelected,
+                    onSelected: (selected) {
+                      productController.toggleCategorySelection(category);
+                    },
+                    selectedColor: Colors.purple.withOpacity(0.7),
+                    backgroundColor: Colors.grey[800],
+                    labelStyle: const TextStyle(color: Colors.white),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+        );
+      }
+    });
+  }
+
+  Widget _buildProductGrid() {
+    return Obx(() {
+      if (productController.isLoading.value &&
+          productController.products.isEmpty) {
+        return SliverToBoxAdapter(child: _buildSkeletonLoader());
+      } else if (productController.error.isNotEmpty) {
+        return SliverToBoxAdapter(child: _buildErrorWidget());
+      } else {
+        return SliverPadding(
+          padding: const EdgeInsets.all(16),
+          sliver: SliverGrid(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 0.75,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+            ),
+            delegate: SliverChildBuilderDelegate(
+              (context, index) =>
+                  _buildProductCard(productController.products[index]),
+              childCount: productController.products.length,
+            ),
+          ),
+        );
+      }
+    });
   }
 
   Widget _buildSkeletonLoader() {
     return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
@@ -110,10 +363,11 @@ class HomePage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(productController.error, style: const TextStyle(fontSize: 18)),
+          Text(productController.error.value,
+              style: const TextStyle(fontSize: 18)),
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: () => productController.fetchProducts(page: 1),
+            onPressed: () => productController.getProducts(page: 1),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.mainColor,
               foregroundColor: Colors.white,
@@ -123,37 +377,6 @@ class HomePage extends StatelessWidget {
             child: const Text('Retry'),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildProductGrid() {
-    return NotificationListener<ScrollNotification>(
-      onNotification: (ScrollNotification scrollInfo) {
-        if (scrollInfo is ScrollEndNotification &&
-            scrollInfo.metrics.extentAfter == 0 &&
-            productController.currentPage < productController.totalPages) {
-          productController.loadMoreProducts();
-        }
-        return false;
-      },
-      child: GridView.builder(
-        padding: const EdgeInsets.all(16),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 0.75,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-        ),
-        itemCount: productController.products.length +
-            (productController.isLoading ? 1 : 0),
-        itemBuilder: (context, index) {
-          if (index < productController.products.length) {
-            return _buildProductCard(productController.products[index]);
-          } else {
-            return const Center(child: CircularProgressIndicator());
-          }
-        },
       ),
     );
   }
@@ -194,6 +417,17 @@ class HomePage extends StatelessWidget {
                   Text(
                     '\$${product.price.toStringAsFixed(2)}',
                     style: const TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: () {
+                      // TODO: Implement add to cart functionality
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      minimumSize: const Size(double.infinity, 36),
+                    ),
+                    child: const Text('Add to cart'),
                   ),
                 ],
               ),

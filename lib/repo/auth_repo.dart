@@ -111,13 +111,16 @@ class AuthRepo extends GetxService {
     try {
       final response = await GetConnect().put(
         '$baseUrl/accounts/update',
-        user.toJson(),
-        headers: {'Authorization': 'Bearer $token'},
+        user.toJson(), // Ensure the data is properly serialized
+        headers: {
+          'Authorization': 'Bearer $token', // Token for authentication
+          'Content-Type': 'application/json', // Set content type
+        },
       );
-      return response;
+      return response; // Return the response
     } catch (e) {
       print('UpdateUserProfile Error: $e');
-      rethrow;
+      rethrow; // Rethrow the error to handle it in the calling method
     }
   }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:multiavatar/multiavatar.dart';
@@ -7,35 +8,64 @@ import 'package:quick_cart/utils/bottom_nav_bar_widget.dart';
 import 'package:quick_cart/utils/colors.dart';
 import 'package:quick_cart/view/profile/edit_profile_page.dart';
 
-class ProfilePage extends StatelessWidget {
-  final AuthController authController = Get.find<AuthController>();
+class ProfilePage extends StatefulWidget {
+  const ProfilePage({super.key});
 
-  ProfilePage({super.key});
+  @override
+  _ProfilePageState createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  final AuthController authController = Get.find<AuthController>();
+  final ScrollController _scrollController = ScrollController();
+  bool _isNavBarVisible = true;
+
+  @override
+  void initState() {
+    super.initState();
+    authController.isProfilePageVisible.value = true;
+
+    // Listen to scroll changes for hiding/showing the bottom navigation bar
+    _scrollController.addListener(() {
+      if (_scrollController.position.userScrollDirection ==
+          ScrollDirection.reverse) {
+        if (_isNavBarVisible) {
+          setState(() {
+            _isNavBarVisible = false;
+          });
+        }
+      } else if (_scrollController.position.userScrollDirection ==
+          ScrollDirection.forward) {
+        if (!_isNavBarVisible) {
+          setState(() {
+            _isNavBarVisible = true;
+          });
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    authController.isProfilePageVisible.value = true;
-
     return MainLayout(
       currentIndex: 3,
-      appBar: AppBar(
-        backgroundColor: AppColors.mainColor,
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        title: const Text(
-          'My Profile',
-          style: TextStyle(
-              color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
-        ),
-      ),
+      isNavBarVisible: _isNavBarVisible,
       body: Scaffold(
         backgroundColor: AppColors.creamColor,
         body: Obx(() => authController.isLoading.value
             ? const Center(child: CircularProgressIndicator())
             : SingleChildScrollView(
+                controller: _scrollController,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    const SizedBox(height: 30),
                     _buildProfileHeader(),
                     _buildProfileInfo(),
                     _buildActionButtons(),
@@ -53,6 +83,15 @@ class ProfilePage extends StatelessWidget {
       child: Column(
         children: [
           const SizedBox(height: 20),
+          const Text(
+            'Profile Page',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          const SizedBox(height: 20),
           CircleAvatar(
             radius: 60,
             backgroundColor: Colors.white,
@@ -62,18 +101,6 @@ class ProfilePage extends StatelessWidget {
               height: 120,
             ),
           ),
-          // Text(
-          //   controller.user.value.fullName ?? 'User',
-          //   style: const TextStyle(
-          //     fontSize: 18,
-          //     fontWeight: FontWeight.bold,
-          //     color: Colors.white,
-          //   ),
-          // ),
-          // Text(
-          //   controller.user.value.email ?? 'No Email',
-          //   style: const TextStyle(fontSize: 14, color: Colors.white70),
-          // ),
         ],
       ),
     );

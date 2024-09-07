@@ -115,24 +115,48 @@ class Category {
   final String id;
   final String name;
   final String description;
+  final bool status;
+  final bool isSelected;
 
   Category({
     required this.id,
     required this.name,
     required this.description,
+    required this.status,
+    this.isSelected = false,
   });
 
   factory Category.fromJson(Map<String, dynamic> json) => Category(
         id: json['id'],
         name: json['name'],
         description: json['description'],
+        status: json['status'],
+        isSelected: json['isSelected'] ?? false,
       );
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,
         'description': description,
+        'status': status,
+        'isSelected': isSelected,
       };
+
+  Category copyWith({
+    String? id,
+    String? name,
+    String? description,
+    bool? status,
+    bool? isSelected,
+  }) {
+    return Category(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      status: status ?? this.status,
+      isSelected: isSelected ?? this.isSelected,
+    );
+  }
 }
 
 class Color {
