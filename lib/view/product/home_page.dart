@@ -6,7 +6,6 @@ import 'package:quick_cart/controller/product_controller.dart';
 import 'package:quick_cart/utils/bottom_nav_bar_widget.dart';
 import 'package:quick_cart/utils/skeleton_loader_widget.dart';
 import 'package:quick_cart/models/product_model.dart';
-import 'package:quick_cart/view/product/product_detail_page.dart';
 import 'package:quick_cart/utils/colors.dart';
 
 class HomePage extends StatefulWidget {
@@ -20,8 +19,7 @@ class _HomePageState extends State<HomePage> {
   final ProductController productController = Get.find<ProductController>();
   final ScrollController _scrollController = ScrollController();
   final CarouselController _carouselController = CarouselController();
-    int _current = 0;
-
+  int _current = 0;
 
   bool _isNavBarVisible = true;
   bool _showAllCategories = false;
@@ -61,6 +59,9 @@ class _HomePageState extends State<HomePage> {
           controller: _scrollController,
           slivers: [
             SliverToBoxAdapter(child: _buildHeader()),
+            const SliverToBoxAdapter(
+              child: SizedBox(height: 16),
+            ),
             SliverToBoxAdapter(child: _buildCarousel()),
             SliverToBoxAdapter(child: _buildCategories()),
             _buildProductGrid(),
@@ -74,9 +75,7 @@ class _HomePageState extends State<HomePage> {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 40, 16, 16),
       decoration: BoxDecoration(
-        color: AppColors.mainColor,
-        borderRadius: BorderRadius.circular(20)
-      ),
+          color: AppColors.mainColor, borderRadius: BorderRadius.circular(20)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -159,21 +158,29 @@ class _HomePageState extends State<HomePage> {
                                 gradient: LinearGradient(
                                   begin: Alignment.bottomCenter,
                                   end: Alignment.topCenter,
-                                  colors: [Colors.black.withOpacity(0.8), Colors.transparent],
+                                  colors: [
+                                    Colors.black.withOpacity(0.8),
+                                    Colors.transparent
+                                  ],
                                 ),
                               ),
-                              padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 10.0, horizontal: 20.0),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
                                     product.name,
-                                    style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                                    style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold),
                                   ),
                                   const SizedBox(height: 5),
                                   Text(
                                     '\$${product.price.toStringAsFixed(2)}',
-                                    style: const TextStyle(color: Colors.white, fontSize: 16),
+                                    style: const TextStyle(
+                                        color: Colors.white, fontSize: 16),
                                   ),
                                 ],
                               ),
@@ -206,10 +213,13 @@ class _HomePageState extends State<HomePage> {
                   child: Container(
                     width: 8.0,
                     height: 8.0,
-                    margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+                    margin: const EdgeInsets.symmetric(
+                        vertical: 8.0, horizontal: 4.0),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black)
+                      color: (Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white
+                              : Colors.black)
                           .withOpacity(_current == entry.key ? 0.9 : 0.4),
                     ),
                   ),
@@ -267,8 +277,8 @@ class _HomePageState extends State<HomePage> {
                     onSelected: (selected) {
                       productController.toggleCategorySelection(category);
                     },
-                    selectedColor: Colors.purple.withOpacity(0.7),
-                    backgroundColor: Colors.grey[800],
+                    selectedColor: AppColors.mainColor.withOpacity(0.9),
+                    backgroundColor: AppColors.iconColor2,
                     labelStyle: const TextStyle(color: Colors.white),
                   );
                 }).toList(),
@@ -381,59 +391,76 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildProductCard(Product product) {
+   Widget _buildProductCard(Product product) {
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      child: InkWell(
-        onTap: () => Get.to(() => ProductDetailPage(productId: product.id)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(8)),
-                child: Image.network(
-                  product.image,
-                  fit: BoxFit.cover,
-                  width: double.infinity,
+      elevation: 0,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(color: Colors.grey[300]!, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+                  child: Image.network(
+                    product.image,
+                    fit: BoxFit.cover,
+                  ),
                 ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.name,
-                    style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.bold),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '\$${product.price.toStringAsFixed(2)}',
-                    style: const TextStyle(fontSize: 14, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 8),
-                  ElevatedButton(
-                    onPressed: () {
-                      // TODO: Implement add to cart functionality
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      minimumSize: const Size(double.infinity, 36),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Obx(() => IconButton(
+                    icon: Icon(
+                      productController.isFavorite(product.id)
+                          ? Icons.favorite
+                          : Icons.favorite_border,
+                      color: productController.isFavorite(product.id)
+                          ? Colors.red
+                          : Colors.grey[600],
                     ),
-                    child: const Text('Add to cart'),
-                  ),
-                ],
-              ),
+                    onPressed: () {
+                      productController.toggleFavorite(product.id);
+                    },
+                  )),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  product.name,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[800],
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '\$${product.price.toStringAsFixed(2)}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.mainColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -21,7 +21,7 @@ class ProductRepo extends GetxService {
   Future<List<Product>> getProducts({int page = 1}) async {
     isLoading.value = true;
     error.value = '';
-    List<Product> getProducts = [];
+    List<Product> fetchedProducts = [];
     try {
       final response = await http.get(
         Uri.parse('${AppConstants.BASE_URL_PRODUCT}/get/products?page=$page'),
@@ -31,7 +31,6 @@ class ProductRepo extends GetxService {
       }
       final Map<String, dynamic> jsonResponse = json.decode(response.body);
       final productResponse = ProductResponse.fromJson(jsonResponse);
-
       if (!productResponse.success) {
         throw Exception(productResponse.message);
       }
@@ -42,48 +41,44 @@ class ProductRepo extends GetxService {
       } else {
         _products.addAll(productResponse.data.data);
       }
-      getProducts = productResponse.data.data;
+      fetchedProducts = productResponse.data.data;
     } catch (e) {
       error.value = e.toString();
     } finally {
       isLoading.value = false;
     }
-    return getProducts;
+    return fetchedProducts;
   }
 
-  // New method to fetch categories
   Future<List<Category>> getCategories() async {
     isLoading.value = true;
     error.value = '';
     List<Category> fetchedCategories = [];
-
     try {
       final response = await http.get(
         Uri.parse('${AppConstants.BASE_URL_PRODUCT}/get/categories'),
       );
-
       if (response.statusCode != 200) {
         throw Exception('Failed to fetch categories');
       }
-
       final Map<String, dynamic> jsonResponse = json.decode(response.body);
       if (!jsonResponse['success']) {
         throw Exception(jsonResponse['message']);
       }
-
-      fetchedCategories = (jsonResponse['data'] as List)
-          .map((categoryJson) => Category.fromJson(categoryJson))
-          .toList();
-
+      
+      final data = jsonResponse['data'] as Map<String, dynamic>;
+      final categoriesList = data['data'] as List;
+      fetchedCategories = categoriesList.map((categoryJson) => Category.fromJson(categoryJson)).toList();
+      
       _categories.assignAll(fetchedCategories);
     } catch (e) {
       error.value = e.toString();
     } finally {
       isLoading.value = false;
     }
-
     return fetchedCategories;
   }
+
 
   // Method to get product by ID
   Future<Product?> getProductById(String id) async {
@@ -91,11 +86,9 @@ class ProductRepo extends GetxService {
       final response = await http.get(
         Uri.parse('${AppConstants.BASE_URL_PRODUCT}/get/product/$id'),
       );
-
       if (response.statusCode != 200) {
         throw Exception('Failed to fetch product details');
       }
-
       final productData = json.decode(response.body)['data'];
       return Product.fromJson(productData);
     } catch (e) {

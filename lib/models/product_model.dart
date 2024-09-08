@@ -127,10 +127,10 @@ class Category {
   });
 
   factory Category.fromJson(Map<String, dynamic> json) => Category(
-        id: json['id'],
-        name: json['name'],
-        description: json['description'],
-        status: json['status'],
+        id: json['id'] ?? '',
+        name: json['name'] ?? '',
+        description: json['description'] ?? '',
+        status: json['status'] ?? false, 
         isSelected: json['isSelected'] ?? false,
       );
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quick_cart/utils/colors.dart';
+import 'package:quick_cart/view/product/fav_product_page.dart';
 import 'package:quick_cart/view/product/home_page.dart';
 import 'package:quick_cart/view/profile/profile_page.dart';
 
@@ -26,7 +27,7 @@ class MainLayout extends StatelessWidget {
               currentIndex: currentIndex,
               onTap: (index) {
                 if (index == 0) {
-                  Get.to(() => HomePage());
+                  Get.to(() => const HomePage());
                 }
                 if (index == 1) {
                   // Get.to(() => SearchPage());
@@ -35,10 +36,10 @@ class MainLayout extends StatelessWidget {
                   // Get.to(() => CartHistoryPage());
                 }
                 if (index == 3) {
-                  //   Get.to(() => FavPage());
+                     Get.to(() => const FavoriteProductsPage());
                 }
                 if (index == 4) {
-                  Get.to(() => ProfilePage());
+                  Get.to(() => const ProfilePage());
                 }
               },
               items: const [
