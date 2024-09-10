@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quick_cart/repo/auth_repo.dart';
 import 'package:quick_cart/view/auth/sign_in_page.dart';
+import 'package:quick_cart/view/product/home_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../landing page/landing_page.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -21,6 +23,8 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
+    _checkLoginStatus();
+
     _controller = AnimationController(
       duration: const Duration(seconds: 1),
       vsync: this,
@@ -66,5 +70,28 @@ class _SplashScreenState extends State<SplashScreen>
         ),
       ),
     );
+  }
+
+  Future<void> _checkLoginStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    // Check if the app has been opened before
+    bool isFirstRun = prefs.getBool('is_first_run') ?? true;
+
+    // Check if user is logged in
+    bool isLoggedIn = prefs.getBool('is_logged_in') ?? false;
+
+    // Determine where to route
+    if (isFirstRun) {
+      // First-time app launch
+      prefs.setBool('is_first_run', false);
+      Get.off(() => LandingPage());
+    } else if (isLoggedIn) {
+      // User is logged in
+      Get.off(() => HomePage());
+    } else {
+      // User is logged out
+      Get.off(() => SignInPage());
+    }
   }
 }

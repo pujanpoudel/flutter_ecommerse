@@ -5,6 +5,7 @@ import 'package:quick_cart/controller/product_controller.dart';
 import 'package:quick_cart/models/product_model.dart';
 import 'package:quick_cart/utils/bottom_nav_bar_widget.dart';
 import 'package:quick_cart/utils/colors.dart';
+import 'package:quick_cart/view/product/product_detail_page.dart';
 
 class FavoriteProductsPage extends StatefulWidget {
   const FavoriteProductsPage({super.key});
@@ -67,7 +68,10 @@ class _FavoriteProductsPageState extends State<FavoriteProductsPage> {
                   children: [
                     Text(
                       'Favorites',
-                      style: Theme.of(context).textTheme.headlineSmall,
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineLarge
+                          ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     IconButton(
                       icon: const Icon(Icons.search),
@@ -97,10 +101,6 @@ class _FavoriteProductsPageState extends State<FavoriteProductsPage> {
                               selectedProducts.clear();
                             },
                             child: Icon(Icons.close),
-                            // const Text(
-                            //   'Deselect all',
-                            //   style: TextStyle(color: Colors.red),
-                            // ),
                           ),
                         ],
                       ),
@@ -208,23 +208,31 @@ class _FavoriteProductsPageState extends State<FavoriteProductsPage> {
       final isSelected = selectedProducts.contains(product.id);
 
       return GestureDetector(
-        onTap: (
-        
-        ) {
+        onTap: () {
           if (isSelecting) {
-            // If already selecting, tap to select/deselect items
+            // If in selection mode, toggle selection
             if (isSelected) {
               selectedProducts.remove(product.id);
             } else {
               selectedProducts.add(product.id);
             }
+            // Check if we should exit selection mode
+            if (selectedProducts.isEmpty) {
+              setState(() {
+                isSelecting = false;
+              });
+            }
           } else {
-            
+            // If not in selection mode, navigate to product details
+            Get.to(() =>
+                ProductDetailPage(productId: product.id, product: product));
           }
         },
         onLongPress: () {
           if (!isSelecting) {
-            isSelecting = true; // Start selection mode
+            setState(() {
+              isSelecting = true;
+            });
             selectedProducts.add(product.id);
           }
         },
@@ -252,15 +260,6 @@ class _FavoriteProductsPageState extends State<FavoriteProductsPage> {
                         fit: BoxFit.cover,
                       ),
                     ),
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: IconButton(
-                        icon: const Icon(Icons.favorite, color: Colors.red),
-                        onPressed: () =>
-                            productController.toggleFavorite(product.id),
-                      ),
-                    ),
                     if (isSelected)
                       const Positioned(
                         top: 8,
@@ -268,6 +267,29 @@ class _FavoriteProductsPageState extends State<FavoriteProductsPage> {
                         child: Icon(Icons.check_circle,
                             color: AppColors.mainColor),
                       ),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: GestureDetector(
+                        onTap: () {
+                          productController.toggleFavorite(product.id);
+                          // Remove from selectedProducts if it was selected
+                          selectedProducts.remove(product.id);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.5),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.close,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -282,12 +304,10 @@ class _FavoriteProductsPageState extends State<FavoriteProductsPage> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
                     Text(
-                      product.category.toString(),
+                      product.category.name,
                       style: TextStyle(color: Colors.grey[600], fontSize: 12),
                     ),
-                    const SizedBox(height: 4),
                     Text(
                       '\$${product.price.toStringAsFixed(2)}',
                       style: const TextStyle(fontWeight: FontWeight.bold),

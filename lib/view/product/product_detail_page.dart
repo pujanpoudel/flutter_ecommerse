@@ -8,7 +8,7 @@ class ProductDetailPage extends StatelessWidget {
   final String productId;
   final ProductController productController = Get.find<ProductController>();
 
-  ProductDetailPage({super.key, required this.productId});
+  ProductDetailPage({super.key, required this.productId, required Product product});
 
   @override
   Widget build(BuildContext context) {
