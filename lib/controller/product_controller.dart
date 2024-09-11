@@ -23,26 +23,35 @@ class ProductController extends GetxController {
     getProducts();
     fetchCategories();
     loadFavorites();
-
   }
 
   Future<void> getProducts({int page = 1}) async {
     try {
       isLoading.value = true;
-      error.value = ''; 
+      error.value = '';
 
-      List<Product> getProducts = await productRepo.getProducts(page: page);
-      products.assignAll(getProducts); 
+    
+      List<Product> newProducts = await productRepo.getProducts(page: page);
+
+      if (page == 1) {
+        products
+            .assignAll(newProducts);
+      } else {
+        products
+            .addAll(newProducts);
+      }
+
+    
       currentPage.value = productRepo.currentPage.value;
       totalPages.value = productRepo.totalPages.value;
     } catch (e) {
-      error.value = 'Failed to load products'; 
+      error.value = 'Failed to load products: $e';
     } finally {
       isLoading.value = false;
     }
   }
 
-  // Get product by ID
+
   Future<Product?> getProductById(String id) async {
     try {
       return await productRepo.getProductById(id);
@@ -52,17 +61,17 @@ class ProductController extends GetxController {
     }
   }
 
-  // Load more products for pagination
-  void loadMoreProducts() {
+
+  void loadMoreProducts() async {
     if (currentPage.value < totalPages.value && !isLoading.value) {
-      getProducts(page: currentPage.value + 1); 
+      await getProducts(page: currentPage.value + 1);
     }
   }
 
   Future<void> refreshProducts() async {
     currentPage.value = 1;
     products.clear();
-    await getProducts(page: 1); 
+    await getProducts(page: 1);
   }
 
   Future<void> fetchCategories() async {
@@ -85,8 +94,6 @@ class ProductController extends GetxController {
           category.copyWith(isSelected: !category.isSelected);
       categories[index] = updatedCategory;
       categories.refresh();
-      // You might want to fetch products based on selected categories here
-      // fetchProductsByCategories();
     }
   }
 
@@ -94,10 +101,11 @@ class ProductController extends GetxController {
     categories.clear();
     await fetchCategories();
   }
+
   Future<void> loadFavorites() async {
     final prefs = await SharedPreferences.getInstance();
     final favoriteIds = prefs.getStringList('favoriteProductIds') ?? [];
-    _favoriteProductIds.value = favoriteIds.toSet();
+    _favoriteProductIds.assignAll(favoriteIds.toSet());
   }
 
   Future<void> toggleFavorite(String productId) async {

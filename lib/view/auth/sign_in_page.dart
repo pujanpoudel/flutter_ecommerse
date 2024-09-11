@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import '../../controller/auth_controller.dart';
 import '../../utils/colors.dart';
 
@@ -81,9 +82,8 @@ class SignInPage extends StatelessWidget {
                             ),
                           ),
                           child: controller.isLoading.value
-                              ? const CircularProgressIndicator(
-                                  color: Colors.white,
-                                )
+                              ? LoadingAnimationWidget.waveDots(
+                    color: AppColors.whiteColor, size: 50)
                               : const Text('Login'),
                         )),
                   ),

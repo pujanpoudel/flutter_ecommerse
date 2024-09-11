@@ -8,7 +8,7 @@ import 'package:quick_cart/view/profile/profile_page.dart';
 class MainLayout extends StatelessWidget {
   final Widget body;
   final int currentIndex;
-  final bool isNavBarVisible; // Add this to control visibility
+  final bool isNavBarVisible;
 
   const MainLayout({
     super.key,
@@ -20,7 +20,6 @@ class MainLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Removed the app bar
       body: body,
       bottomNavigationBar: isNavBarVisible
           ? BottomNavigationBar(
@@ -36,7 +35,7 @@ class MainLayout extends StatelessWidget {
                   // Get.to(() => CartHistoryPage());
                 }
                 if (index == 3) {
-                     Get.to(() => const FavoriteProductsPage());
+                  Get.to(() => const FavoriteProductsPage());
                 }
                 if (index == 4) {
                   Get.to(() => const ProfilePage());
@@ -52,7 +51,7 @@ class MainLayout extends StatelessWidget {
                   label: 'Search',
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.history),
+                  icon: Icon(Icons.shopping_cart),
                   label: 'Cart',
                 ),
                 BottomNavigationBarItem(
@@ -71,7 +70,7 @@ class MainLayout extends StatelessWidget {
               showSelectedLabels: true,
               showUnselectedLabels: false,
             )
-          : null, // Hide the navigation bar when not visible
+          : null,
     );
   }
 }

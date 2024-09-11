@@ -2,6 +2,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:quick_cart/controller/product_controller.dart';
 import 'package:quick_cart/utils/bottom_nav_bar_widget.dart';
 import 'package:quick_cart/utils/skeleton_loader_widget.dart';
@@ -21,7 +22,6 @@ class _HomePageState extends State<HomePage> {
   final ScrollController _scrollController = ScrollController();
   final CarouselController _carouselController = CarouselController();
   int _current = 0;
-
   bool _isNavBarVisible = true;
   bool _showAllCategories = false;
 
@@ -29,6 +29,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     productController.fetchCategories();
+    productController.getProducts();
     _scrollController.addListener(_onScroll);
   }
 
@@ -39,6 +40,15 @@ class _HomePageState extends State<HomePage> {
     } else if (_scrollController.position.userScrollDirection ==
         ScrollDirection.forward) {
       if (!_isNavBarVisible) setState(() => _isNavBarVisible = true);
+    }
+
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      if (!productController.isLoading.value &&
+          productController.currentPage.value <
+              productController.totalPages.value) {
+        productController.loadMoreProducts();
+      }
     }
   }
 
@@ -126,7 +136,9 @@ class _HomePageState extends State<HomePage> {
   Widget _buildCarousel() {
     return Obx(() {
       if (productController.isLoading.value) {
-        return const Center(child: CircularProgressIndicator());
+        return Center(
+            child: LoadingAnimationWidget.horizontalRotatingDots(
+                color: AppColors.mainColor, size: 50));
       } else if (productController.products.isEmpty) {
         return const Center(child: Text('No products available'));
       } else {
@@ -242,7 +254,9 @@ class _HomePageState extends State<HomePage> {
   Widget _buildCategories() {
     return Obx(() {
       if (productController.isCategoriesLoading.value) {
-        return const Center(child: CircularProgressIndicator());
+        return Center(
+            child: LoadingAnimationWidget.horizontalRotatingDots(
+                color: AppColors.mainColor, size: 50));
       } else if (productController.categories.isEmpty) {
         return const Center(child: Text('No categories available'));
       } else {

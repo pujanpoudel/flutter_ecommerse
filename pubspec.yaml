@@ -26,6 +26,7 @@ dependencies:
   multiavatar: ^0.1.5
   flutter_svg: ^2.0.10+1
   file_picker: ^8.0.0+1
+  loading_animation_widget: ^1.2.1
 
 flutter_launcher_icons:
   android: "launcher_icon"

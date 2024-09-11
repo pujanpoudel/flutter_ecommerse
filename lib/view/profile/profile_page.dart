@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:multiavatar/multiavatar.dart';
 import 'package:quick_cart/controller/auth_controller.dart';
 import 'package:quick_cart/utils/bottom_nav_bar_widget.dart';
@@ -59,7 +60,9 @@ class _ProfilePageState extends State<ProfilePage> {
       body: Scaffold(
         backgroundColor: AppColors.creamColor,
         body: Obx(() => authController.isLoading.value
-            ? const Center(child: CircularProgressIndicator())
+            ? Center(
+                child: LoadingAnimationWidget.horizontalRotatingDots(
+                    color: AppColors.mainColor, size: 50))
             : SingleChildScrollView(
                 controller: _scrollController,
                 child: Column(

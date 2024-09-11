@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import '../../controller/auth_controller.dart';
 import '../../utils/colors.dart';
 
@@ -130,8 +131,8 @@ class _SignUpPageState extends State<SignUpPage> {
                             ),
                           ),
                           child: controller.isLoading.value
-                              ? const CircularProgressIndicator(
-                                  color: Colors.white)
+                              ? LoadingAnimationWidget.waveDots(
+                                  color: AppColors.whiteColor, size: 50)
                               : const Text('Sign Up'),
                         )),
                   ),
@@ -244,16 +245,14 @@ class _SignUpPageState extends State<SignUpPage> {
     required bool obscureText,
     required TextEditingController controller,
     required VoidCallback toggleObscureText,
-    bool hasError = false, // Add this line
+    bool hasError = false,
   }) {
     return Container(
       padding: const EdgeInsets.all(5),
       decoration: BoxDecoration(
         color: AppColors.creamColor,
         borderRadius: BorderRadius.circular(10),
-        border: hasError
-            ? Border.all(color: Colors.red, width: 2)
-            : null, // Add this line
+        border: hasError ? Border.all(color: Colors.red, width: 2) : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
