@@ -56,14 +56,13 @@ class Product {
   final String name;
   final double price;
   final String description;
-  final String image;
+  final List<String> image;
   final Category category;
-  final int stock;
   final bool status;
-  final dynamic size;
-  final Color? color;
   final Vendor vendor;
   final ProductType type;
+  final int totalStock;
+  final List<Variant> variants;
 
   Product({
     required this.id,
@@ -72,12 +71,11 @@ class Product {
     required this.description,
     required this.image,
     required this.category,
-    required this.stock,
     required this.status,
-    this.size,
-    this.color,
     required this.vendor,
     required this.type,
+    required this.totalStock,
+    required this.variants,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) => Product(
@@ -85,14 +83,13 @@ class Product {
         name: json['name'],
         price: json['price'].toDouble(),
         description: json['description'],
-        image: json['image'],
+        image: List<String>.from(json['image']),
         category: Category.fromJson(json['category']),
-        stock: json['stock'],
         status: json['status'],
-        size: json['size'],
-        color: json['color'] != null ? Color.fromJson(json['color']) : null,
         vendor: Vendor.fromJson(json['vendor']),
         type: ProductType.fromJson(json['type']),
+        totalStock: json['total_stock'],
+        variants: List<Variant>.from(json['variants'].map((x) => Variant.fromJson(x))),
       );
 
   Map<String, dynamic> toJson() => {
@@ -102,12 +99,11 @@ class Product {
         'description': description,
         'image': image,
         'category': category.toJson(),
-        'stock': stock,
         'status': status,
-        'size': size,
-        'color': color?.toJson(),
         'vendor': vendor.toJson(),
         'type': type.toJson(),
+        'total_stock': totalStock,
+        'variants': List<dynamic>.from(variants.map((x) => x.toJson())),
       };
 }
 
@@ -115,61 +111,28 @@ class Category {
   final String id;
   final String name;
   final String description;
-  final bool status;
-  final bool isSelected;
+    bool isSelected;
+
 
   Category({
     required this.id,
     required this.name,
     required this.description,
-    required this.status,
-    this.isSelected = false,
+        this.isSelected = false,
+
   });
 
   factory Category.fromJson(Map<String, dynamic> json) => Category(
-        id: json['id'] ?? '',
-        name: json['name'] ?? '',
-        description: json['description'] ?? '',
-        status: json['status'] ?? false,
-        isSelected: json['isSelected'] ?? false,
+        id: json['id'],
+        name: json['name'],
+        description: json['description'],
       );
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,
         'description': description,
-        'status': status,
-        'isSelected': isSelected,
       };
-
-  Category copyWith({
-    String? id,
-    String? name,
-    String? description,
-    bool? status,
-    bool? isSelected,
-  }) {
-    return Category(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      description: description ?? this.description,
-      status: status ?? this.status,
-      isSelected: isSelected ?? this.isSelected,
-    );
-  }
-}
-
-class Color {
-  final String id;
-  final String hex;
-  final String name;
-
-  Color({required this.id, required this.hex, required this.name});
-
-  factory Color.fromJson(Map<String, dynamic> json) =>
-      Color(id: json['id'], hex: json['hex'], name: json['name']);
-
-  Map<String, dynamic> toJson() => {'id': id, 'hex': hex, 'name': name};
 }
 
 class Vendor {
@@ -213,5 +176,29 @@ class ProductType {
         'id': id,
         'name': name,
         'description': description,
+      };
+}
+
+class Variant {
+  final String size;
+  final String color;
+  final int stock;
+
+  Variant({
+    required this.size,
+    required this.color,
+    required this.stock,
+  });
+
+  factory Variant.fromJson(Map<String, dynamic> json) => Variant(
+        size: json['size'],
+        color: json['color'],
+        stock: json['stock'],
+      );
+
+  Map<String, dynamic> toJson() => {
+        'size': size,
+        'color': color,
+        'stock': stock,
       };
 }

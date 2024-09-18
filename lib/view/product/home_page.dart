@@ -59,6 +59,7 @@ class _HomePageState extends State<HomePage> {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
+    productController.fetchCategories();
   }
 
   @override
@@ -76,14 +77,13 @@ class _HomePageState extends State<HomePage> {
               child: SizedBox(height: 16),
             ),
             SliverToBoxAdapter(child: _buildCarousel()),
-            SliverToBoxAdapter(child: _buildCategories()),
-            _buildProductGrid(),
+            SliverToBoxAdapter(child: _buildCategoryChip()),
+            _buildProductGrid(productController),
           ],
         ),
       ),
     );
   }
-
 
   Widget _buildHeader() {
     return Container(
@@ -164,7 +164,11 @@ class _HomePageState extends State<HomePage> {
                           color: Colors.grey[200],
                           borderRadius: BorderRadius.circular(12),
                           image: DecorationImage(
-                            image: NetworkImage(product.image),
+                            image: NetworkImage(
+                              (product.image as List).isNotEmpty
+                                  ? (product.image)[0]
+                                  : product.image as String,
+                            ),
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -254,7 +258,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Widget _buildCategories() {
+  Widget _buildCategoryChip() {
     return Obx(() {
       if (productController.isCategoriesLoading.value) {
         return Center(
@@ -296,7 +300,7 @@ class _HomePageState extends State<HomePage> {
                   spacing: 8,
                   runSpacing: 8,
                   children: displayedCategories.map((category) {
-                    return _buildCategoryChip(category);
+                    return _buildCategoryChip();
                   }).toList(),
                 ),
               )
@@ -314,7 +318,7 @@ class _HomePageState extends State<HomePage> {
                             ? 16.0
                             : 0.0,
                       ),
-                      child: _buildCategoryChip(displayedCategories[index]),
+                      child: _buildCategoryChip(),
                     );
                   },
                 ),
@@ -325,20 +329,32 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Widget _buildCategoryChip(Category category) {
-    return ChoiceChip(
-      label: Text(category.name),
-      selected: category.isSelected,
-      onSelected: (selected) {
-        productController.toggleCategorySelection(category);
-      },
-      selectedColor: AppColors.mainColor.withOpacity(0.9),
-      backgroundColor: AppColors.iconColor2,
-      labelStyle: const TextStyle(color: Colors.white),
-    );
+  Widget _buildCategorySection(ProductController productController) {
+    return Obx(() {
+      if (productController.isCategoriesLoading.value) {
+        return const Center(child: CircularProgressIndicator());
+      } else if (productController.categoriesError.isNotEmpty) {
+        return Center(child: Text(productController.categoriesError.value));
+      } else if (productController.categories.isEmpty) {
+        return const Center(child: Text('No categories available'));
+      } else {
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: productController.categories.map((category) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: _buildCategoryChip(),
+              );
+            }).toList(),
+          ),
+        );
+      }
+    });
   }
 
-  Widget _buildProductGrid() {
+  Widget _buildProductGrid(ProductController productController) {
     return Obx(() {
       if (productController.isLoading.value &&
           productController.products.isEmpty) {
@@ -362,7 +378,10 @@ class _HomePageState extends State<HomePage> {
             delegate: SliverChildBuilderDelegate(
               (context, index) {
                 if (index < productController.products.length) {
-                  return _buildProductCard(productController.products[index]);
+                  return _buildProductCard(
+                    productController.products[index],
+                    productController,
+                  );
                 }
                 return null;
               },
@@ -447,7 +466,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildProductCard(Product product) {
+  Widget _buildProductCard(
+      Product product, ProductController productController) {
     return GestureDetector(
       onTap: () {
         Get.to(
@@ -467,32 +487,70 @@ class _HomePageState extends State<HomePage> {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  ClipRRect(
-                    borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(8)),
-                    child: Image.network(
-                      product.image,
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      height: double.infinity,
-                      loadingBuilder: (BuildContext context, Widget child,
-                          ImageChunkEvent? loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Center(
-                          child: CircularProgressIndicator(
-                            value: loadingProgress.expectedTotalBytes != null
-                                ? loadingProgress.cumulativeBytesLoaded /
-                                    loadingProgress.expectedTotalBytes!
-                                : null,
-                          ),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Center(
-                            child: Icon(Icons.error, color: Colors.red));
-                      },
+                  CarouselSlider(
+                    options: CarouselOptions(
+                      aspectRatio: 1,
+                      viewportFraction: 1,
+                      enlargeCenterPage: false,
+                      enableInfiniteScroll: product.image.length > 1,
                     ),
+                    items: product.image.map((imageUrl) {
+                      return Builder(
+                        builder: (BuildContext context) {
+                          return ClipRRect(
+                            borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(8)),
+                            child: Image.network(
+                              imageUrl,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
+                              loadingBuilder: (BuildContext context,
+                                  Widget child,
+                                  ImageChunkEvent? loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return Center(
+                                  child: CircularProgressIndicator(
+                                    value: loadingProgress.expectedTotalBytes !=
+                                            null
+                                        ? loadingProgress
+                                                .cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!
+                                        : null,
+                                  ),
+                                );
+                              },
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Center(
+                                    child:
+                                        Icon(Icons.error, color: Colors.red));
+                              },
+                            ),
+                          );
+                        },
+                      );
+                    }).toList(),
                   ),
+                  if (product.image.length > 1)
+                    Positioned(
+                      bottom: 8,
+                      left: 0,
+                      right: 0,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: product.image.asMap().entries.map((entry) {
+                          return Container(
+                            width: 8,
+                            height: 8,
+                            margin: const EdgeInsets.symmetric(horizontal: 4),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white.withOpacity(0.5),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
                 ],
               ),
             ),

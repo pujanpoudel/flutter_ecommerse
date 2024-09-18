@@ -97,7 +97,7 @@ class _FavoriteProductsPageState extends State<FavoriteProductsPage> {
                             onPressed: () {
                               selectedProducts.clear();
                             },
-                            child: Icon(Icons.close),
+                            child: const Icon(Icons.close),
                           ),
                         ],
                       ),
@@ -224,98 +224,96 @@ class _FavoriteProductsPageState extends State<FavoriteProductsPage> {
             ),
           ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    ClipRRect(
-                      borderRadius:
-                          const BorderRadius.vertical(top: Radius.circular(8)),
-                      child: Image.network(
-                        product.image,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    if (isSelected)
-                      const Positioned(
-                        top: 8,
-                        left: 8,
-                        child: Icon(Icons.check_circle,
-                            color: AppColors.mainColor),
-                      ),
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: GestureDetector(
-                        onTap: () {
-                          productController.toggleFavorite(product.id);
-                          selectedProducts.remove(product.id);
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.5),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.close,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    Expanded(
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+            child: Image.network(
+              product.image.isNotEmpty ? product.image.first : 'default_image_url',
+              fit: BoxFit.cover,
+            ),
+          ),
+          if (isSelected)
+            const Positioned(
+              top: 8,
+              left: 8,
+              child: Icon(Icons.check_circle, color: AppColors.mainColor),
+            ),
+          Positioned(
+            top: 8,
+            right: 8,
+            child: GestureDetector(
+              onTap: () {
+                productController.toggleFavorite(product.id);
+                selectedProducts.remove(product.id);
+              },
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.close,
+                  color: Colors.white,
+                  size: 20,
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          product.name,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          product.category.name,
-                          style:
-                              TextStyle(color: Colors.grey[600], fontSize: 12),
-                        ),
-                        Text(
-                          '\$${product.price.toStringAsFixed(2)}',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                    Obx(() => IconButton(
-                          icon: Icon(
-                            productController.isFavorite(product.id)
-                                ? Icons.favorite
-                                : Icons.favorite_border,
-                            color: productController.isFavorite(product.id)
-                                ? Colors.red
-                                : Colors.grey[600],
-                          ),
-                          onPressed: () {
-                            productController.toggleFavorite(product.id);
-                          },
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          alignment: Alignment.topCenter,
-                        )),
-                  ],
-                ),
+            ),
+          ),
+        ],
+      ),
+    ),
+    Padding(
+      padding: const EdgeInsets.all(8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                product.name,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                product.category.name,
+                style: TextStyle(color: Colors.grey[600], fontSize: 12),
+              ),
+              Text(
+                '\$${product.price.toStringAsFixed(2)}',
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ],
           ),
+          Obx(() => IconButton(
+                icon: Icon(
+                  productController.isFavorite(product.id)
+                      ? Icons.favorite
+                      : Icons.favorite_border,
+                  color: productController.isFavorite(product.id)
+                      ? Colors.red
+                      : Colors.grey[600],
+                ),
+                onPressed: () {
+                  productController.toggleFavorite(product.id);
+                },
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                alignment: Alignment.topCenter,
+              )),
+        ],
+      ),
+    ),
+  ],
+),
+        
         ),
       );
     });
