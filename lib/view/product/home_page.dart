@@ -77,7 +77,7 @@ class _HomePageState extends State<HomePage> {
               child: SizedBox(height: 16),
             ),
             SliverToBoxAdapter(child: _buildCarousel()),
-            SliverToBoxAdapter(child: _buildCategoryChip()),
+            SliverToBoxAdapter(child: _buildCategorySection(productController)),
             _buildProductGrid(productController),
           ],
         ),
@@ -332,7 +332,9 @@ class _HomePageState extends State<HomePage> {
   Widget _buildCategorySection(ProductController productController) {
     return Obx(() {
       if (productController.isCategoriesLoading.value) {
-        return const Center(child: CircularProgressIndicator());
+        return Center(
+            child: LoadingAnimationWidget.horizontalRotatingDots(
+                color: AppColors.mainColor, size: 50));
       } else if (productController.categoriesError.isNotEmpty) {
         return Center(child: Text(productController.categoriesError.value));
       } else if (productController.categories.isEmpty) {

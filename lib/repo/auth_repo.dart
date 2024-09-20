@@ -96,7 +96,7 @@ class AuthRepo extends GetxService {
   Future<Response<dynamic>> getUserProfile(String token) async {
     try {
       final response = await GetConnect().get(
-        '$baseUrl/accounts/me',
+        '$baseUrl/me',
         headers: {'Authorization': 'Bearer $token'},
       );
       return response;
@@ -110,17 +110,17 @@ class AuthRepo extends GetxService {
       AuthModel user, String token) async {
     try {
       final response = await GetConnect().put(
-        '$baseUrl/accounts/update',
-        user.toJson(), // Ensure the data is properly serialized
+        '$baseUrl/update',
+        user.toJson(),
         headers: {
-          'Authorization': 'Bearer $token', // Token for authentication
-          'Content-Type': 'application/json', // Set content type
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
         },
       );
-      return response; // Return the response
+      return response;
     } catch (e) {
       print('UpdateUserProfile Error: $e');
-      rethrow; // Rethrow the error to handle it in the calling method
+      rethrow;
     }
   }
 

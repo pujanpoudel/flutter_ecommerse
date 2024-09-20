@@ -73,7 +73,6 @@ class _FavoriteProductsPageState extends State<FavoriteProductsPage> {
                     IconButton(
                       icon: const Icon(Icons.search),
                       onPressed: () {
-                        // Implement search functionality
                       },
                     ),
                   ],

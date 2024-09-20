@@ -26,7 +26,7 @@ class EditProfilePage extends StatelessWidget {
         title: const Text('Edit Profile',
             style: TextStyle(
                 color: Colors.white,
-                fontSize: 24,
+                fontSize: 30,
                 fontWeight: FontWeight.bold)),
       ),
       body: SingleChildScrollView(
@@ -34,11 +34,11 @@ class EditProfilePage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 20),
-            _buildProfileImage(), // Profile Image
-            const SizedBox(height: 15), // Added spacing
-            _buildFilePickerButton(), // File Picker Button below the Avatar
+            _buildProfileImage(),
+            const SizedBox(height: 15),
+            _buildFilePickerButton(controller),
             _buildEditForm(),
-            _buildActionButtons(),
+            _buildActionButtons(controller),
           ],
         ),
       ),
@@ -138,8 +138,8 @@ class EditProfilePage extends StatelessWidget {
         radius: 60,
         backgroundColor: Colors.white,
         child: SvgPicture.string(
-          controller.user.value.avatarID ??
-              multiavatar(controller.user.value.avatarID ?? 'User'),
+          controller.user.value.fullName ??
+              multiavatar(controller.user.value.fullName ?? 'User'),
           width: 120,
           height: 120,
         ),
@@ -170,106 +170,105 @@ class EditProfilePage extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildInputField(IconData icon, String label, String hint,
-      TextEditingController textController) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 15),
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(10),
+Widget _buildInputField(IconData icon, String label, String hint,
+    TextEditingController textController) {
+  return Container(
+    margin: const EdgeInsets.only(bottom: 15),
+    decoration: BoxDecoration(
+      color: Colors.grey[100],
+      borderRadius: BorderRadius.circular(10),
+    ),
+    child: TextFormField(
+      controller: textController,
+      decoration: InputDecoration(
+        prefixIcon: Icon(icon, color: AppColors.mainColor),
+        labelText: label,
+        hintText: hint,
+        border: InputBorder.none,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
       ),
-      child: TextFormField(
-        controller: textController,
-        decoration: InputDecoration(
-          prefixIcon: Icon(icon, color: AppColors.mainColor),
-          labelText: label,
-          hintText: hint,
-          border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-        ),
-      ),
-    );
-  }
+    ),
+  );
+}
 
-  Widget _buildActionButtons() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        children: [
-          SizedBox(
-            width: 250,
-            child: ElevatedButton.icon(
-              onPressed: () {
-                controller.updateProfile();
-                Get.snackbar('Profile Updated', 'Your changes have been saved.',
-                    snackPosition: SnackPosition.TOP,
-                    backgroundColor: Colors.transparent,
-                    colorText: Colors.white);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.mainColor,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-              icon: const Icon(Icons.save, color: Colors.white),
-              label: const Text('Save Changes'),
-            ),
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: 250,
-            child: OutlinedButton.icon(
-              onPressed: () => Get.back(),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.mainColor,
-                side: const BorderSide(color: AppColors.mainColor),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-              icon: const Icon(Icons.cancel, color: AppColors.mainColor),
-              label: const Text('Cancel'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilePickerButton() {
-    return Center(
-      child: SizedBox(
-        width: 200,
-        child: OutlinedButton.icon(
-          onPressed: () async {
-            FilePickerResult? result = await FilePicker.platform.pickFiles();
-            if (result != null) {
-              controller.updateProfilePicture(result.files.single.path!);
-              Get.snackbar(
-                  'Avatar Updated', 'Profile picture has been updated.',
-                  snackPosition: SnackPosition.BOTTOM,
+Widget _buildActionButtons(controller) {
+  return Container(
+    padding: const EdgeInsets.all(20),
+    child: Column(
+      children: [
+        SizedBox(
+          width: 250,
+          child: ElevatedButton.icon(
+            onPressed: () {
+              controller.updateProfile();
+              Get.snackbar('Profile Updated', 'Your changes have been saved.',
+                  snackPosition: SnackPosition.TOP,
                   backgroundColor: Colors.transparent,
                   colorText: Colors.white);
-            }
-          },
-          icon: const Icon(Icons.add_a_photo),
-          label: const Text('Upload Picture'),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: AppColors.mainColor,
-            side: const BorderSide(color: AppColors.mainColor),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30),
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.mainColor,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 12),
             ),
-            padding: const EdgeInsets.symmetric(vertical: 12),
+            icon: const Icon(Icons.save, color: Colors.white),
+            label: const Text('Save Changes'),
           ),
         ),
+        const SizedBox(height: 20),
+        SizedBox(
+          width: 250,
+          child: OutlinedButton.icon(
+            onPressed: () => Get.back(),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.mainColor,
+              side: const BorderSide(color: AppColors.mainColor),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+            ),
+            icon: const Icon(Icons.cancel, color: AppColors.mainColor),
+            label: const Text('Cancel'),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _buildFilePickerButton(controller) {
+  return Center(
+    child: SizedBox(
+      width: 200,
+      child: OutlinedButton.icon(
+        onPressed: () async {
+          FilePickerResult? result = await FilePicker.platform.pickFiles();
+          if (result != null) {
+            controller.updateProfilePicture(result.files.single.path!);
+            Get.snackbar('Avatar Updated', 'Profile picture has been updated.',
+                snackPosition: SnackPosition.BOTTOM,
+                backgroundColor: Colors.transparent,
+                colorText: Colors.white);
+          }
+        },
+        icon: const Icon(Icons.add_a_photo),
+        label: const Text('Upload Picture'),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.mainColor,
+          side: const BorderSide(color: AppColors.mainColor),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+        ),
       ),
-    );
-  }
+    ),
+  );
 }

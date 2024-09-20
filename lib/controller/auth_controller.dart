@@ -36,7 +36,7 @@ class AuthController extends GetxController {
   void onInit() {
     super.onInit();
     checkRememberMe();
-    fetchUserProfile();
+    loadUserProfile();
     loadProfilePicture();
     loadSavedAvatar();
   }
@@ -144,7 +144,6 @@ class AuthController extends GetxController {
       await authRepo.clearUserEmail();
       await authRepo.clearUserPassword();
 
-      // Clear the controllers' text
       emailController.clear();
       passwordController.clear();
     }
@@ -169,90 +168,51 @@ class AuthController extends GetxController {
     }
   }
 
-  Future<void> fetchUserProfile() async {
-    isLoading.value = true;
-    try {
-      String token = authRepo.getUserToken();
-      print('Token: $token');
+  void loadUserProfile() async {
+    String token = authRepo.getUserToken();
+    Response response = await authRepo.getUserProfile(token);
+    print('User Full Name: ${user.value.fullName}');
+    print('User Email: ${user.value.email}');
+    print('User Phone: ${user.value.phone}');
+    print('User Address: ${user.value.address}');
 
-      final response = await authRepo.getUserProfile(token);
-      print('Response status code: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
-      if (response.statusCode == 200) {
-        var data = response.body['data'];
-        print('Data from response: $data');
-
-        if (data != null) {
-          // user.value = AuthModel.fromJson(data);
-          user.value = AuthModel(
-              fullName: "John Doe",
-              email: "john@example.com",
-              phone: "1234567890");
-          fullNameController.text = user.value.fullName ?? '';
-          emailController.text = user.value.email ?? '';
-          phoneNumberController.text = user.value.phone ?? '';
-          addressController.text = user.value.address ?? '';
-          print('User: ${user.value.toJson()}');
-        } else {
-          print('No data found in the response body');
-          _showProfilePageSnackbar('Error', 'Failed to load user profile');
-        }
-      } else {
-        print('Failed to load profile, status code: ${response.statusCode}');
-        _showProfilePageSnackbar('Error', 'Failed to load user profile');
-      }
-    } catch (e) {
-      print('Exception occurred: $e');
-      _showProfilePageSnackbar('Error', 'Failed to load user profile');
-    } finally {
-      isLoading.value = false;
+    if (response.statusCode == 200) {
+      user.value = AuthModel.fromJson(response.body);
+      fullNameController.text = user.value.fullName ?? '';
+      emailController.text = user.value.email ?? '';
+      phoneNumberController.text = user.value.phone ?? '';
+      addressController.text = user.value.address ?? '';
+    } else {
+      Get.snackbar('Error', 'Failed to load user profile');
     }
   }
 
-  Future<void> updateProfile() async {
-    isLoading.value = true;
-    try {
-      String token = authRepo.getUserToken();
-      AuthModel updatedUser = user.value.copyWith(
-        fullName: fullNameController.text,
-        email: emailController.text,
-        phone: phoneNumberController.text,
-        address: addressController.text,
-      );
+  void updateProfile() async {
+    user.value = user.value.copyWith(
+      fullName: fullNameController.text,
+      email: emailController.text,
+      phone: phoneNumberController.text,
+      address: addressController.text,
+    );
 
-      final response = await authRepo.updateUserProfile(updatedUser, token);
-      if (response.statusCode == 200) {
-        user.value = updatedUser;
-        _showProfilePageSnackbar('Success', 'Profile updated successfully');
-
-        // Ensure that the profile page is reloaded with the new data
-        await fetchUserProfile();
-
-        // Navigate back to the ProfilePage upon successful update
-        Get.off(() => const ProfilePage());
-      } else {
-        _showProfilePageSnackbar('Error', 'Failed to update profile');
-      }
-    } catch (e) {
-      _showProfilePageSnackbar('Error', 'Failed to update profile');
-    } finally {
-      isLoading.value = false;
+    String token = authRepo.getUserToken();
+    Response response = await authRepo.updateUserProfile(user.value, token);
+    if (response.statusCode == 200) {
+      Get.snackbar(
+          'Profile Updated', 'Your profile has been successfully updated');
+    } else {
+      Get.snackbar('Error', 'Failed to update profile');
     }
   }
 
-  // Method to refresh the avatar
   void refreshAvatar() {
-    String newAvatar = multiavatar(user.value.avatarID ?? 'User');
-    // Update user model with the new avatar
+    String newAvatar = multiavatar(user.value.fullName ?? 'User');
     user.update((val) {
-      val?.avatarID = newAvatar;
+      val?.fullName = newAvatar;
     });
-    // Notify listeners about the update
     update();
   }
 
-  // Utility to generate a random string for the avatar ID
   String generateRandomString(int length) {
     const chars =
         'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -266,30 +226,23 @@ class AuthController extends GetxController {
     );
   }
 
-  // Method to update profile picture
   void updateProfilePicture(String path) {
     profilePicturePath.value = path;
-    // Update user model with the new picture path
     user.update((val) {
-      val?.avatarID = path;
+      val?.fullName = path;
     });
-    // Notify listeners about the update
     update();
   }
 
-  // Method to clear the profile picture
   void clearProfilePicture() {
     profilePicturePath.value = '';
-    // Revert back to generated avatar
     String defaultAvatar = multiavatar(user.value.fullName ?? 'User');
     user.update((val) {
-      val?.avatarID = defaultAvatar;
+      val?.fullName = defaultAvatar;
     });
-    // Notify listeners about the update
     update();
   }
 
-  // Method to load saved avatar from SharedPreferences
   Future<void> loadSavedAvatar() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? savedAvatar = prefs.getString(avatarKey);

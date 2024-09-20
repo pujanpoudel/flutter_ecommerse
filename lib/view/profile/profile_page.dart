@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
@@ -8,6 +7,7 @@ import 'package:quick_cart/controller/auth_controller.dart';
 import 'package:quick_cart/utils/bottom_nav_bar_widget.dart';
 import 'package:quick_cart/utils/colors.dart';
 import 'package:quick_cart/view/profile/edit_profile_page.dart';
+import 'package:quick_cart/repo/auth_repo.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -18,43 +18,36 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final AuthController authController = Get.find<AuthController>();
+  final AuthRepo authRepo = Get.find<AuthRepo>();
   final ScrollController _scrollController = ScrollController();
-  bool _isNavBarVisible = true;
+  final bool _isNavBarVisible = true;
 
   @override
   void initState() {
     super.initState();
-    authController.isProfilePageVisible.value = true;
-
-    _scrollController.addListener(() {
-      if (_scrollController.position.userScrollDirection ==
-          ScrollDirection.reverse) {
-        if (_isNavBarVisible) {
-          setState(() {
-            _isNavBarVisible = false;
-          });
-        }
-      } else if (_scrollController.position.userScrollDirection ==
-          ScrollDirection.forward) {
-        if (!_isNavBarVisible) {
-          setState(() {
-            _isNavBarVisible = true;
-          });
-        }
-      }
-    });
+    _loadUserProfile();
   }
 
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
+  Future<void> _loadUserProfile() async {
+    final token = authRepo.getUserToken();
+    if (token.isNotEmpty) {
+      try {
+        final response = await authRepo.getUserProfile(token);
+        if (response.statusCode == 200) {
+          authController.updateProfile();
+        } else {
+          print('Failed to load user profile: ${response.statusText}');
+        }
+      } catch (e) {
+        print('Error loading user profile: $e');
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return MainLayout(
-      currentIndex: 3,
+      currentIndex: 4,
       isNavBarVisible: _isNavBarVisible,
       body: Scaffold(
         backgroundColor: AppColors.creamColor,
@@ -62,17 +55,19 @@ class _ProfilePageState extends State<ProfilePage> {
             ? Center(
                 child: LoadingAnimationWidget.horizontalRotatingDots(
                     color: AppColors.mainColor, size: 50))
-            : SingleChildScrollView(
-                controller: _scrollController,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(height: 40),
-                    _buildProfileHeader(),
-                    _buildProfileInfo(),
-                    const SizedBox(height: 30),
-                    _buildActionButtons(),
-                  ],
+            : RefreshIndicator(
+                onRefresh: _loadUserProfile,
+                child: SingleChildScrollView(
+                  controller: _scrollController,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: 20),
+                      _buildProfileHeader(),
+                      _buildProfileInfo(),
+                      _buildActionButtons(),
+                    ],
+                  ),
                 ),
               )),
       ),
@@ -80,15 +75,15 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildProfileHeader() {
-    final AuthController controller = Get.find<AuthController>();
     return Container(
       color: AppColors.creamColor,
       child: Column(
         children: [
           const SizedBox(height: 20),
           const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Padding( 
+              Padding(
                 padding: EdgeInsets.only(left: 20, top: 20),
                 child: Text(
                   'Profile',
@@ -101,15 +96,20 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          CircleAvatar(
-            radius: 60,
-            backgroundColor: Colors.white,
-            child: SvgPicture.string(
-              multiavatar(controller.user.value.fullName ?? 'User'),
-              width: 120,
-              height: 120,
-            ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircleAvatar(
+                radius: 60,
+                backgroundColor: Colors.white,
+                child: SvgPicture.string(
+                  multiavatar(authController.user.value.fullName ?? 'User'),
+                  width: 120,
+                  height: 120,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -187,9 +187,10 @@ class _ProfilePageState extends State<ProfilePage> {
           SizedBox(
             width: 200,
             child: OutlinedButton.icon(
-              onPressed: () {
+              onPressed: () async {
                 authController.isProfilePageVisible.value = false;
-                Get.find<AuthController>().signOut();
+                await authRepo.signOut(rememberMe: false);
+                Get.offAllNamed('/login');
               },
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.red,

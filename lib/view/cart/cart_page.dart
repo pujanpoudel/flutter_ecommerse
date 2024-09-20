@@ -5,6 +5,7 @@ import 'package:quick_cart/controller/cart_controller.dart';
 import 'package:quick_cart/utils/colors.dart';
 import 'package:quick_cart/view/cart/cart_item.dart';
 import 'package:quick_cart/utils/bottom_nav_bar_widget.dart';
+import 'package:quick_cart/view/product/checkout_page.dart';
 import 'package:quick_cart/view/product/home_page.dart';
 
 class CartPage extends StatefulWidget {
@@ -18,6 +19,7 @@ class _CartPageState extends State<CartPage> {
   final CartController cartController = Get.find<CartController>();
   final ScrollController _scrollController = ScrollController();
   bool _isNavBarVisible = true;
+  final RxSet<String> selectedItems = <String>{}.obs;
 
   @override
   void initState() {
@@ -37,6 +39,13 @@ class _CartPageState extends State<CartPage> {
   void dispose() {
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _removeSelectedItems() {
+    for (String itemId in selectedItems) {
+      cartController.removeFromCart(itemId);
+    }
+    selectedItems.clear();
   }
 
   @override
@@ -60,15 +69,31 @@ class _CartPageState extends State<CartPage> {
                           .headlineLarge
                           ?.copyWith(fontWeight: FontWeight.bold),
                     ),
-                    // IconButton(
-                    //   icon: const Icon(Icons.search),
-                    //   onPressed: () {
-                    //     // Implement search functionality
-                    //   },
-                    // ),
                   ],
                 ),
               ),
+              Obx(() => selectedItems.isNotEmpty
+                  ? Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '${selectedItems.length} item(s) selected',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.mainColor,
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: _removeSelectedItems,
+                            child: const Text('Delete Selected'),
+                          ),
+                        ],
+                      ),
+                    )
+                  : const SizedBox.shrink()),
               Expanded(
                 child: Obx(() {
                   if (cartController.cartItems.isEmpty) {
@@ -79,7 +104,43 @@ class _CartPageState extends State<CartPage> {
                       padding: const EdgeInsets.all(16),
                       children: [
                         ...cartController.cartItems
-                            .map((item) => CartItem(item: item)),
+                            .map((item) => GestureDetector(
+                                  onLongPress: () {
+                                    if (selectedItems.contains(item.id)) {
+                                      selectedItems.remove(item.id);
+                                    } else {
+                                      selectedItems.add(item.id);
+                                    }
+                                  },
+                                  child: Stack(
+                                    children: [
+                                      CartItem(item: item),
+                                      Positioned(
+                                        top: 0,
+                                        right: 0,
+                                        child: IconButton(
+                                          icon: const Icon(Icons.delete,
+                                              color: Colors.red),
+                                          onPressed: () => cartController
+                                              .removeFromCart(item.id),
+                                        ),
+                                      ),
+                                      Obx(() => selectedItems.contains(item.id)
+                                          ? Positioned.fill(
+                                              child: Container(
+                                                color: Colors.black
+                                                    .withOpacity(0.3),
+                                                child: const Icon(
+                                                  Icons.check,
+                                                  color: Colors.white,
+                                                  size: 40,
+                                                ),
+                                              ),
+                                            )
+                                          : const SizedBox.shrink()),
+                                    ],
+                                  ),
+                                )),
                         const SizedBox(height: 16),
                         _buildPromoCode(),
                         const SizedBox(height: 16),
@@ -104,7 +165,7 @@ class _CartPageState extends State<CartPage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Image.asset(
-            'assets/img/empty_cart.png', // Make sure to add this image to your assets
+            'assets/img/empty_cart.png',
             width: 200,
             height: 200,
           ),
@@ -161,7 +222,7 @@ class _CartPageState extends State<CartPage> {
         IconButton(
           icon: const Icon(Icons.arrow_forward),
           onPressed: () {
-            // Apply promo code
+            // Implement promo code logic
           },
         ),
       ],
@@ -196,7 +257,7 @@ class _CartPageState extends State<CartPage> {
           padding: const EdgeInsets.symmetric(vertical: 16),
         ),
         onPressed: () {
-          // Implement checkout logic
+          Get.to(CheckoutPage());
         },
         child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
