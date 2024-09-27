@@ -28,8 +28,10 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    productController.fetchCategories();
-    productController.getProducts();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      productController.fetchCategories();
+      productController.getProducts();
+    });
     _scrollController.addListener(_onScroll);
   }
 
@@ -81,6 +83,7 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
 
   Widget _buildHeader() {
     return Container(
@@ -342,6 +345,10 @@ class _HomePageState extends State<HomePage> {
         return SliverToBoxAdapter(child: _buildSkeletonLoader());
       } else if (productController.error.isNotEmpty) {
         return SliverToBoxAdapter(child: _buildErrorWidget());
+      } else if (productController.products.isEmpty) {
+        return const SliverToBoxAdapter(
+          child: Center(child: Text('No products available')),
+        );
       } else {
         return SliverPadding(
           padding: const EdgeInsets.all(16),
@@ -353,8 +360,12 @@ class _HomePageState extends State<HomePage> {
               mainAxisSpacing: 16,
             ),
             delegate: SliverChildBuilderDelegate(
-              (context, index) =>
-                  _buildProductCard(productController.products[index]),
+              (context, index) {
+                if (index < productController.products.length) {
+                  return _buildProductCard(productController.products[index]);
+                }
+                return null;
+              },
               childCount: productController.products.length,
             ),
           ),

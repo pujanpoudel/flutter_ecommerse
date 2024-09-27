@@ -130,7 +130,7 @@ class Category {
         id: json['id'] ?? '',
         name: json['name'] ?? '',
         description: json['description'] ?? '',
-        status: json['status'] ?? false, 
+        status: json['status'] ?? false,
         isSelected: json['isSelected'] ?? false,
       );
 
@@ -162,21 +162,14 @@ class Category {
 class Color {
   final String id;
   final String hex;
+  final String name;
 
-  Color({
-    required this.id,
-    required this.hex,
-  });
+  Color({required this.id, required this.hex, required this.name});
 
-  factory Color.fromJson(Map<String, dynamic> json) => Color(
-        id: json['id'],
-        hex: json['hex'],
-      );
+  factory Color.fromJson(Map<String, dynamic> json) =>
+      Color(id: json['id'], hex: json['hex'], name: json['name']);
 
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'hex': hex,
-      };
+  Map<String, dynamic> toJson() => {'id': id, 'hex': hex, 'name': name};
 }
 
 class Vendor {

@@ -26,7 +26,6 @@ class _ProfilePageState extends State<ProfilePage> {
     super.initState();
     authController.isProfilePageVisible.value = true;
 
-    // Listen to scroll changes for hiding/showing the bottom navigation bar
     _scrollController.addListener(() {
       if (_scrollController.position.userScrollDirection ==
           ScrollDirection.reverse) {
@@ -68,9 +67,10 @@ class _ProfilePageState extends State<ProfilePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 40),
                     _buildProfileHeader(),
                     _buildProfileInfo(),
+                    const SizedBox(height: 30),
                     _buildActionButtons(),
                   ],
                 ),
@@ -86,13 +86,20 @@ class _ProfilePageState extends State<ProfilePage> {
       child: Column(
         children: [
           const SizedBox(height: 20),
-          const Text(
-            'Profile Page',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
+          const Row(
+            children: [
+              Padding( 
+                padding: EdgeInsets.only(left: 20, top: 20),
+                child: Text(
+                  'Profile',
+                  style: TextStyle(
+                    fontSize: 35,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 20),
           CircleAvatar(

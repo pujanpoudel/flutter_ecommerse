@@ -24,8 +24,6 @@ class _FavoriteProductsPageState extends State<FavoriteProductsPage> {
   @override
   void initState() {
     super.initState();
-
-    // Listen to scroll changes for hiding/showing the bottom navigation bar
     _scrollController.addListener(() {
       if (_scrollController.position.userScrollDirection ==
           ScrollDirection.reverse) {
@@ -54,8 +52,7 @@ class _FavoriteProductsPageState extends State<FavoriteProductsPage> {
   @override
   Widget build(BuildContext context) {
     return MainLayout(
-      currentIndex:
-          3, // Set to the appropriate index for Favorites in your bottom navigation bar
+      currentIndex: 3,
       isNavBarVisible: _isNavBarVisible,
       body: Scaffold(
         body: SafeArea(
@@ -129,75 +126,59 @@ class _FavoriteProductsPageState extends State<FavoriteProductsPage> {
                   );
                 }),
               ),
-              Obx(() => selectedProducts.isNotEmpty
-                  ? Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: SizedBox(
-                        width: 200,
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            // Add selected items to cart
-                            print(
-                                'Adding ${selectedProducts.length} items to cart');
-                            Get.snackbar(
-                              'Items Added to Cart',
-                              '${selectedProducts.length} items have been added to your cart.',
-                              snackPosition: SnackPosition.TOP,
-                              backgroundColor: Colors.green.withOpacity(0.7),
-                              colorText: Colors.white,
-                            );
-                            selectedProducts.clear();
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.mainColor,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                          ),
-                          icon: const Icon(Icons.shopping_cart,
-                              color: Colors.white),
-                          label: Text(
-                              'Add ${selectedProducts.length} items to cart'),
-                        ),
-                      ),
-                    )
-                  : Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: SizedBox(
-                        width: 200,
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            // Add all favorite items to cart
-                            print('Adding all items to cart');
-                            Get.snackbar(
-                              'Items Added to Cart',
-                              'All items have been added to your cart.',
-                              snackPosition: SnackPosition.TOP,
-                              backgroundColor: Colors.green.withOpacity(0.7),
-                              colorText: Colors.white,
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.mainColor,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                          ),
-                          icon: const Icon(Icons.shopping_cart,
-                              color: Colors.white),
-                          label: const Text('Add all to cart'),
-                        ),
-                      ),
-                    )),
             ],
           ),
         ),
+        floatingActionButton: _buildFloatingActionButton(),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       ),
     );
+  }
+
+  Widget _buildFloatingActionButton() {
+    return Obx(() {
+      if (selectedProducts.isEmpty) {
+        return FloatingActionButton.extended(
+          onPressed: () {
+            print('Adding all items to cart');
+            Get.snackbar(
+              'Items Added to Cart',
+              'All items have been added to your cart.',
+              snackPosition: SnackPosition.TOP,
+              backgroundColor: Colors.green.withOpacity(0.7),
+              colorText: Colors.white,
+            );
+          },
+          icon: const Icon(Icons.shopping_cart, color: Colors.white),
+          label: const Text('Add all to cart',
+              style: TextStyle(color: Colors.white)),
+          backgroundColor: AppColors.mainColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+        );
+      } else {
+        return FloatingActionButton.extended(
+            onPressed: () {
+              // Add selected items to cart
+              print('Adding ${selectedProducts.length} items to cart');
+              Get.snackbar(
+                'Items Added to Cart',
+                '${selectedProducts.length} items have been added to your cart.',
+                snackPosition: SnackPosition.TOP,
+                backgroundColor: Colors.green.withOpacity(0.7),
+                colorText: Colors.white,
+              );
+              selectedProducts.clear();
+            },
+            icon: const Icon(Icons.shopping_cart, color: Colors.white),
+            label: Text('Add ${selectedProducts.length} to cart'),
+            backgroundColor: AppColors.mainColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30),
+            ));
+      }
+    });
   }
 
   Widget _buildFavoriteProductCard(
@@ -210,20 +191,17 @@ class _FavoriteProductsPageState extends State<FavoriteProductsPage> {
       return GestureDetector(
         onTap: () {
           if (isSelecting) {
-            // If in selection mode, toggle selection
             if (isSelected) {
               selectedProducts.remove(product.id);
             } else {
               selectedProducts.add(product.id);
             }
-            // Check if we should exit selection mode
             if (selectedProducts.isEmpty) {
               setState(() {
                 isSelecting = false;
               });
             }
           } else {
-            // If not in selection mode, navigate to product details
             Get.to(() =>
                 ProductDetailPage(productId: product.id, product: product));
           }
@@ -273,7 +251,6 @@ class _FavoriteProductsPageState extends State<FavoriteProductsPage> {
                       child: GestureDetector(
                         onTap: () {
                           productController.toggleFavorite(product.id);
-                          // Remove from selectedProducts if it was selected
                           selectedProducts.remove(product.id);
                         },
                         child: Container(
@@ -295,23 +272,45 @@ class _FavoriteProductsPageState extends State<FavoriteProductsPage> {
               ),
               Padding(
                 padding: const EdgeInsets.all(8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      product.name,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          product.name,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          product.category.name,
+                          style:
+                              TextStyle(color: Colors.grey[600], fontSize: 12),
+                        ),
+                        Text(
+                          '\$${product.price.toStringAsFixed(2)}',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ],
                     ),
-                    Text(
-                      product.category.name,
-                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                    ),
-                    Text(
-                      '\$${product.price.toStringAsFixed(2)}',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
+                    Obx(() => IconButton(
+                          icon: Icon(
+                            productController.isFavorite(product.id)
+                                ? Icons.favorite
+                                : Icons.favorite_border,
+                            color: productController.isFavorite(product.id)
+                                ? Colors.red
+                                : Colors.grey[600],
+                          ),
+                          onPressed: () {
+                            productController.toggleFavorite(product.id);
+                          },
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          alignment: Alignment.topCenter,
+                        )),
                   ],
                 ),
               ),

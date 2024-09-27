@@ -1,28 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:quick_cart/controller/cart_controller.dart';
 import 'package:quick_cart/controller/product_controller.dart';
+import 'package:quick_cart/models/cart_model.dart';
 import 'package:quick_cart/models/product_model.dart';
 import 'package:quick_cart/utils/colors.dart';
+import 'package:quick_cart/view/cart/cart_page.dart';
 
 class ProductDetailPage extends StatelessWidget {
   final String productId;
   final ProductController productController = Get.find<ProductController>();
+  final CartController cartController = Get.find<CartController>();
 
-  ProductDetailPage(
-      {super.key, required this.productId, required Product product});
+  ProductDetailPage({super.key, required this.productId, required Product product});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: FutureBuilder<Product?>(
-        future: productController.getProductById(productId),
+      body: FutureBuilder<CartModel?>(
+  future: productController.getProductAsCartModel(productId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
               child: LoadingAnimationWidget.horizontalRotatingDots(
                 color: AppColors.mainColor,
-                size: 20,
+                size: 50,
               ),
             );
           } else if (snapshot.hasError) {
@@ -41,8 +44,10 @@ class ProductDetailPage extends StatelessWidget {
                   children: [
                     _buildProductImage(product),
                     _buildProductInfo(product),
-                    SizedBox(height: 250),
-                    //_buildColorAndSizeOptions(product),
+                    const SizedBox(height: 16),
+                    if (product.color != null) _buildColorOptions(product),
+                    if (product.size != null) _buildSizeOptions(product),
+                    const SizedBox(height: 16),
                     _buildActionButtons(product),
                   ],
                 ),
@@ -54,7 +59,7 @@ class ProductDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildAppBar(Product product) {
+  Widget _buildAppBar(CartModel product) {
     return SliverAppBar(
       expandedHeight: 60,
       floating: true,
@@ -69,202 +74,144 @@ class ProductDetailPage extends StatelessWidget {
         IconButton(
           icon: const Icon(Icons.shopping_cart_outlined, color: Colors.black),
           onPressed: () {
-            // TODO: Implement cart navigation
+            Get.to(const CartPage());
           },
         ),
       ],
     );
   }
 
-  Widget _buildProductImage(Product product) {
+  Widget _buildProductImage(CartModel product) {
     return AspectRatio(
       aspectRatio: 16 / 9,
-      child: Stack(
+      child: Image.network(
+        product.imageUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => const Icon(Icons.error),
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Center(
+            child: LoadingAnimationWidget.horizontalRotatingDots(
+              color: AppColors.mainColor,
+              size: 20,
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildProductInfo(CartModel product) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Image.network(
-            product.image,
-            fit: BoxFit.cover,
-            width: double.infinity,
-            errorBuilder: (context, error, stackTrace) =>
-                const Icon(Icons.error),
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return Center(
-                child: LoadingAnimationWidget.horizontalRotatingDots(
-                  color: AppColors.mainColor,
-                  size: 20,
-                ),
-              );
-            },
+          Text(
+            product.name,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'NRP ${product.price.toStringAsFixed(2)}',
+            style: const TextStyle(
+              fontSize: 20,
+              color: AppColors.mainColor,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Add more product details here if needed
+        ],
+      ),
+    );
+  }
+
+  Widget _buildColorOptions(CartModel product) {
+    // You'll need to implement this based on how you store color options
+    // This is just a placeholder
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Row(
+        children: [
+          const Text(
+            'Color:',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(width: 8),
+          Chip(
+            label: Text(product.color ?? 'N/A'),
+            backgroundColor: Colors.grey[200],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildProductInfo(Product product) {
-  return Padding(
-    padding: const EdgeInsets.all(16.0),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Text(
-                product.name,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 2,
-              ),
-            ),
-            Obx(() => IconButton(
-              icon: Icon(
-                productController.isFavorite(product.id)
-                    ? Icons.favorite
-                    : Icons.favorite_border,
-                color: productController.isFavorite(product.id)
-                    ? Colors.red
-                    : Colors.grey[600],
-              ),
-              onPressed: () {
-                productController.toggleFavorite(product.id);
-              },
-            )),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'From: ${product.vendor.storeName}',
-          style: const TextStyle(
-            fontSize: 16,
-            color: AppColors.mainBlackColor,
+  Widget _buildSizeOptions(CartModel product) {
+    // You'll need to implement this based on how you store size options
+    // This is just a placeholder
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Row(
+        children: [
+          const Text(
+            'Size:',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Text(
-              'NRP ${product.price.toStringAsFixed(0)}',
-              style: const TextStyle(
-                fontSize: 20,
-                color: AppColors.mainColor,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(width: 10,),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.mainColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Text(
-                'Free shipping',
-                style: TextStyle(
-                  color: AppColors.mainColor,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Text(
-          product.description,
-          style: const TextStyle(fontSize: 16, color: AppColors.textColor),
-        ),
-      ],
-    ),
-  );
-}
+          const SizedBox(width: 8),
+          Chip(
+            label: Text(product.size ?? 'N/A'),
+            backgroundColor: Colors.grey[200],
+          ),
+        ],
+      ),
+    );
+  }
 
-  Widget _buildColorAndSizeOptions(Product product) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Colors',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        //_buildColorOptions(product.color),
-        const SizedBox(height: 16),
-        const Text(
-          'Sizes',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        _buildSizeOptions(product.size),
-      ],
-    ),
-  );
-}
-
-Widget _buildColorOptions(List<Color> colors) {
-  return Wrap(
-    spacing: 8,
-    runSpacing: 8,
-    children: colors.map((color) => _buildColorOption(color)).toList(),
-  );
-}
-
-Widget _buildColorOption(Color color) {
-  return Container(
-    width: 40,
-    height: 40,
-    decoration: BoxDecoration(
-      //color: color,
-      shape: BoxShape.circle,
-      border: Border.all(color: Colors.grey),
-    ),
-  );
-}
-
-Widget _buildSizeOptions(List<String> sizes) {
-  return Wrap(
-    spacing: 8,
-    runSpacing: 8,
-    children: sizes.map((size) => _buildSizeOption(size)).toList(),
-  );
-}
-
-Widget _buildSizeOption(String size) {
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-    decoration: BoxDecoration(
-      border: Border.all(color: Colors.grey),
-      borderRadius: BorderRadius.circular(4),
-    ),
-    child: Text(size),
-  );
-}
-
-  Widget _buildActionButtons(Product product) {
+  Widget _buildActionButtons(CartModel product) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Row(
         children: [
           Expanded(
-            child: ElevatedButton.icon(
-              onPressed: () {
-                // TODO: Implement add to cart functionality
-              },
-              icon: const Icon(Icons.add_shopping_cart),
-              label: const Text('Add to Cart'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.mainColor,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-            ),
+            child: Obx(() {
+              final isInCart = cartController.isInCart(product.id);
+              final quantity = cartController.getQuantity(product.id);
+              return ElevatedButton.icon(
+                onPressed: () {
+                  if (isInCart) {
+                    cartController.updateQuantity(product.id, quantity + 1);
+                    Get.snackbar(
+                      'Updated Cart',
+                      'Quantity of ${product.name} increased to ${quantity + 1}.',
+                      snackPosition: SnackPosition.TOP,
+                      backgroundColor: Colors.green,
+                      colorText: Colors.white,
+                    );
+                  } else {
+                    cartController.addToCart(product);
+                    Get.snackbar(
+                      'Added to Cart',
+                      '${product.name} has been added to your cart.',
+                      snackPosition: SnackPosition.TOP,
+                      backgroundColor: Colors.green,
+                      colorText: Colors.white,
+                    );
+                  }
+                },
+                icon: Icon(isInCart ? Icons.add_circle : Icons.add_shopping_cart),
+                label: Text(isInCart ? 'Add Another ($quantity)' : 'Add to Cart'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.mainColor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+              );
+            }),
           ),
           const SizedBox(width: 16),
           Expanded(

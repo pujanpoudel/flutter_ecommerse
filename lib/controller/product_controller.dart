@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:quick_cart/models/cart_model.dart';
 import 'package:quick_cart/repo/product_repo.dart';
 import 'package:quick_cart/models/product_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -120,6 +121,27 @@ class ProductController extends GetxController {
       _favoriteProductIds.toList(),
     );
   }
+
+  Future<CartModel?> getProductAsCartModel(String productId) async {
+  try {
+    final product = await getProductById(productId);
+    if (product != null) {
+      return CartModel(
+        id: product.id,
+        name: product.name,
+        color: product.color?.hex,
+        size: product.size?.toString(),
+        imageUrl: product.image,
+        price: product.price,
+        quantity: 1,
+      );
+    }
+    return null;
+  } catch (e) {
+    error.value = 'Failed to load product as cart model: $e';
+    return null;
+  }
+}
 
   bool isFavorite(String productId) => _favoriteProductIds.contains(productId);
 }

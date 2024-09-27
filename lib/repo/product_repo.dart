@@ -5,7 +5,6 @@ import 'package:quick_cart/models/product_model.dart';
 import 'package:quick_cart/utils/app_constants.dart';
 
 class ProductRepo extends GetxService {
-  // Observable lists and variables
   final RxList<Product> _products = <Product>[].obs;
   List<Product> get products => _products;
 
@@ -17,7 +16,6 @@ class ProductRepo extends GetxService {
   var currentPage = 1.obs;
   var totalPages = 1.obs;
 
-  // Method to fetch products from API
   Future<List<Product>> getProducts({int page = 1}) async {
     isLoading.value = true;
     error.value = '';
@@ -80,7 +78,6 @@ class ProductRepo extends GetxService {
   }
 
 
-  // Method to get product by ID
   Future<Product?> getProductById(String id) async {
     try {
       final response = await http.get(
@@ -97,14 +94,12 @@ class ProductRepo extends GetxService {
     }
   }
 
-  // Method to load more products
   Future<void> loadMoreProducts() async {
     if (currentPage.value < totalPages.value && !isLoading.value) {
       await getProducts(page: currentPage.value + 1);
     }
   }
 
-  // Method to refresh products
   Future<void> refreshProducts() async {
     currentPage.value = 1;
     await getProducts(page: 1);

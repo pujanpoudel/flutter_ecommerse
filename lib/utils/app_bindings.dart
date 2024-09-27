@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:quick_cart/api/api_client.dart';
+import 'package:quick_cart/controller/cart_controller.dart';
 import 'package:quick_cart/controller/product_controller.dart';
 import 'package:quick_cart/repo/product_repo.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,6 +28,8 @@ class AppBinding extends Bindings {
 
       // Initialize controllers
       Get.lazyPut(() => AuthController(authRepo: Get.find<AuthRepo>()));
+      Get.lazyPut(() => CartController());
+
       Get.lazyPut(
           () => ProductController(productRepo: Get.find<ProductRepo>()));
     });
