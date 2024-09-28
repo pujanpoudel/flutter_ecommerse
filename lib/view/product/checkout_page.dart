@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quick_cart/controller/auth_controller.dart';
+import 'package:quick_cart/controller/cart_controller.dart';
+import 'package:quick_cart/models/cart_model.dart';
 import 'package:quick_cart/utils/colors.dart';
 import 'package:quick_cart/view/profile/edit_profile_page.dart';
 
@@ -8,13 +10,14 @@ class CheckoutPage extends StatefulWidget {
   const CheckoutPage({super.key});
 
   @override
-  _CheckoutPageState createState() => _CheckoutPageState();
+  CheckoutPageState createState() => CheckoutPageState();
 }
 
-class _CheckoutPageState extends State<CheckoutPage> {
+class CheckoutPageState extends State<CheckoutPage> {
   final AuthController _authController = Get.find<AuthController>();
-  String selectedDeliveryMethod = 'home';
-  int selectedPaymentMethod = 0;
+  final CartController _cartController = Get.find<CartController>();
+
+  String selectedDeliveryMethod = 'Home Delivery';
 
   final List<Map<String, String>> paymentMethods = [
     {
@@ -39,23 +42,26 @@ class _CheckoutPageState extends State<CheckoutPage> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text('Checkout', style: TextStyle(color: Colors.black)),
-        backgroundColor: Colors.white,
+        title: const Text('Checkout', style: TextStyle(color: Colors.white)),
+        backgroundColor: AppColors.mainColor,
         elevation: 0,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const SizedBox(height: 10),
+            ..._cartController.cartItems
+                .map((cartItem) => _buildProductTile(cartItem)),
+            const SizedBox(height: 10),
             const Text('Shipping address',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Obx(() {
-              // Use Obx to reactively update the UI when the user data changes
               final user = _authController.user.value;
               return Container(
                 decoration: BoxDecoration(
@@ -87,7 +93,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 ),
               );
             }),
-            const SizedBox(height: 24),
+            const SizedBox(height: 10),
             Row(
               children: [
                 const Text('Payment',
@@ -101,13 +107,15 @@ class _CheckoutPageState extends State<CheckoutPage> {
                     const Text(
                       '(Selected: ',
                     ),
-                    Text(
-                      paymentMethods[selectedPaymentMethod]['name']!,
-                      style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.mainColor),
-                    ),
+                    Obx(() {
+                      return Text(
+                        _cartController.selectedPaymentMethod.value,
+                        style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.mainColor),
+                      );
+                    }),
                     const Text(
                       ')',
                     ),
@@ -124,34 +132,42 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 itemBuilder: (context, index) {
                   return GestureDetector(
                     onTap: () {
-                      setState(() {
-                        selectedPaymentMethod = index;
-                      });
+                      _cartController.selectedPaymentMethod.value =
+                          paymentMethods[index]['name']!;
                     },
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 10),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: selectedPaymentMethod == index
-                              ? Colors.blue
-                              : Colors.grey,
-                          width: selectedPaymentMethod == index ? 2 : 1,
+                    child: Obx(() {
+                      return Container(
+                        margin: const EdgeInsets.only(right: 10),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color:
+                                _cartController.selectedPaymentMethod.value ==
+                                        paymentMethods[index]['name']
+                                    ? Colors.blue
+                                    : Colors.grey,
+                            width:
+                                _cartController.selectedPaymentMethod.value ==
+                                        paymentMethods[index]['name']
+                                    ? 2
+                                    : 1,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.all(8),
-                      child: Row(
-                        children: [
-                          Image.network(paymentMethods[index]['logo']!),
-                          Text(paymentMethods[index]['name']!),
-                        ],
-                      ),
-                    ),
+                        padding: const EdgeInsets.all(8),
+                        child: Row(
+                          children: [
+                            Image.network(paymentMethods[index]['logo']!),
+                            const SizedBox(width: 8),
+                            Text(paymentMethods[index]['name']!),
+                          ],
+                        ),
+                      );
+                    }),
                   );
                 },
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 10),
             Row(
               children: [
                 const Text('Delivery method',
@@ -185,35 +201,15 @@ class _CheckoutPageState extends State<CheckoutPage> {
                     'https://www.shutterstock.com/image-vector/isometric-pack-station-chain-autonomous-600nw-1699185274.jpg'),
               ],
             ),
-            const SizedBox(height: 24),
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Order:', style: TextStyle(color: Colors.grey)),
-                Text('112\$', style: TextStyle(fontWeight: FontWeight.bold)),
-              ],
-            ),
-            const SizedBox(height: 8),
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Delivery:', style: TextStyle(color: Colors.grey)),
-                Text('15\$', style: TextStyle(fontWeight: FontWeight.bold)),
-              ],
-            ),
-            const SizedBox(height: 8),
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Summary:', style: TextStyle(fontWeight: FontWeight.bold)),
-                Text('127\$', style: TextStyle(fontWeight: FontWeight.bold)),
-              ],
-            ),
-            const SizedBox(height: 80),
+            const SizedBox(height: 20),
+            _buildOrderSummary(),
+            const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  _cartController.submitOrder();
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.mainColor,
                   padding: const EdgeInsets.symmetric(vertical: 20),
@@ -227,6 +223,154 @@ class _CheckoutPageState extends State<CheckoutPage> {
           ],
         ),
       ),
+    );
+  }
+
+  CartVariant? _getSelectedVariant(CartModel cartItem) {
+    return cartItem.variant?.isNotEmpty == true
+        ? cartItem.variant!.first
+        : null;
+  }
+
+  Widget _buildProductTile(CartModel cartItem) {
+    return Container(
+        margin: const EdgeInsets.symmetric(vertical: 5),
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Image.network(
+              cartItem.imageUrl[0],
+              width: 100,
+              height: 100,
+              fit: BoxFit.cover,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    cartItem.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    cartItem.category,
+                    style: const TextStyle(color: Colors.grey),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'NRS ${cartItem.price.toString()}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.remove),
+                            onPressed: () {
+                              if (cartItem.quantity > 1) {
+                                CartVariant? selectedVariant =
+                                    _getSelectedVariant(cartItem);
+
+                                _cartController.updateQuantity(
+                                  cartItem.id,
+                                  cartItem.quantity - 1,
+                                  color: selectedVariant!.color,
+                                  size: selectedVariant.size,
+                                );
+                              }
+                            },
+                          ),
+                          Text(
+                            cartItem.quantity.toString(),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.add),
+                            onPressed: () {
+                              CartVariant? selectedVariant =
+                                  _getSelectedVariant(cartItem);
+
+                              _cartController.updateQuantity(
+                                cartItem.id,
+                                cartItem.quantity + 1,
+                                color: selectedVariant!.color,
+                                size: selectedVariant!.size,
+                              );
+                            },
+                          ),
+                        ],
+                      )
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ));
+  }
+
+  Widget _buildOrderSummary() {
+    double totalPrice = _cartController.cartItems
+        .fold(0, (sum, item) => sum + (item.price * item.quantity));
+
+    double deliveryFee = selectedDeliveryMethod == 'Home Delivery' ? 100 : 0;
+
+    double summary = totalPrice + deliveryFee;
+
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('Order:', style: TextStyle(color: Colors.grey)),
+            Text('NRS ${totalPrice.toStringAsFixed(2)}',
+                style: const TextStyle(fontWeight: FontWeight.bold)),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('Delivery:', style: TextStyle(color: Colors.grey)),
+            Text(
+              deliveryFee > 0
+                  ? 'NRS ${deliveryFee.toStringAsFixed(2)}'
+                  : 'Free',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('Summary:',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            Text('NRS ${summary.toStringAsFixed(2)}',
+                style: const TextStyle(fontWeight: FontWeight.bold)),
+          ],
+        ),
+      ],
     );
   }
 

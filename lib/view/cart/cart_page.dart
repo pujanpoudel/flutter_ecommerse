@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
 import 'package:quick_cart/controller/cart_controller.dart';
+import 'package:quick_cart/utils/bottom_nav_bar_widget.dart';
 import 'package:quick_cart/utils/colors.dart';
 import 'package:quick_cart/view/cart/cart_item.dart';
-import 'package:quick_cart/utils/bottom_nav_bar_widget.dart';
 import 'package:quick_cart/view/product/checkout_page.dart';
 import 'package:quick_cart/view/product/home_page.dart';
 
@@ -12,14 +12,13 @@ class CartPage extends StatefulWidget {
   const CartPage({super.key});
 
   @override
-  _CartPageState createState() => _CartPageState();
+  CartPageState createState() => CartPageState();
 }
 
-class _CartPageState extends State<CartPage> {
+class CartPageState extends State<CartPage> {
   final CartController cartController = Get.find<CartController>();
   final ScrollController _scrollController = ScrollController();
   bool _isNavBarVisible = true;
-  final RxSet<String> selectedItems = <String>{}.obs;
 
   @override
   void initState() {
@@ -41,13 +40,6 @@ class _CartPageState extends State<CartPage> {
     super.dispose();
   }
 
-  void _removeSelectedItems() {
-    for (String itemId in selectedItems) {
-      cartController.removeFromCart(itemId);
-    }
-    selectedItems.clear();
-  }
-
   @override
   Widget build(BuildContext context) {
     return MainLayout(
@@ -63,7 +55,7 @@ class _CartPageState extends State<CartPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'My Bag',
+                      'My Cart',
                       style: Theme.of(context)
                           .textTheme
                           .headlineLarge
@@ -72,14 +64,14 @@ class _CartPageState extends State<CartPage> {
                   ],
                 ),
               ),
-              Obx(() => selectedItems.isNotEmpty
+              Obx(() => cartController.selectedItems.isNotEmpty
                   ? Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            '${selectedItems.length} item(s) selected',
+                            '${cartController.selectedItems.length} selected',
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -87,7 +79,7 @@ class _CartPageState extends State<CartPage> {
                             ),
                           ),
                           TextButton(
-                            onPressed: _removeSelectedItems,
+                            onPressed: cartController.removeSelectedItems,
                             child: const Text('Delete Selected'),
                           ),
                         ],
@@ -103,29 +95,34 @@ class _CartPageState extends State<CartPage> {
                       controller: _scrollController,
                       padding: const EdgeInsets.all(16),
                       children: [
-                        ...cartController.cartItems
-                            .map((item) => GestureDetector(
-                                  onLongPress: () {
-                                    if (selectedItems.contains(item.id)) {
-                                      selectedItems.remove(item.id);
-                                    } else {
-                                      selectedItems.add(item.id);
-                                    }
-                                  },
-                                  child: Stack(
-                                    children: [
-                                      CartItem(item: item),
-                                      Positioned(
-                                        top: 0,
-                                        right: 0,
-                                        child: IconButton(
-                                          icon: const Icon(Icons.delete,
-                                              color: Colors.red),
-                                          onPressed: () => cartController
-                                              .removeFromCart(item.id),
-                                        ),
-                                      ),
-                                      Obx(() => selectedItems.contains(item.id)
+                        ...cartController.cartItems.map((item) =>
+                            GestureDetector(
+                              onTap: () =>
+                                  cartController.toggleItemSelection(item.id),
+                              child: Stack(
+                                children: [
+                                  CartItem(
+                                    item: item,
+                                    onQuantityChanged: (quantity) {
+                                      cartController.updateQuantity(
+                                          item.id, quantity);
+                                    },
+                                    onDelete: () {
+                                      cartController.removeFromCart(item.id);
+                                    },
+                                  ),
+                                  Positioned(
+                                    top: 0,
+                                    right: 0,
+                                    child: IconButton(
+                                      icon: const Icon(Icons.delete,
+                                          color: Colors.red),
+                                      onPressed: () => cartController
+                                          .removeFromCart(item.id),
+                                    ),
+                                  ),
+                                  Obx(() =>
+                                      cartController.isItemSelected(item.id)
                                           ? Positioned.fill(
                                               child: Container(
                                                 color: Colors.black
@@ -138,20 +135,15 @@ class _CartPageState extends State<CartPage> {
                                               ),
                                             )
                                           : const SizedBox.shrink()),
-                                    ],
-                                  ),
-                                )),
-                        const SizedBox(height: 16),
-                        _buildPromoCode(),
-                        const SizedBox(height: 16),
-                        _buildTotalAmount(),
-                        const SizedBox(height: 16),
-                        _buildCheckoutButton(),
+                                ],
+                              ),
+                            )),
                       ],
                     );
                   }
                 }),
               ),
+              _buildTotalAndCheckoutSection(),
             ],
           ),
         ),
@@ -196,7 +188,7 @@ class _CartPageState extends State<CartPage> {
               padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
             ),
             child: const Text(
-              'Start Shopping',
+              'Browse some more',
               style: TextStyle(color: Colors.white),
             ),
           ),
@@ -205,75 +197,81 @@ class _CartPageState extends State<CartPage> {
     );
   }
 
-  Widget _buildPromoCode() {
-    return Row(
-      children: [
-        Expanded(
-          child: TextField(
-            decoration: InputDecoration(
-              hintText: 'Enter your promo code',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        IconButton(
-          icon: const Icon(Icons.arrow_forward),
-          onPressed: () {
-            // Implement promo code logic
-          },
-        ),
-      ],
-    );
-  }
+  Widget _buildTotalAndCheckoutSection() {
+    return Obx(() {
+      if (cartController.cartItems.isEmpty) {
+        return const SizedBox.shrink();
+      }
 
-  Widget _buildTotalAmount() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        const Text(
-          'Total amount:',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        Obx(() => Text(
-              '${cartController.totalAmount}\$',
-              style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.mainColor),
-            )),
-      ],
-    );
-  }
-
-  Widget _buildCheckoutButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.mainColor,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-        ),
-        onPressed: () {
-          Get.to(CheckoutPage());
-        },
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.payment,
-              color: Colors.white,
-            ),
-            SizedBox(width: 5),
-            Text(
-              'Check Out',
-              style: TextStyle(color: Colors.white, fontSize: 18),
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.2),
+              spreadRadius: 1,
+              blurRadius: 5,
+              offset: const Offset(0, -3),
             ),
           ],
         ),
-      ),
-    );
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Total amount:',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  'NRS ${cartController.totalAmount.round()}',
+                  style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.mainColor),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.mainColor,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                onPressed: () {
+                  if (cartController.selectedItems.isEmpty) {
+                    Get.to(const CheckoutPage());
+                  } else {
+                    cartController.removeSelectedItems();
+                  }
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      cartController.selectedItems.isEmpty
+                          ? Icons.payment
+                          : Icons.delete,
+                      color: Colors.white,
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      cartController.selectedItems.isEmpty
+                          ? 'Check Out'
+                          : 'Delete from Cart',
+                      style: const TextStyle(color: Colors.white, fontSize: 18),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    });
   }
 }

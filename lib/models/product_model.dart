@@ -1,56 +1,3 @@
-class ProductResponse {
-  final String message;
-  final bool success;
-  final ProductData data;
-  final dynamic warning;
-
-  ProductResponse({
-    required this.message,
-    required this.success,
-    required this.data,
-    this.warning,
-  });
-
-  factory ProductResponse.fromJson(Map<String, dynamic> json) =>
-      ProductResponse(
-        message: json['message'],
-        success: json['success'],
-        data: ProductData.fromJson(json['data']),
-        warning: json['warning'],
-      );
-
-  Map<String, dynamic> toJson() => {
-        'message': message,
-        'success': success,
-        'data': data.toJson(),
-        'warning': warning,
-      };
-}
-
-class ProductData {
-  final int totalPages;
-  final int currentPage;
-  final List<Product> data;
-
-  ProductData({
-    required this.totalPages,
-    required this.currentPage,
-    required this.data,
-  });
-
-  factory ProductData.fromJson(Map<String, dynamic> json) => ProductData(
-        totalPages: json['total_pages'],
-        currentPage: json['current_page'],
-        data: List<Product>.from(json['data'].map((x) => Product.fromJson(x))),
-      );
-
-  Map<String, dynamic> toJson() => {
-        'total_pages': totalPages,
-        'current_page': currentPage,
-        'data': List<dynamic>.from(data.map((x) => x.toJson())),
-      };
-}
-
 class Product {
   final String id;
   final String name;
@@ -60,7 +7,7 @@ class Product {
   final Category category;
   final bool status;
   final Vendor vendor;
-  final ProductType type;
+  final Type type;
   final int totalStock;
   final List<Variant> variants;
 
@@ -87,7 +34,7 @@ class Product {
         category: Category.fromJson(json['category']),
         status: json['status'],
         vendor: Vendor.fromJson(json['vendor']),
-        type: ProductType.fromJson(json['type']),
+        type: Type.fromJson(json['type']),
         totalStock: json['total_stock'],
         variants: List<Variant>.from(json['variants'].map((x) => Variant.fromJson(x))),
       );
@@ -111,15 +58,11 @@ class Category {
   final String id;
   final String name;
   final String description;
-    bool isSelected;
-
 
   Category({
     required this.id,
     required this.name,
     required this.description,
-        this.isSelected = false,
-
   });
 
   factory Category.fromJson(Map<String, dynamic> json) => Category(
@@ -155,18 +98,18 @@ class Vendor {
       };
 }
 
-class ProductType {
+class Type {
   final String id;
   final String name;
   final String description;
 
-  ProductType({
+  Type({
     required this.id,
     required this.name,
     required this.description,
   });
 
-  factory ProductType.fromJson(Map<String, dynamic> json) => ProductType(
+  factory Type.fromJson(Map<String, dynamic> json) => Type(
         id: json['id'],
         name: json['name'],
         description: json['description'],

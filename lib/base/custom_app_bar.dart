@@ -7,10 +7,10 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget{
   final String title;
   final bool backButtonExist;
   final Function? onBackPressed;
-  const CustomAppBar({Key? key, required this.title,
+  const CustomAppBar({super.key, required this.title,
     this.backButtonExist=true,
     this.onBackPressed
-  }): super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

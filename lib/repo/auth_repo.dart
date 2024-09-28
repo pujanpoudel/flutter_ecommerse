@@ -2,10 +2,10 @@ import 'package:get/get.dart';
 import 'package:quick_cart/models/auth_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/app_constants.dart';
-
 class AuthRepo extends GetxService {
   final String baseUrl = AppConstants.BASE_URL;
   final SharedPreferences sharedPreferences;
+
 
   AuthRepo({required this.sharedPreferences});
 
@@ -93,13 +93,26 @@ class AuthRepo extends GetxService {
     }
   }
 
-  Future<Response<dynamic>> getUserProfile(String token) async {
+  Future<AuthModel?> getUserProfile(String token) async {
     try {
+      if (token.isEmpty) {
+        throw Exception('User token is missing.');
+      }
+
       final response = await GetConnect().get(
         '$baseUrl/me',
         headers: {'Authorization': 'Bearer $token'},
       );
-      return response;
+
+      print('GetUserProfile Response code: ${response.statusCode}');
+      print('GetUserProfile Response body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final userProfile = AuthModel.fromJson(response.body['data']);
+        return userProfile;
+      } else {
+        throw Exception('Failed to fetch user profile: ${response.statusText}');
+      }
     } catch (e) {
       print('GetUserProfile Error: $e');
       rethrow;
@@ -107,29 +120,45 @@ class AuthRepo extends GetxService {
   }
 
   Future<Response<dynamic>> updateUserProfile(
-      AuthModel user, String token) async {
+    AuthModel value, {
+    required String fullName,
+    required String phone,
+    required String address,
+  }) async {
     try {
+      String token = getUserToken();
+
+      if (token.isEmpty) {
+        throw Exception('User token is missing.');
+      }
+
+      AuthModel updatedUser = AuthModel(
+        fullName: fullName,
+        phone: phone,
+        address: address,
+      );
+
       final response = await GetConnect().put(
         '$baseUrl/update',
-        user.toJson(),
+        updatedUser.toJson(),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
       );
-      return response;
+
+      print('UpdateUserProfile Response code: ${response.statusCode}');
+      print('UpdateUserProfile Response body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return response;
+      } else {
+        throw Exception('Failed to update profile: ${response.statusText}');
+      }
     } catch (e) {
       print('UpdateUserProfile Error: $e');
       rethrow;
     }
-  }
-
-  Future<bool> saveProfilePicture(String path) async {
-    return await sharedPreferences.setString('profile_picture', path);
-  }
-
-  String? getProfilePicture() {
-    return sharedPreferences.getString('profile_picture');
   }
 
   Future<bool> saveUserEmail(String email) async {

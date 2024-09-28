@@ -36,10 +36,10 @@ class MainLayout extends StatelessWidget {
                   Get.to(() => CartPage());
                 }
                 if (index == 3) {
-                  Get.to(() => const FavoriteProductsPage());
+                  Get.to(() => FavoriteProductsPage());
                 }
                 if (index == 4) {
-                  Get.to(() => const ProfilePage());
+                  Get.to(() => ProfilePage());
                 }
               },
               items: const [

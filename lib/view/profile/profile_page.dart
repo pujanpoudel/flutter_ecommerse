@@ -6,6 +6,7 @@ import 'package:multiavatar/multiavatar.dart';
 import 'package:quick_cart/controller/auth_controller.dart';
 import 'package:quick_cart/utils/bottom_nav_bar_widget.dart';
 import 'package:quick_cart/utils/colors.dart';
+import 'package:quick_cart/view/auth/sign_in_page.dart';
 import 'package:quick_cart/view/profile/edit_profile_page.dart';
 import 'package:quick_cart/repo/auth_repo.dart';
 
@@ -13,10 +14,10 @@ class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
   @override
-  _ProfilePageState createState() => _ProfilePageState();
+  ProfilePageState createState() => ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class ProfilePageState extends State<ProfilePage> {
   final AuthController authController = Get.find<AuthController>();
   final AuthRepo authRepo = Get.find<AuthRepo>();
   final ScrollController _scrollController = ScrollController();
@@ -32,15 +33,26 @@ class _ProfilePageState extends State<ProfilePage> {
     final token = authRepo.getUserToken();
     if (token.isNotEmpty) {
       try {
-        final response = await authRepo.getUserProfile(token);
-        if (response.statusCode == 200) {
-          authController.updateProfile();
+        final userProfile = await authRepo.getUserProfile(token);
+        if (userProfile != null) {
+          authController.user.value = userProfile;
+          authController.fullNameController.text = userProfile.fullName ?? '';
+          authController.emailController.text = userProfile.email ?? '';
+          authController.phoneNumberController.text = userProfile.phone ?? '';
+          authController.addressController.text = userProfile.address ?? '';
+          // Print user details for debugging
+          print('User Full Name: ${userProfile.fullName}');
+          print('User Email: ${userProfile.email}');
+          print('User Phone: ${userProfile.phone}');
+          print('User Address: ${userProfile.address}');
         } else {
-          print('Failed to load user profile: ${response.statusText}');
+          print('Failed to load user profile: No data returned');
         }
       } catch (e) {
         print('Error loading user profile: $e');
       }
+    } else {
+      print('User token is empty');
     }
   }
 
@@ -104,7 +116,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 radius: 60,
                 backgroundColor: Colors.white,
                 child: SvgPicture.string(
-                  multiavatar(authController.user.value.fullName ?? 'User'),
+                  multiavatar(authController.user.value.avatarId ?? 'User'),
                   width: 120,
                   height: 120,
                 ),
@@ -129,13 +141,13 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             const SizedBox(height: 15),
             _buildInfoItem(Icons.person, 'Full Name',
-                authController.user.value.fullName ?? 'No Name'),
+                authController.user.value.fullName ?? 'No Name Specified'),
             _buildInfoItem(Icons.email, 'Email',
-                authController.user.value.email ?? 'No Email'),
+                authController.user.value.email ?? 'No Email Specified'),
             _buildInfoItem(Icons.phone, 'Phone',
-                authController.user.value.phone ?? 'No Phone'),
+                authController.user.value.phone ?? 'No Phone Specified'),
             _buildInfoItem(Icons.map, 'Address',
-                authController.user.value.address ?? 'No Address'),
+                authController.user.value.address ?? 'No Address Specified'),
           ],
         ),
       );
@@ -190,7 +202,7 @@ class _ProfilePageState extends State<ProfilePage> {
               onPressed: () async {
                 authController.isProfilePageVisible.value = false;
                 await authRepo.signOut(rememberMe: false);
-                Get.offAllNamed('/login');
+                Get.to(SignInPage());
               },
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.red,

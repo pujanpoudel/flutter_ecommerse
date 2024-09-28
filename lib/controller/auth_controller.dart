@@ -30,6 +30,7 @@ class AuthController extends GetxController {
   var isProfilePageVisible = false.obs;
   String avatarKey = "userAvatar";
 
+
   AuthController({required this.authRepo});
 
   @override
@@ -37,7 +38,6 @@ class AuthController extends GetxController {
     super.onInit();
     checkRememberMe();
     loadUserProfile();
-    loadProfilePicture();
     loadSavedAvatar();
   }
 
@@ -48,11 +48,6 @@ class AuthController extends GetxController {
       rememberMe.value = true;
     }
   }
-
-  void loadProfilePicture() {
-    profilePicturePath.value = authRepo.getProfilePicture() ?? '';
-  }
-
   void toggleObscureText() {
     obscureText.value = !obscureText.value;
   }
@@ -169,38 +164,60 @@ class AuthController extends GetxController {
   }
 
   void loadUserProfile() async {
-    String token = authRepo.getUserToken();
-    Response response = await authRepo.getUserProfile(token);
-    print('User Full Name: ${user.value.fullName}');
-    print('User Email: ${user.value.email}');
-    print('User Phone: ${user.value.phone}');
-    print('User Address: ${user.value.address}');
+    try {
+      String token = authRepo.getUserToken();
 
-    if (response.statusCode == 200) {
-      user.value = AuthModel.fromJson(response.body);
-      fullNameController.text = user.value.fullName ?? '';
-      emailController.text = user.value.email ?? '';
-      phoneNumberController.text = user.value.phone ?? '';
-      addressController.text = user.value.address ?? '';
-    } else {
+      if (token.isEmpty) {
+        Get.snackbar('Error', 'User token is missing');
+        return;
+      }
+
+      AuthModel? userProfile = await authRepo.getUserProfile(token);
+
+      if (userProfile != null) {
+        user.value = userProfile;
+        fullNameController.text = userProfile.fullName ?? '';
+        emailController.text = userProfile.email ?? '';
+        phoneNumberController.text = userProfile.phone ?? '';
+        addressController.text = userProfile.address ?? '';
+
+        print('User Full Name: ${userProfile.fullName}');
+        print('User Email: ${userProfile.email}');
+        print('User Phone: ${userProfile.phone}');
+        print('User Address: ${userProfile.address}');
+      } else {
+        Get.snackbar('Error', 'Failed to load user profile');
+      }
+    } catch (e) {
+      print('Error in loadUserProfile: $e');
       Get.snackbar('Error', 'Failed to load user profile');
     }
   }
 
   void updateProfile() async {
-    user.value = user.value.copyWith(
-      fullName: fullNameController.text,
-      email: emailController.text,
-      phone: phoneNumberController.text,
-      address: addressController.text,
-    );
+    try {
+      String fullName = fullNameController.text;
+      String phone = phoneNumberController.text;
+      String address = addressController.text;
 
-    String token = authRepo.getUserToken();
-    Response response = await authRepo.updateUserProfile(user.value, token);
-    if (response.statusCode == 200) {
-      Get.snackbar(
-          'Profile Updated', 'Your profile has been successfully updated');
-    } else {
+      Response response = await authRepo.updateUserProfile(
+        user.value,
+        fullName: fullName,
+        phone: phone,
+        address: address,
+      );
+
+      if (response.statusCode == 200) {
+        Get.snackbar(
+          'Profile Updated',
+          'Your profile has been successfully updated',
+        );
+        Get.off(() => const ProfilePage());
+      } else {
+        Get.snackbar('Error', 'Failed to update profile');
+      }
+    } catch (e) {
+      print('Error in updateProfile: $e');
       Get.snackbar('Error', 'Failed to update profile');
     }
   }
@@ -208,7 +225,7 @@ class AuthController extends GetxController {
   void refreshAvatar() {
     String newAvatar = multiavatar(user.value.fullName ?? 'User');
     user.update((val) {
-      val?.fullName = newAvatar;
+      val?.avatarId = newAvatar;
     });
     update();
   }

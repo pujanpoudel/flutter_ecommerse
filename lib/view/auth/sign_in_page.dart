@@ -258,7 +258,7 @@ class SignInPage extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ); 
   }
 
   Widget _buildSocialButton(

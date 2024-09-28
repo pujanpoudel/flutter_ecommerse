@@ -11,10 +11,10 @@ class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  _SplashScreenState createState() => _SplashScreenState();
+  SplashScreenState createState() => SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
+class SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
@@ -23,8 +23,8 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
-    _checkLoginStatus();
 
+    // Initialize animations
     _controller = AnimationController(
       duration: const Duration(seconds: 1),
       vsync: this,
@@ -36,17 +36,28 @@ class _SplashScreenState extends State<SplashScreen>
     );
     _controller.forward();
 
-    Timer(const Duration(seconds: 2), _navigateToNextPage);
+    // Check app state and navigate accordingly after delay
+    Timer(const Duration(seconds: 2), _checkLoginStatus);
   }
 
-  void _navigateToNextPage() async {
+  Future<void> _checkLoginStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
     final authRepo = Get.find<AuthRepo>();
-    bool isLoggedIn = authRepo.isLoggedIn();
 
-    if (isLoggedIn) {
-      Get.to(() => SignInPage());
+    // Check if it's the first time the app is run
+    bool isFirstRun = prefs.getBool('is_first_run') ?? true;
+    bool isLoggedIn = authRepo.isLoggedIn(); // Check login status
+
+    if (isFirstRun) {
+      // First-time app launch, navigate to LandingPage
+      await prefs.setBool('is_first_run', false);
+      Get.off(() => const LandingPage());
+    } else if (isLoggedIn) {
+      // User is logged in, navigate to HomePage
+      Get.off(() => const HomePage());
     } else {
-      Get.to(() => const LandingPage());
+      // User is logged out, navigate to SignInPage
+      Get.off(() => SignInPage());
     }
   }
 
@@ -70,28 +81,5 @@ class _SplashScreenState extends State<SplashScreen>
         ),
       ),
     );
-  }
-
-  Future<void> _checkLoginStatus() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    // Check if the app has been opened before
-    bool isFirstRun = prefs.getBool('is_first_run') ?? true;
-
-    // Check if user is logged in
-    bool isLoggedIn = prefs.getBool('is_logged_in') ?? false;
-
-    // Determine where to route
-    if (isFirstRun) {
-      // First-time app launch
-      prefs.setBool('is_first_run', false);
-      Get.off(() => LandingPage());
-    } else if (isLoggedIn) {
-      // User is logged in
-      Get.off(() => HomePage());
-    } else {
-      // User is logged out
-      Get.off(() => SignInPage());
-    }
   }
 }

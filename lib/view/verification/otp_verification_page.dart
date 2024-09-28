@@ -9,6 +9,7 @@ class OTPController extends GetxController {
       List.generate(4, (_) => TextEditingController());
   final List<FocusNode> focusNodes = List.generate(4, (_) => FocusNode());
 
+
   @override
   void onInit() {
     super.onInit();
@@ -91,7 +92,7 @@ class OTPVerificationPage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text(
-                    'pujan@gmail.com',
+                    'test',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,

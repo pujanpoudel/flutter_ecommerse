@@ -1,4 +1,5 @@
 class AuthModel {
+  String? avatarId;
   String? fullName;
   String? phone;
   String? email;

@@ -14,15 +14,24 @@ class ProductController extends GetxController {
   final RxInt currentPage = 1.obs;
   final RxInt totalPages = 1.obs;
   final RxSet<String> _favoriteProductIds = <String>{}.obs;
-  final RxList<Category> categories = <Category>[].obs;
+  RxList<Category> categories = <Category>[].obs;
   final RxBool isCategoriesLoading = false.obs;
   final RxString categoriesError = ''.obs;
+  RxList<Category> selectedCategories = RxList<Category>([]);
+  var selectedSize = ''.obs;
+  var selectedColor = ''.obs;
+  var selectedQuantity = 1.obs;
+  var showFullDescription = false.obs;
+  var favoriteProductIds = <String>[].obs;
+  var product = Rxn<Product>();
+  final RxList<CartModel> cartItems = <CartModel>[].obs;
+  var selectedProducts = <Product>[].obs;
 
   @override
   void onInit() {
     super.onInit();
     getProducts();
-    fetchCategories();
+    getCategories();
     loadFavorites();
   }
 
@@ -66,9 +75,10 @@ class ProductController extends GetxController {
     currentPage.value = 1;
     products.clear();
     await getProducts(page: 1);
+    refreshCategories();
   }
 
-  Future<void> fetchCategories() async {
+  Future<void> getCategories() async {
     try {
       isCategoriesLoading.value = true;
       categoriesError.value = '';
@@ -83,17 +93,27 @@ class ProductController extends GetxController {
 
   Future<void> refreshCategories() async {
     categories.clear();
-    await fetchCategories();
+    await getCategories();
   }
 
-  void toggleCategorySelection(Category category) {
-  int index = categories.indexWhere((cat) => cat.id == category.id);
-  if (index != -1) {
-    categories[index].isSelected = !categories[index].isSelected;
-    categories.refresh(); 
-  }
-}
+  Future<void> getProductsBySelectedCategories() async {
+    if (selectedCategories.isEmpty) {
+      await getProducts();
+      return;
+    }
 
+    List<String> selectedCategoryIds =
+        selectedCategories.map((category) => category.id.toString()).toList();
+    try {
+      isLoading.value = true;
+      products.value =
+          await productRepo.getProductsByCategories(selectedCategoryIds);
+    } catch (e) {
+      error.value = 'Failed to load products: $e';
+    } finally {
+      isLoading.value = false;
+    }
+  }
 
   Future<void> loadFavorites() async {
     final prefs = await SharedPreferences.getInstance();
@@ -114,16 +134,53 @@ class ProductController extends GetxController {
     );
   }
 
+  void updateSelectedSize(String size) {
+    selectedSize.value = size;
+  }
+
+  void updateSelectedColor(String color) {
+    selectedColor.value = color;
+  }
+
+
+  void toggleDescription() {
+    showFullDescription.value = !showFullDescription.value;
+  }
+
+  void increaseQuantity() {
+    selectedQuantity.value++;
+  }
+
+  void decreaseQuantity() {
+    if (selectedQuantity.value > 1) {
+      selectedQuantity.value--;
+    }
+  }
+
+  bool isFavorite(String productId) => _favoriteProductIds.contains(productId);
+
   Future<CartModel?> getProductAsCartModel(String productId) async {
     try {
       final product = await getProductById(productId);
       if (product != null) {
+        List<CartVariant>? productVariants = product.variants.isNotEmpty
+            ? product.variants
+                .map((variant) => CartVariant(
+                      color: variant.color,
+                      size: variant.size,
+                      stock: variant.stock,
+                    ))
+                .toList()
+            : null;
+
         return CartModel(
           id: product.id,
           name: product.name,
-          color: product.variants.isNotEmpty ? product.variants[0].color : null,
-          size: product.variants.isNotEmpty ? product.variants[0].size : null,
-          imageUrl: product.image.isNotEmpty ? product.image[0] : '',
+          description: product.description,
+          variant: productVariants,
+          imageUrl: product.image,
+          category: product.category.name,
+          vendor: product.vendor.storeName,
           price: product.price,
           quantity: 1,
         );
@@ -135,5 +192,4 @@ class ProductController extends GetxController {
     }
   }
 
-  bool isFavorite(String productId) => _favoriteProductIds.contains(productId);
 }

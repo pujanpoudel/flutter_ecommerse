@@ -3,49 +3,53 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:quick_cart/controller/auth_controller.dart';
 import 'package:quick_cart/controller/product_controller.dart';
 import 'package:quick_cart/utils/bottom_nav_bar_widget.dart';
 import 'package:quick_cart/utils/skeleton_loader_widget.dart';
 import 'package:quick_cart/models/product_model.dart';
 import 'package:quick_cart/utils/colors.dart';
 import 'package:quick_cart/view/product/product_detail_page.dart';
+import 'package:quick_cart/view/profile/edit_profile_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
-  _HomePageState createState() => _HomePageState();
+  HomePageState createState() => HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class HomePageState extends State<HomePage> {
   final ProductController productController = Get.find<ProductController>();
-  final ScrollController _scrollController = ScrollController();
-  final CarouselController _carouselController = CarouselController();
+  final AuthController controller = Get.find<AuthController>();
+  final ScrollController scrollController = ScrollController();
+  final CarouselSliderController carouselController =
+      CarouselSliderController();
   int _current = 0;
   bool _isNavBarVisible = true;
   bool _showAllCategories = false;
+  bool _isExpanded = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      productController.fetchCategories();
+      productController.getCategories();
       productController.getProducts();
     });
-    _scrollController.addListener(_onScroll);
+    scrollController.addListener(_onScroll);
   }
 
   void _onScroll() {
-    if (_scrollController.position.userScrollDirection ==
+    if (scrollController.position.userScrollDirection ==
         ScrollDirection.reverse) {
       if (_isNavBarVisible) setState(() => _isNavBarVisible = false);
-    } else if (_scrollController.position.userScrollDirection ==
+    } else if (scrollController.position.userScrollDirection ==
         ScrollDirection.forward) {
       if (!_isNavBarVisible) setState(() => _isNavBarVisible = true);
     }
-
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
+    if (scrollController.position.pixels >=
+        scrollController.position.maxScrollExtent - 200) {
       if (!productController.isLoading.value &&
           productController.currentPage.value <
               productController.totalPages.value) {
@@ -56,10 +60,10 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
-    _scrollController.removeListener(_onScroll);
-    _scrollController.dispose();
+    scrollController.removeListener(_onScroll);
+    scrollController.dispose();
     super.dispose();
-    productController.fetchCategories();
+    productController.getCategories();
   }
 
   @override
@@ -70,15 +74,29 @@ class _HomePageState extends State<HomePage> {
       body: RefreshIndicator(
         onRefresh: productController.refreshProducts,
         child: CustomScrollView(
-          controller: _scrollController,
+          controller: scrollController,
           slivers: [
             SliverToBoxAdapter(child: _buildHeader()),
             const SliverToBoxAdapter(
               child: SizedBox(height: 16),
             ),
             SliverToBoxAdapter(child: _buildCarousel()),
-            SliverToBoxAdapter(child: _buildCategorySection(productController)),
+            SliverToBoxAdapter(child: _buildCategorySection()),
             _buildProductGrid(productController),
+            SliverToBoxAdapter(
+              child: Obx(() {
+                if (productController.isLoading.value) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                } else {
+                  return const SizedBox.shrink();
+                }
+              }),
+            ),
           ],
         ),
       ),
@@ -89,7 +107,9 @@ class _HomePageState extends State<HomePage> {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 40, 16, 16),
       decoration: BoxDecoration(
-          color: AppColors.mainColor, borderRadius: BorderRadius.circular(20)),
+        color: AppColors.mainColor,
+        borderRadius: BorderRadius.circular(20),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -99,25 +119,53 @@ class _HomePageState extends State<HomePage> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Location',
-                      style: TextStyle(
-                          color: Colors.white.withOpacity(0.7), fontSize: 12)),
-                  const Row(
-                    children: [
-                      Text('Parsa, Chitwan',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold)),
-                      Icon(Icons.arrow_drop_down, color: Colors.white),
-                    ],
+                  Text(
+                    'Ship to',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.7),
+                      fontSize: 12,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _isExpanded = !_isExpanded;
+                      });
+                    },
+                    child: Row(
+                      children: [
+                        Text(
+                          controller.user.value.address ?? '',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Icon(
+                          _isExpanded
+                              ? Icons.arrow_drop_up
+                              : Icons.arrow_drop_down,
+                          color: Colors.white,
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
               const Icon(Icons.notifications_outlined, color: Colors.white),
             ],
           ),
-          const SizedBox(height: 16),
+          if (_isExpanded)
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: ElevatedButton(
+                onPressed: () {
+                  Get.to(EditProfilePage());
+                },
+                child: const Text('Edit Address'),
+              ),
+            ),
           TextField(
             decoration: InputDecoration(
               filled: true,
@@ -154,8 +202,7 @@ class _HomePageState extends State<HomePage> {
                   builder: (BuildContext context) {
                     return GestureDetector(
                       onTap: () {
-                        Get.to(() => ProductDetailPage(
-                            productId: product.id, product: product));
+                        Get.to(() => ProductDetailPage(productId: product.id));
                       },
                       child: Container(
                         width: MediaQuery.of(context).size.width,
@@ -203,7 +250,7 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                     const SizedBox(height: 5),
                                     Text(
-                                      'NRP ${product.price.toStringAsFixed(2)}',
+                                      'NRP ${product.price.round()}',
                                       style: const TextStyle(
                                           color: Colors.white, fontSize: 16),
                                     ),
@@ -218,7 +265,7 @@ class _HomePageState extends State<HomePage> {
                   },
                 );
               }).toList(),
-              carouselController: _carouselController,
+              carouselController: carouselController,
               options: CarouselOptions(
                 autoPlay: true,
                 enlargeCenterPage: true,
@@ -235,7 +282,7 @@ class _HomePageState extends State<HomePage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: carouselProducts.asMap().entries.map((entry) {
                 return GestureDetector(
-                  onTap: () => _carouselController.animateToPage(entry.key),
+                  onTap: () => carouselController.jumpToPage(entry.key),
                   child: Container(
                     width: 8.0,
                     height: 8.0,
@@ -258,7 +305,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Widget _buildCategoryChip() {
+  Widget _buildCategorySection() {
     return Obx(() {
       if (productController.isCategoriesLoading.value) {
         return Center(
@@ -267,93 +314,109 @@ class _HomePageState extends State<HomePage> {
       } else if (productController.categories.isEmpty) {
         return const Center(child: Text('No categories available'));
       } else {
-        final displayedCategories = _showAllCategories
-            ? productController.categories
-            : productController.categories.take(20).toList();
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Categories',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        _showAllCategories = !_showAllCategories;
-                      });
-                    },
-                    child: Text(_showAllCategories ? 'Show Less' : 'See All'),
-                  ),
-                ],
+        return RefreshIndicator(
+          onRefresh: () async {
+            await productController.refreshCategories();
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0),
+                child: Text('Categories',
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               ),
-            ),
-            if (_showAllCategories)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: displayedCategories.map((category) {
-                    return _buildCategoryChip();
-                  }).toList(),
-                ),
-              )
-            else
-              SizedBox(
-                height: 50,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: displayedCategories.length,
-                  itemBuilder: (context, index) {
-                    return Padding(
-                      padding: EdgeInsets.only(
-                        left: index == 0 ? 16.0 : 8.0,
-                        right: index == displayedCategories.length - 1
-                            ? 16.0
-                            : 0.0,
-                      ),
-                      child: _buildCategoryChip(),
-                    );
-                  },
-                ),
-              ),
-          ],
+              const SizedBox(height: 8),
+              _buildCategoryChips(),
+            ],
+          ),
         );
       }
     });
   }
 
-  Widget _buildCategorySection(ProductController productController) {
-    return Obx(() {
-      if (productController.isCategoriesLoading.value) {
-        return Center(
-            child: LoadingAnimationWidget.horizontalRotatingDots(
-                color: AppColors.mainColor, size: 50));
-      } else if (productController.categoriesError.isNotEmpty) {
-        return Center(child: Text(productController.categoriesError.value));
-      } else if (productController.categories.isEmpty) {
-        return const Center(child: Text('No categories available'));
-      } else {
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: productController.categories.map((category) {
+  Widget _buildCategoryChips() {
+    final displayedCategories = _showAllCategories
+        ? productController.categories
+        : productController.categories.take(5).toList();
+
+    return Column(
+      children: [
+        SizedBox(
+          height: 50,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: _showAllCategories
+                ? displayedCategories.length
+                : (displayedCategories.length < 5
+                    ? displayedCategories.length
+                    : 6),
+            itemBuilder: (context, index) {
+              if (!_showAllCategories && index == 5) {
+                return Padding(
+                  padding: const EdgeInsets.only(left: 8.0, right: 16.0),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _showAllCategories = true;
+                      });
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.mainColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                    child: const Text('Show All'),
+                  ),
+                );
+              }
               return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: _buildCategoryChip(),
+                padding: EdgeInsets.only(
+                  left: index == 0 ? 16.0 : 8.0,
+                  right: index == displayedCategories.length - 1 ? 16.0 : 0.0,
+                ),
+                child: _buildCategoryChip(displayedCategories[index]),
               );
-            }).toList(),
+            },
           ),
-        );
-      }
-    });
+        ),
+        if (_showAllCategories)
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: productController.categories
+                  .map((category) => _buildCategoryChip(category))
+                  .toList(),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildCategoryChip(Category category) {
+    return Obx(() => ChoiceChip(
+          label: Text(category.name),
+          selected: productController.selectedCategories.contains(category),
+          onSelected: (selected) {
+            if (selected) {
+              productController.selectedCategories.add(category);
+            } else {
+              productController.selectedCategories.remove(category);
+            }
+            productController.getProductsBySelectedCategories();
+          },
+          backgroundColor: AppColors.mainColor.withOpacity(0.1),
+          selectedColor: AppColors.mainColor,
+          labelStyle: TextStyle(
+            color: productController.selectedCategories.contains(category)
+                ? Colors.white
+                : AppColors.mainColor,
+          ),
+        ));
   }
 
   Widget _buildProductGrid(ProductController productController) {
@@ -454,7 +517,7 @@ class _HomePageState extends State<HomePage> {
               style: const TextStyle(fontSize: 18)),
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: () => productController.getProducts(page: 1),
+            onPressed: () => productController.refreshProducts(),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.mainColor,
               foregroundColor: Colors.white,
@@ -472,8 +535,7 @@ class _HomePageState extends State<HomePage> {
       Product product, ProductController productController) {
     return GestureDetector(
       onTap: () {
-        Get.to(
-            () => ProductDetailPage(productId: product.id, product: product));
+        Get.to(() => ProductDetailPage(productId: product.id));
       },
       child: Card(
         elevation: 0,
@@ -585,7 +647,7 @@ class _HomePageState extends State<HomePage> {
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          'NRP${product.price.toStringAsFixed(2)}',
+                          'NRP${product.price.round()}',
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,

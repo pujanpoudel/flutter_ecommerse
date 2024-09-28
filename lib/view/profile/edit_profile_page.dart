@@ -138,8 +138,8 @@ class EditProfilePage extends StatelessWidget {
         radius: 60,
         backgroundColor: Colors.white,
         child: SvgPicture.string(
-          controller.user.value.fullName ??
-              multiavatar(controller.user.value.fullName ?? 'User'),
+          controller.user.value.avatarId ??
+              multiavatar(controller.user.value.avatarId ?? 'User'),
           width: 120,
           height: 120,
         ),
@@ -160,7 +160,7 @@ class EditProfilePage extends StatelessWidget {
           const SizedBox(height: 15),
           _buildInputField(Icons.person, 'Full Name', 'Enter your full name',
               controller.fullNameController),
-          _buildInputField(Icons.email, 'Email', 'Enter your email',
+          _buildEmailField(Icons.email, 'Email', 'Enter your email',
               controller.emailController),
           _buildInputField(Icons.phone, 'Phone Number',
               'Enter your phone number', controller.phoneNumberController),
@@ -182,6 +182,29 @@ Widget _buildInputField(IconData icon, String label, String hint,
     ),
     child: TextFormField(
       controller: textController,
+      decoration: InputDecoration(
+        prefixIcon: Icon(icon, color: AppColors.mainColor),
+        labelText: label,
+        hintText: hint,
+        border: InputBorder.none,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+      ),
+    ),
+  );
+}
+
+Widget _buildEmailField(
+    IconData icon, String label, String hint, TextEditingController textController) {
+  return Container(
+    margin: const EdgeInsets.only(bottom: 15),
+    decoration: BoxDecoration(
+      color: Colors.grey[100],
+      borderRadius: BorderRadius.circular(10),
+    ),
+    child: TextField(
+      controller: textController, // Display the email
+      readOnly: true, // Make the field read-only
       decoration: InputDecoration(
         prefixIcon: Icon(icon, color: AppColors.mainColor),
         labelText: label,
