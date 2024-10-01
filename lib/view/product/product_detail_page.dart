@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:quick_cart/controller/cart_controller.dart';
 import 'package:quick_cart/controller/product_controller.dart';
 import 'package:quick_cart/models/cart_model.dart';
@@ -21,7 +22,8 @@ class ProductDetailPage extends StatelessWidget {
         future: productController.getProductAsCartModel(productId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(child: LoadingAnimationWidget.horizontalRotatingDots(
+                color: AppColors.mainColor, size: 50));
           } else if (snapshot.hasError || !snapshot.hasData) {
             return const Center(child: Text('Error: Product not found'));
           }
@@ -105,7 +107,7 @@ class ProductDetailPage extends StatelessWidget {
                 ),
                 child: const Icon(Icons.shopping_cart, color: Colors.black),
               ),
-              onPressed: () => Get.to(() => const CartPage()),
+              onPressed: () => Get.to(() => CartPage()),
             ),
             Obx(() {
               int itemCount = cartController.cartItems.length;
@@ -212,12 +214,12 @@ class ProductDetailPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            product.description,
+            product.description?.isNotEmpty == true ? product.description! : '',
             style: textStyle,
             maxLines: showFullDescription ? null : 5,
             overflow: TextOverflow.fade,
           ),
-          if (isTextOverflowing)
+          if (isTextOverflowing && (product.description?.isNotEmpty == true))
             GestureDetector(
               onTap: () {
                 productController.toggleDescription();
@@ -229,6 +231,7 @@ class ProductDetailPage extends StatelessWidget {
             ),
         ],
       );
+
     });
   }
 

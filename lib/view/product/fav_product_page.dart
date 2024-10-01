@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:quick_cart/controller/cart_controller.dart';
 import 'package:quick_cart/controller/product_controller.dart';
 import 'package:quick_cart/models/cart_model.dart';
@@ -8,6 +9,8 @@ import 'package:quick_cart/models/product_model.dart';
 import 'package:quick_cart/utils/bottom_nav_bar_widget.dart';
 import 'package:quick_cart/utils/colors.dart';
 import 'package:quick_cart/view/product/product_detail_page.dart';
+import 'home_page.dart';
+import 'package:flutter/services.dart';
 
 class FavoriteProductsPage extends StatefulWidget {
   const FavoriteProductsPage({super.key});
@@ -27,22 +30,15 @@ class FavoriteProductsPageState extends State<FavoriteProductsPage> {
   @override
   void initState() {
     super.initState();
+    productController.loadFavorites();
 
     _scrollController.addListener(() {
       if (_scrollController.position.userScrollDirection ==
           ScrollDirection.reverse) {
-        if (_isNavBarVisible) {
-          setState(() {
-            _isNavBarVisible = false;
-          });
-        }
+        if (_isNavBarVisible) setState(() => _isNavBarVisible = false);
       } else if (_scrollController.position.userScrollDirection ==
           ScrollDirection.forward) {
-        if (!_isNavBarVisible) {
-          setState(() {
-            _isNavBarVisible = true;
-          });
-        }
+        if (!_isNavBarVisible) setState(() => _isNavBarVisible = true);
       }
     });
   }
@@ -55,7 +51,7 @@ class FavoriteProductsPageState extends State<FavoriteProductsPage> {
 
   String trimText(String text, int maxLength) {
     if (text.length <= maxLength) return text;
-    return '${text.substring(0, maxLength)}...';
+    return '${text.substring(0, maxLength - 3)}...';
   }
 
   @override
@@ -79,42 +75,27 @@ class FavoriteProductsPageState extends State<FavoriteProductsPage> {
                           .headlineLarge
                           ?.copyWith(fontWeight: FontWeight.bold),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.search),
-                      onPressed: () {},
-                    ),
                   ],
                 ),
               ),
-              Obx(() => selectedProducts.isNotEmpty
-                  ? Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            '${selectedProducts.length} selected',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.mainColor,
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: () {
-                              selectedProducts.clear();
-                            },
-                            icon: const Icon(Icons.close),
-                          ),
-                        ],
-                      ),
-                    )
-                  : const SizedBox.shrink()),
+              _buildSelectionBar(),
               Expanded(
                 child: Obx(() {
+                  if (productController.isLoading.value) {
+                    return Center(
+                        child: LoadingAnimationWidget.horizontalRotatingDots(
+                            color: AppColors.mainColor, size: 50));
+                  }
+
                   final favoriteProducts = productController.products
-                      .where((p) => productController.isFavorite(p.id))
+                      .where((p) =>
+                          productController.favoriteProductIds.contains(p.id))
                       .toList();
+
+                  if (favoriteProducts.isEmpty) {
+                    return _buildEmptyState();
+                  }
+
                   return GridView.builder(
                     controller: _scrollController,
                     padding: const EdgeInsets.all(16),
@@ -142,74 +123,99 @@ class FavoriteProductsPageState extends State<FavoriteProductsPage> {
     );
   }
 
-  Future<List<Product>> _getFavoriteProducts(List<String> favoriteIds) async {
-    List<Product> favoriteProducts = [];
-    for (String id in favoriteIds) {
-      Product? product = await productController.getProductById(id);
-      if (product != null) {
-        favoriteProducts.add(product);
-      }
-    }
-    return favoriteProducts;
+  Widget _buildSelectionBar() {
+    if (!isSelecting) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            '${selectedProducts.length} selected',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.mainColor,
+            ),
+          ),
+          Row(
+            children: [
+              TextButton(
+                onPressed: _selectAllProducts,
+                child: const Text('Select All'),
+              ),
+              TextButton(
+                onPressed: _clearSelection,
+                child: const Text('Clear'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset(
+            'assets/img/empty_favourite.png',
+            width: 300,
+            height: 300,
+          ),
+          const SizedBox(height: 20),
+          const Text(
+            'No favorites yet',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'Add products to your favorites by pressing ❤️',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey,
+            ),
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () => Get.to(() => const HomePage()),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.mainColor,
+            ),
+            child: const Text(
+              'Find more Products',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _selectAllProducts() {
+    final allFavoriteProducts = productController.products
+        .where((p) => productController.favoriteProductIds.contains(p.id))
+        .toList();
+    selectedProducts.assignAll(allFavoriteProducts);
+  }
+
+  void _clearSelection() {
+    selectedProducts.clear();
+    setState(() {
+      isSelecting = false;
+    });
   }
 
   Widget _buildFloatingActionButton() {
     return Obx(() {
       if (selectedProducts.isEmpty) {
-        return FloatingActionButton.extended(
-          onPressed: () async {
-            await productController.loadFavorites();
-            final favoriteIds = productController.favoriteProductIds;
-
-            if (favoriteIds.isEmpty) {
-              Get.snackbar(
-                'No Items Selected',
-                'Please select items or add favorites to your cart.',
-                snackPosition: SnackPosition.TOP,
-                backgroundColor: Colors.red.withOpacity(0.7),
-                colorText: Colors.white,
-              );
-            } else {
-              List<Product> favoriteProducts =
-                  await _getFavoriteProducts(favoriteIds.toList());
-
-              for (var product in favoriteProducts) {
-                cartController.addToCart(CartModel(
-                  id: product.id,
-                  name: product.name,
-                  price: product.price,
-                  description: product.description,
-                  variant: product.variant
-                      ?.map((variant) => CartVariant(
-                            color: variant.color,
-                            size: variant.size,
-                            quantity: 1,
-                          ))
-                      .toList(),
-                  imageUrl: product.image,
-                  category: product.category.name,
-                  vendor: product.vendor.storeName,
-                  quantity: 1,
-                ));
-              }
-
-              Get.snackbar(
-                'Favorites Added to Cart',
-                '${favoriteProducts.length} favorite items have been added to your cart.',
-                snackPosition: SnackPosition.TOP,
-                backgroundColor: Colors.green.withOpacity(0.7),
-                colorText: Colors.white,
-              );
-            }
-          },
-          icon: const Icon(Icons.favorite, color: Colors.white),
-          label: const Text('Add favorites to cart',
-              style: TextStyle(color: Colors.white)),
-          backgroundColor: AppColors.mainColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
-          ),
-        );
+        return const SizedBox.shrink();
       } else {
         return FloatingActionButton.extended(
           onPressed: () {
@@ -238,7 +244,7 @@ class FavoriteProductsPageState extends State<FavoriteProductsPage> {
               backgroundColor: Colors.green.withOpacity(0.7),
               colorText: Colors.white,
             );
-            selectedProducts.clear();
+            _clearSelection();
           },
           icon: const Icon(Icons.shopping_cart, color: Colors.white),
           label: Text('Add ${selectedProducts.length} to cart'),
@@ -258,6 +264,7 @@ class FavoriteProductsPageState extends State<FavoriteProductsPage> {
     return GestureDetector(
       onTap: () {
         if (isSelecting) {
+          // Toggle selection when tapping in selection mode
           if (isSelected) {
             selectedProducts.remove(product);
           } else {
@@ -274,6 +281,8 @@ class FavoriteProductsPageState extends State<FavoriteProductsPage> {
       },
       onLongPress: () {
         if (!isSelecting) {
+          // Trigger haptic feedback when entering selection mode
+          HapticFeedback.mediumImpact();
           setState(() {
             isSelecting = true;
           });
@@ -302,73 +311,50 @@ class FavoriteProductsPageState extends State<FavoriteProductsPage> {
                     child: Image.network(
                       product.image.isNotEmpty ? product.image.first : '',
                       fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Center(child: Icon(Icons.error));
+                      },
                     ),
                   ),
-                  if (isSelected)
-                    const Positioned(
+                  if (isSelecting)
+                    Positioned(
                       top: 8,
-                      left: 8,
-                      child:
-                          Icon(Icons.check_circle, color: AppColors.mainColor),
-                    ),
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: GestureDetector(
-                      onTap: () {
-                        productController.toggleFavorite(product.id);
-                        selectedProducts.remove(product);
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.5),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.close,
-                          color: Colors.white,
-                          size: 20,
+                      right: 8,
+                      child: GestureDetector(
+                        onTap: () {
+                          if (isSelected) {
+                            selectedProducts.remove(product);
+                          } else {
+                            selectedProducts.add(product);
+                          }
+                          if (selectedProducts.isEmpty) {
+                            setState(() {
+                              isSelecting = false;
+                            });
+                          }
+                        },
+                        child: Icon(
+                          isSelected
+                              ? Icons.check_circle
+                              : Icons.circle_outlined,
+                          color: isSelected
+                              ? AppColors.mainColor
+                              : Colors.grey[400],
+                          size: 30,
                         ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        trimText(product.name, 20),
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '\$${product.price}',
-                        style: const TextStyle(color: AppColors.mainColor),
-                      ),
-                    ],
-                  ),
-                  IconButton(
-                    onPressed: () {
-                      productController.toggleFavorite(product.id);
-                    },
-                    icon: Icon(
-                      productController.isFavorite(product.id)
-                          ? Icons.favorite
-                          : Icons.favorite_border,
-                      color: productController.isFavorite(product.id)
-                          ? AppColors.mainColor
-                          : Colors.grey,
-                    ),
-                  ),
-                ],
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                trimText(product.name, 25),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],

@@ -13,7 +13,6 @@ class ProductController extends GetxController {
   final RxString error = ''.obs;
   final RxInt currentPage = 1.obs;
   final RxInt totalPages = 1.obs;
-  final RxSet<String> _favoriteProductIds = <String>{}.obs;
   RxList<Category> categories = <Category>[].obs;
   final RxBool isCategoriesLoading = false.obs;
   final RxString categoriesError = ''.obs;
@@ -117,19 +116,19 @@ class ProductController extends GetxController {
   Future<void> loadFavorites() async {
     final prefs = await SharedPreferences.getInstance();
     final favoriteIds = prefs.getStringList('favoriteProductIds') ?? [];
-    _favoriteProductIds.assignAll(favoriteIds.toSet());
+    favoriteProductIds.assignAll(favoriteIds.toSet());
   }
 
   Future<void> toggleFavorite(String productId) async {
-    if (_favoriteProductIds.contains(productId)) {
-      _favoriteProductIds.remove(productId);
+    if (favoriteProductIds.contains(productId)) {
+      favoriteProductIds.remove(productId);
     } else {
-      _favoriteProductIds.add(productId);
+      favoriteProductIds.add(productId);
     }
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(
       'favoriteProductIds',
-      _favoriteProductIds.toList(),
+      favoriteProductIds.toList(),
     );
   }
 
@@ -155,7 +154,7 @@ class ProductController extends GetxController {
     }
   }
 
-  bool isFavorite(String productId) => _favoriteProductIds.contains(productId);
+  bool isFavorite(String productId) => favoriteProductIds.contains(productId);
 
   Future<CartModel?> getProductAsCartModel(String productId) async {
     try {

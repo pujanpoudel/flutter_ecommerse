@@ -2,7 +2,7 @@ class Product {
   final String id;
   final String name;
   final double price;
-  final String description;
+  final String? description;
   final List<String> image;
   final Category category;
   final bool status;
@@ -15,7 +15,7 @@ class Product {
     required this.id,
     required this.name,
     required this.price,
-    required this.description,
+    this.description,
     required this.image,
     required this.category,
     required this.status,

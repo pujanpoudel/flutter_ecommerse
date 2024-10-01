@@ -1,5 +1,4 @@
 import 'package:get/get.dart';
-import 'dart:convert';
 import 'package:quick_cart/models/product_model.dart';
 import 'package:quick_cart/utils/app_constants.dart';
 
@@ -25,7 +24,7 @@ class ProductRepo extends GetxService {
       if (response.statusCode != 200) {
         throw Exception('Failed to fetch products');
       }
-      final Map<String, dynamic> jsonResponse = json.decode(response.body);
+      final jsonResponse = response.body;
       if (jsonResponse['success'] != true) {
         throw Exception(jsonResponse['message'] ?? 'Failed to fetch products');
       }
@@ -62,13 +61,13 @@ class ProductRepo extends GetxService {
       if (response.statusCode != 200) {
         throw Exception('Failed to fetch categories');
       }
-      final Map<String, dynamic> jsonResponse = json.decode(response.body);
-      if (!jsonResponse['success']) {
+      final jsonResponse = response.body;
+      if (jsonResponse['success'] != true) {
         throw Exception(jsonResponse['message']);
       }
 
-      final data = jsonResponse['data'] as Map<String, dynamic>;
-      final categoriesList = data['data'] as List;
+      final data = jsonResponse['data'];
+      final List<dynamic> categoriesList = data['data'];
       fetchedCategories = categoriesList
           .map((categoryJson) => Category.fromJson(categoryJson))
           .toList();
@@ -76,40 +75,41 @@ class ProductRepo extends GetxService {
       _categories.assignAll(fetchedCategories);
     } catch (e) {
       error.value = e.toString();
+      print(error.value);
     } finally {
       isLoading.value = false;
     }
     return fetchedCategories;
   }
 
-  Future<List<Product>> getProductsByCategories(
-      List<String> categoryIds) async {
+  Future<List<Product>> getProductsByCategories(List<String> categoryIds) async {
     try {
-      final response = await GetConnect()
-          .get('$baseUrlProduct/get/products?category=$categories');
+      final response = await GetConnect().get(
+        '$baseUrlProduct/get/products?category=$categories',
+      );
 
-      if (response.status.hasError) {
+      if (response.statusCode != 200) {
         throw Exception('Failed to load products: ${response.statusText}');
       }
 
       final jsonResponse = response.body;
-
-      if (jsonResponse['success'] == true) {
-        final data = jsonResponse['data'];
-        if (data != null && data['data'] is List) {
-          List<Product> products = (data['data'] as List)
-              .map((productJson) => Product.fromJson(productJson))
-              .toList();
-
-          return products;
-        } else {
-          throw Exception('Invalid data format in the response');
-        }
-      } else {
+      if (jsonResponse['success'] != true) {
         throw Exception(jsonResponse['message'] ?? 'Failed to load products');
       }
+
+      final data = jsonResponse['data'];
+      if (data != null && data['data'] is List) {
+        List<Product> products = (data['data'] as List)
+            .map((productJson) => Product.fromJson(productJson))
+            .toList();
+        return products;
+      } else {
+        throw Exception('Invalid data format in the response');
+      }
     } catch (e) {
-      throw Exception('Error: $e');
+      error.value = e.toString();
+      print(error.value);
+      return [];
     }
   }
 
@@ -121,10 +121,11 @@ class ProductRepo extends GetxService {
       if (response.statusCode != 200) {
         throw Exception('Failed to fetch product details');
       }
-      final productData = json.decode(response.body)['data'];
+      final productData = response.body['data'];
       return Product.fromJson(productData);
     } catch (e) {
       error.value = 'Failed to fetch product details: ${e.toString()}';
+      print(error.value);
       return null;
     }
   }

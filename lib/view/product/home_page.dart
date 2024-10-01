@@ -86,10 +86,11 @@ class HomePageState extends State<HomePage> {
             SliverToBoxAdapter(
               child: Obx(() {
                 if (productController.isLoading.value) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16),
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     child: Center(
-                      child: CircularProgressIndicator(),
+                      child: LoadingAnimationWidget.horizontalRotatingDots(
+                          color: AppColors.mainColor, size: 50),
                     ),
                   );
                 } else {
@@ -166,6 +167,7 @@ class HomePageState extends State<HomePage> {
                 child: const Text('Edit Address'),
               ),
             ),
+          const SizedBox(height:5),
           TextField(
             decoration: InputDecoration(
               filled: true,
@@ -197,87 +199,92 @@ class HomePageState extends State<HomePage> {
         return Column(
           children: [
             CarouselSlider(
-              items: carouselProducts.map((product) {
-                return Builder(
-                  builder: (BuildContext context) {
-                    return GestureDetector(
-                      onTap: () {
-                        Get.to(() => ProductDetailPage(productId: product.id));
-                      },
-                      child: Container(
-                        width: MediaQuery.of(context).size.width,
-                        margin: const EdgeInsets.symmetric(horizontal: 5.0),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(12),
-                          image: DecorationImage(
-                            image: NetworkImage(
-                              (product.image as List).isNotEmpty
-                                  ? (product.image)[0]
-                                  : product.image as String,
-                            ),
+        items: carouselProducts.map((product) {
+          return Builder(
+            builder: (BuildContext context) {
+              return GestureDetector(
+                onTap: () {
+                  Get.to(() => ProductDetailPage(productId: product.id));
+                },
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(15),  // Ensure all corners are rounded
+                  child: Container(
+                    width: MediaQuery.of(context).size.width,
+                    margin: const EdgeInsets.symmetric(horizontal: 5.0),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                    ),
+                    child: Stack(
+                      children: [
+                        // Product image
+                        Positioned.fill(
+                          child: Image.network(
+                            (product.image as List).isNotEmpty
+                                ? (product.image)[0]
+                                : product.image as String,
                             fit: BoxFit.cover,
                           ),
                         ),
-                        child: Stack(
-                          children: [
-                            Positioned(
-                              bottom: 0,
-                              left: 0,
-                              right: 0,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.bottomCenter,
-                                    end: Alignment.topCenter,
-                                    colors: [
-                                      Colors.black.withOpacity(0.8),
-                                      Colors.transparent
-                                    ],
-                                  ),
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 10.0, horizontal: 20.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      product.name,
-                                      style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    const SizedBox(height: 5),
-                                    Text(
-                                      'NRP ${product.price.round()}',
-                                      style: const TextStyle(
-                                          color: Colors.white, fontSize: 16),
-                                    ),
-                                  ],
-                                ),
+                        // Gradient overlay and text
+                        Positioned(
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.topCenter,
+                                colors: [
+                                  Colors.black.withOpacity(0.8),
+                                  Colors.transparent,
+                                ],
                               ),
                             ),
-                          ],
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 10.0, horizontal: 20.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  product.name,
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 5),
+                                Text(
+                                  'NRP ${product.price.round()}',
+                                  style: const TextStyle(
+                                      color: Colors.white, fontSize: 16),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                );
-              }).toList(),
-              carouselController: carouselController,
-              options: CarouselOptions(
-                autoPlay: true,
-                enlargeCenterPage: true,
-                aspectRatio: 2.0,
-                onPageChanged: (index, reason) {
-                  setState(() {
-                    _current = index;
-                  });
-                },
-              ),
-            ),
-            const SizedBox(height: 10),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          );
+        }).toList(),
+      carouselController: carouselController,
+      options: CarouselOptions(
+      autoPlay: true,
+      enlargeCenterPage: true,
+      aspectRatio: 2.0,
+      onPageChanged: (index, reason) {
+      setState(() {
+      _current = index;
+      });
+      },
+      ),
+      ),
+
+      const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: carouselProducts.asMap().entries.map((entry) {

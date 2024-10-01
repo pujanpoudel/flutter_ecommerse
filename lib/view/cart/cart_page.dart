@@ -9,7 +9,8 @@ import 'package:quick_cart/view/product/checkout_page.dart';
 import 'package:quick_cart/view/product/home_page.dart';
 
 class CartPage extends StatefulWidget {
-  const CartPage({super.key});
+  CartPage({super.key});
+  final CartController cartController = Get.find<CartController>();
 
   @override
   CartPageState createState() => CartPageState();
@@ -185,7 +186,6 @@ class CartPageState extends State<CartPage> {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.mainColor,
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
             ),
             child: const Text(
               'Browse some more',

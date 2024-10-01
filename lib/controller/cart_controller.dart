@@ -9,9 +9,6 @@ import '../models/product_model.dart';
 import '../repo/product_repo.dart';
 
 class CartController extends GetxController {
-  CartController() {
-    print("CartController initialized");
-  }
   late final ProductRepo productRepo;
   final RxList<Product> products = <Product>[].obs;
   RxString selectedPaymentMethod = 'eSewa'.obs;
@@ -21,11 +18,7 @@ class CartController extends GetxController {
   var selectedColor = ''.obs;
   var selectedQuantity = 1.obs;
   var selectedProducts = <Product>[].obs;
-  final RxList<dynamic> _cartItems = <dynamic>[].obs;
-  List<dynamic> get cartItems => _cartItems;
-  void addToCart(dynamic item) {
-    _cartItems.add(item);
-  }
+  final RxList<CartModel> cartItems = <CartModel>[].obs;
 
   @override
   void onInit() {
@@ -63,6 +56,11 @@ class CartController extends GetxController {
   void removeFromCart(String productId) {
     cartItems.removeWhere((item) => item.id == productId);
     selectedItems.remove(productId);
+    saveCartItems();
+  }
+
+  void clearCart() {
+    cartItems.clear();
     saveCartItems();
   }
 

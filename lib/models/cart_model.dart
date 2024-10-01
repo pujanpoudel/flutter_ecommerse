@@ -1,7 +1,7 @@
 class CartModel {
   final String id;
   final String name;
-  final String description;
+  final String? description;
   final List<CartVariant>? variant;
   final List<String> imageUrl;
   final String category;

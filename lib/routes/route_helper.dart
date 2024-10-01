@@ -64,7 +64,7 @@ class RouteHelper {
     ),
     GetPage(
       name: cart,
-      page: () => const CartPage(),
+      page: () => CartPage(),
       middlewares: [AuthMiddleware()],
     ),
     GetPage(name: emailVerification, page: () => const EmailVerificationPage()),
