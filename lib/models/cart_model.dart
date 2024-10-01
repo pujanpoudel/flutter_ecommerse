@@ -25,7 +25,10 @@ class CartModel {
         id: json['id'],
         name: json['name'],
         description: json['description'],
-        variant: List<CartVariant>.from(json['variant']),
+        variant: json['variant'] != null
+            ? List<CartVariant>.from(
+                json['variant'].map((x) => CartVariant?.fromJson(x)))
+            : null,
         imageUrl: List<String>.from(json['imageUrl']),
         category: json['category'],
         vendor: json['vendor'],

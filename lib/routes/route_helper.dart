@@ -4,7 +4,6 @@ import 'package:quick_cart/repo/auth_repo.dart';
 import 'package:quick_cart/view/cart/cart_page.dart';
 import 'package:quick_cart/view/landing%20page/landing_page.dart';
 import 'package:quick_cart/view/splash%20screen/splash_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../view/auth/forgot_password_page.dart';
 import '../view/auth/sign_in_page.dart';
 import '../view/auth/sign_up_page.dart';
@@ -25,6 +24,7 @@ class RouteHelper {
   static const String cart = '/cart';
   static const String profile = '/profile';
 
+  // Routes helpers
   static String getInitial() => initial;
   static String getDashboard() => dashboard;
   static String getSignIn() => signIn;
@@ -39,18 +39,12 @@ class RouteHelper {
 
   static Future<bool> isLoggedIn() async {
     AuthRepo authRepo = Get.find<AuthRepo>();
-
     return authRepo.isLoggedIn();
   }
 
   static Future<bool> isFirstLaunch() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool? isFirstTime = prefs.getBool('isFirstTime');
-    if (isFirstTime == null || isFirstTime == true) {
-      await prefs.setBool('isFirstTime', false);
-      return true;
-    }
-    return false;
+    AuthRepo authRepo = Get.find<AuthRepo>();
+    return authRepo.isFirstRun();
   }
 
   static List<GetPage> routes = [
@@ -62,9 +56,10 @@ class RouteHelper {
     GetPage(name: home, page: () => const HomePage()),
     GetPage(
       name: productDetail,
-      page: () => ProductDetailPage(
-        productId: '',
-      ),
+      page: () {
+        final productId = Get.parameters['productId'];
+        return ProductDetailPage(productId: productId ?? '');
+      },
       middlewares: [AuthMiddleware()],
     ),
     GetPage(

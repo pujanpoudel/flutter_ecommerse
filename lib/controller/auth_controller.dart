@@ -7,6 +7,7 @@ import 'package:quick_cart/repo/auth_repo.dart';
 import 'package:quick_cart/view/auth/forgot_password_page.dart';
 import 'package:quick_cart/view/auth/sign_in_page.dart';
 import 'package:quick_cart/view/auth/sign_up_page.dart';
+import 'package:quick_cart/view/landing%20page/landing_page.dart';
 import 'package:quick_cart/view/product/home_page.dart';
 import 'package:quick_cart/view/profile/profile_page.dart';
 import 'package:quick_cart/view/verification/email_verification_page.dart';
@@ -30,7 +31,6 @@ class AuthController extends GetxController {
   var isProfilePageVisible = false.obs;
   String avatarKey = "userAvatar";
 
-
   AuthController({required this.authRepo});
 
   @override
@@ -48,6 +48,7 @@ class AuthController extends GetxController {
       rememberMe.value = true;
     }
   }
+
   void toggleObscureText() {
     obscureText.value = !obscureText.value;
   }
@@ -163,34 +164,33 @@ class AuthController extends GetxController {
     }
   }
 
-  void loadUserProfile() async {
-    try {
-      String token = authRepo.getUserToken();
+  Future<void> loadUserProfile() async {
+    final token = authRepo.getUserToken(); // Get the token
+    if (token.isNotEmpty) {
+      try {
+        // Fetch user profile data from the authRepo
+        final userProfile = await authRepo.getUserProfile(token);
+        if (userProfile != null) {
+          // Update the user data in the controller
+          user.value = userProfile;
+          fullNameController.text = userProfile.fullName ?? '';
+          emailController.text = userProfile.email ?? '';
+          phoneNumberController.text = userProfile.phone ?? '';
+          addressController.text = userProfile.address ?? '';
 
-      if (token.isEmpty) {
-        Get.snackbar('Error', 'User token is missing');
-        return;
+          // Debugging logs
+          print('User Full Name: ${userProfile.fullName}');
+          print('User Email: ${userProfile.email}');
+          print('User Phone: ${userProfile.phone}');
+          print('User Address: ${userProfile.address}');
+        } else {
+          print('Failed to load user profile: No data returned');
+        }
+      } catch (e) {
+        print('Error loading user profile: $e');
       }
-
-      AuthModel? userProfile = await authRepo.getUserProfile(token);
-
-      if (userProfile != null) {
-        user.value = userProfile;
-        fullNameController.text = userProfile.fullName ?? '';
-        emailController.text = userProfile.email ?? '';
-        phoneNumberController.text = userProfile.phone ?? '';
-        addressController.text = userProfile.address ?? '';
-
-        print('User Full Name: ${userProfile.fullName}');
-        print('User Email: ${userProfile.email}');
-        print('User Phone: ${userProfile.phone}');
-        print('User Address: ${userProfile.address}');
-      } else {
-        Get.snackbar('Error', 'Failed to load user profile');
-      }
-    } catch (e) {
-      print('Error in loadUserProfile: $e');
-      Get.snackbar('Error', 'Failed to load user profile');
+    } else {
+      print('User token is empty');
     }
   }
 
@@ -271,9 +271,17 @@ class AuthController extends GetxController {
     }
   }
 
-  void _showProfilePageSnackbar(String title, String message) {
-    if (isProfilePageVisible.value) {
-      Get.snackbar(title, message);
+  Future<void> checkLoginStatus() async {
+    bool isFirstRun = authRepo.isFirstRun();
+    bool isLoggedIn = authRepo.isLoggedIn();
+
+    if (isFirstRun) {
+      await authRepo.setFirstRunComplete();
+      Get.off(() => const LandingPage());
+    } else if (isLoggedIn) {
+      Get.off(() => const HomePage());
+    } else {
+      Get.off(() => SignInPage());
     }
   }
 

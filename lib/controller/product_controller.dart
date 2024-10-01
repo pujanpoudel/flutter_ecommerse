@@ -41,7 +41,6 @@ class ProductController extends GetxController {
       error.value = '';
 
       List<Product> newProducts = await productRepo.getProducts(page: page);
-
       if (page == 1) {
         products.assignAll(newProducts);
       } else {
@@ -142,7 +141,6 @@ class ProductController extends GetxController {
     selectedColor.value = color;
   }
 
-
   void toggleDescription() {
     showFullDescription.value = !showFullDescription.value;
   }
@@ -163,9 +161,9 @@ class ProductController extends GetxController {
     try {
       final product = await getProductById(productId);
       if (product != null) {
-        List<CartVariant>? productVariants = product.variants.isNotEmpty
-            ? product.variants
-                .map((variant) => CartVariant(
+        List<CartVariant>? productVariants = product.variant!.isNotEmpty
+            ? product.variant
+                ?.map((variant) => CartVariant(
                       color: variant.color,
                       size: variant.size,
                       stock: variant.stock,
@@ -191,5 +189,4 @@ class ProductController extends GetxController {
       return null;
     }
   }
-
 }

@@ -11,24 +11,27 @@ import '../utils/app_constants.dart';
 class AppBinding extends Bindings {
   @override
   void dependencies() {
-    Get.putAsync(() async {
+    Get.put(CartController(), permanent: true);
+
+    print("AppBinding dependencies called");
+    Get.put(CartController(), permanent: true);
+    print("CartController put in GetX container");
+    Get.putAsync<SharedPreferences>(() async {
       final sharedPreferences = await SharedPreferences.getInstance();
       return sharedPreferences;
+    }).then((sharedPreferences) {
+      Get.put(ApiClient(
+        appBaseUrl: AppConstants.BASE_URL,
+        appBaseUrlProduct: AppConstants.BASE_URL_PRODUCT,
+        sharedPreferences: sharedPreferences,
+      ));
+
+      Get.put(AuthRepo(sharedPreferences: sharedPreferences));
+      Get.put(ProductRepo());
+
+      Get.put(AuthController(authRepo: Get.find<AuthRepo>()));
+      Get.put(ProductController(productRepo: Get.find<ProductRepo>()));
+      Get.put(CartController());
     });
-
-    Get.lazyPut(() => ApiClient(
-          appBaseUrl: AppConstants.BASE_URL,
-          appBaseUrlProduct: AppConstants.BASE_URL_PRODUCT,
-          sharedPreferences: Get.find<SharedPreferences>(),
-        ));
-
-    Get.lazyPut(
-        () => AuthRepo(sharedPreferences: Get.find<SharedPreferences>()));
-    Get.lazyPut(() => ProductRepo());
-
-    Get.lazyPut(() => AuthController(authRepo: Get.find<AuthRepo>()));
-    Get.put(CartController());
-
-    Get.lazyPut(() => ProductController(productRepo: Get.find<ProductRepo>()));
   }
 }

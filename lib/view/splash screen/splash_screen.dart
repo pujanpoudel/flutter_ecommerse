@@ -1,11 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:quick_cart/repo/auth_repo.dart';
-import 'package:quick_cart/view/auth/sign_in_page.dart';
-import 'package:quick_cart/view/product/home_page.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../landing page/landing_page.dart';
+import 'package:quick_cart/controller/auth_controller.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -24,7 +20,6 @@ class SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
 
-    // Initialize animations
     _controller = AnimationController(
       duration: const Duration(seconds: 1),
       vsync: this,
@@ -35,30 +30,9 @@ class SplashScreenState extends State<SplashScreen>
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
     _controller.forward();
-
-    // Check app state and navigate accordingly after delay
-    Timer(const Duration(seconds: 2), _checkLoginStatus);
-  }
-
-  Future<void> _checkLoginStatus() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final authRepo = Get.find<AuthRepo>();
-
-    // Check if it's the first time the app is run
-    bool isFirstRun = prefs.getBool('is_first_run') ?? true;
-    bool isLoggedIn = authRepo.isLoggedIn(); // Check login status
-
-    if (isFirstRun) {
-      // First-time app launch, navigate to LandingPage
-      await prefs.setBool('is_first_run', false);
-      Get.off(() => const LandingPage());
-    } else if (isLoggedIn) {
-      // User is logged in, navigate to HomePage
-      Get.off(() => const HomePage());
-    } else {
-      // User is logged out, navigate to SignInPage
-      Get.off(() => SignInPage());
-    }
+    Timer(const Duration(seconds: 2), () {
+      Get.find<AuthController>().checkLoginStatus();
+    });
   }
 
   @override

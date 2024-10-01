@@ -171,7 +171,7 @@ class FavoriteProductsPageState extends State<FavoriteProductsPage> {
               );
             } else {
               List<Product> favoriteProducts =
-              await _getFavoriteProducts(favoriteIds.toList());
+                  await _getFavoriteProducts(favoriteIds.toList());
 
               for (var product in favoriteProducts) {
                 cartController.addToCart(CartModel(
@@ -179,12 +179,12 @@ class FavoriteProductsPageState extends State<FavoriteProductsPage> {
                   name: product.name,
                   price: product.price,
                   description: product.description,
-                  variant: product.variants
-                      .map((variant) => CartVariant(
-                    color: variant.color,
-                    size: variant.size,
-                    quantity: 1,  // Set default quantity to 1
-                  ))
+                  variant: product.variant
+                      ?.map((variant) => CartVariant(
+                            color: variant.color,
+                            size: variant.size,
+                            quantity: 1,
+                          ))
                       .toList(),
                   imageUrl: product.image,
                   category: product.category.name,

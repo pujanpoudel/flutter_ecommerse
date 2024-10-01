@@ -14,41 +14,42 @@ class ProductRepo extends GetxService {
   var currentPage = 1.obs;
   var totalPages = 1.obs;
 
-
   Future<List<Product>> getProducts({int page = 1}) async {
-  isLoading.value = true;
-  error.value = '';
-  List<Product> fetchedProducts = [];
-  try {
-    final response = await GetConnect().get(
-      '$baseUrlProduct/get/products?page=$page',
-    );
-    if (response.statusCode != 200) {
-      throw Exception('Failed to fetch products');
-    }
-    final Map<String, dynamic> jsonResponse = json.decode(response.body);
-    if (jsonResponse['success'] != true) {
-      throw Exception(jsonResponse['message'] ?? 'Failed to fetch products');
-    }
-    final data = jsonResponse['data'];
-    final List<dynamic> productsJson = data['data'];
-    fetchedProducts = productsJson.map((productJson) => Product.fromJson(productJson)).toList();
+    isLoading.value = true;
+    error.value = '';
+    List<Product> fetchedProducts = [];
+    try {
+      final response = await GetConnect().get(
+        '$baseUrlProduct/get/products?page=$page',
+      );
+      if (response.statusCode != 200) {
+        throw Exception('Failed to fetch products');
+      }
+      final Map<String, dynamic> jsonResponse = json.decode(response.body);
+      if (jsonResponse['success'] != true) {
+        throw Exception(jsonResponse['message'] ?? 'Failed to fetch products');
+      }
+      final data = jsonResponse['data'];
+      final List<dynamic> productsJson = data['data'];
+      fetchedProducts = productsJson
+          .map((productJson) => Product.fromJson(productJson))
+          .toList();
 
-    currentPage.value = page;
-    totalPages.value = data['total_pages'];
-    if (page == 1) {
-      _products.assignAll(fetchedProducts);
-    } else {
-      _products.addAll(fetchedProducts);
+      currentPage.value = page;
+      totalPages.value = data['total_pages'];
+      if (page == 1) {
+        _products.assignAll(fetchedProducts);
+      } else {
+        _products.addAll(fetchedProducts);
+      }
+    } catch (e) {
+      error.value = e.toString();
+      print(error.value);
+    } finally {
+      isLoading.value = false;
     }
-  } catch (e) {
-    error.value = e.toString();
-  } finally {
-    isLoading.value = false;
+    return fetchedProducts;
   }
-  return fetchedProducts;
-}
-
 
   Future<List<Category>> getCategories() async {
     isLoading.value = true;
@@ -81,9 +82,11 @@ class ProductRepo extends GetxService {
     return fetchedCategories;
   }
 
-  Future<List<Product>> getProductsByCategories(List<String> categoryIds) async {
+  Future<List<Product>> getProductsByCategories(
+      List<String> categoryIds) async {
     try {
-      final response = await GetConnect().get('$baseUrlProduct/get/products?category=$categories');
+      final response = await GetConnect()
+          .get('$baseUrlProduct/get/products?category=$categories');
 
       if (response.status.hasError) {
         throw Exception('Failed to load products: ${response.statusText}');

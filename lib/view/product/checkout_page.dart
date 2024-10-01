@@ -313,8 +313,8 @@ class CheckoutPageState extends State<CheckoutPage> {
                               _cartController.updateQuantity(
                                 cartItem.id,
                                 cartItem.quantity + 1,
-                                color: selectedVariant!.color,
-                                size: selectedVariant!.size,
+                                color: selectedVariant?.color,
+                                size: selectedVariant?.size,
                               );
                             },
                           ),

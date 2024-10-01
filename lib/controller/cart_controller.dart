@@ -9,9 +9,11 @@ import '../models/product_model.dart';
 import '../repo/product_repo.dart';
 
 class CartController extends GetxController {
+  CartController() {
+    print("CartController initialized");
+  }
   late final ProductRepo productRepo;
   final RxList<Product> products = <Product>[].obs;
-  RxList<CartModel> cartItems = <CartModel>[].obs;
   RxString selectedPaymentMethod = 'eSewa'.obs;
   RxSet<String> selectedItems = <String>{}.obs;
   var product = Rxn<Product>();
@@ -19,7 +21,11 @@ class CartController extends GetxController {
   var selectedColor = ''.obs;
   var selectedQuantity = 1.obs;
   var selectedProducts = <Product>[].obs;
-
+  final RxList<dynamic> _cartItems = <dynamic>[].obs;
+  List<dynamic> get cartItems => _cartItems;
+  void addToCart(dynamic item) {
+    _cartItems.add(item);
+  }
 
   @override
   void onInit() {
@@ -54,11 +60,8 @@ class CartController extends GetxController {
     saveCartItems();
   }
 
-  void removeFromCart(String productId, {String? color, String? size}) {
-    cartItems.removeWhere((item) =>
-        item.id == productId &&
-        item.variant!
-            .any((variant) => variant.color == color && variant.size == size));
+  void removeFromCart(String productId) {
+    cartItems.removeWhere((item) => item.id == productId);
     selectedItems.remove(productId);
     saveCartItems();
   }
@@ -176,8 +179,8 @@ class CartController extends GetxController {
 
   int getStockForSelectedOptions(String selectedSize, String selectedColor) {
     if (product.value != null) {
-      Variant? selectedVariant = product.value!.variants.firstWhereOrNull(
-            (v) => v.size == selectedSize && v.color == selectedColor,
+      Variant? selectedVariant = product.value!.variant?.firstWhereOrNull(
+        (v) => v.size == selectedSize && v.color == selectedColor,
       );
       return selectedVariant?.stock ?? 0;
     }
@@ -186,7 +189,6 @@ class CartController extends GetxController {
 
   double get totalAmount =>
       cartItems.fold(0, (sum, item) => sum + (item.price * item.quantity));
-
 
   int get cartItemCount => cartItems.length;
 

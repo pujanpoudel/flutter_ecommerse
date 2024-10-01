@@ -18,7 +18,7 @@ class ProfilePage extends StatefulWidget {
 }
 
 class ProfilePageState extends State<ProfilePage> {
-  final AuthController authController = Get.find<AuthController>();
+  AuthController authController = Get.find<AuthController>();
   final AuthRepo authRepo = Get.find<AuthRepo>();
   final ScrollController _scrollController = ScrollController();
   final bool _isNavBarVisible = true;

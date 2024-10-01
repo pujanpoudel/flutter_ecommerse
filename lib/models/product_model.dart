@@ -9,7 +9,7 @@ class Product {
   final Vendor vendor;
   final Type type;
   final int totalStock;
-  final List<Variant> variants;
+  final List<Variant>? variant;
 
   Product({
     required this.id,
@@ -22,7 +22,7 @@ class Product {
     required this.vendor,
     required this.type,
     required this.totalStock,
-    required this.variants,
+    this.variant,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) => Product(
@@ -36,7 +36,8 @@ class Product {
         vendor: Vendor.fromJson(json['vendor']),
         type: Type.fromJson(json['type']),
         totalStock: json['total_stock'],
-        variants: List<Variant>.from(json['variants'].map((x) => Variant.fromJson(x))),
+        variant: List<Variant>.from(
+            json['variants'].map((x) => Variant?.fromJson(x))),
       );
 
   Map<String, dynamic> toJson() => {
@@ -50,7 +51,7 @@ class Product {
         'vendor': vendor.toJson(),
         'type': type.toJson(),
         'total_stock': totalStock,
-        'variants': List<dynamic>.from(variants.map((x) => x.toJson())),
+        'variants': List<dynamic>.from(variant!.map((x) => x.toJson())),
       };
 }
 
@@ -123,14 +124,14 @@ class Type {
 }
 
 class Variant {
-  final String size;
-  final String color;
-  final int stock;
+  final String? size;
+  final String? color;
+  final int? stock;
 
   Variant({
-    required this.size,
-    required this.color,
-    required this.stock,
+    this.size,
+    this.color,
+    this.stock,
   });
 
   factory Variant.fromJson(Map<String, dynamic> json) => Variant(
