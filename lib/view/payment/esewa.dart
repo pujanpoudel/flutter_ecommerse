@@ -26,7 +26,7 @@ class Esewa {
         ),
         onPaymentSuccess: (EsewaPaymentSuccessResult data) {
           debugPrint(":::SUCCESS::: => $data");
-          
+
           // verifyTransactionStatus(data);
         },
         onPaymentFailure: (data) {

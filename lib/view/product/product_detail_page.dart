@@ -22,34 +22,41 @@ class ProductDetailPage extends StatelessWidget {
         future: productController.getProductAsCartModel(productId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: LoadingAnimationWidget.horizontalRotatingDots(
-                color: AppColors.mainColor, size: 50));
+            return Center(
+                child: LoadingAnimationWidget.horizontalRotatingDots(
+                    color: AppColors.mainColor, size: 50));
           } else if (snapshot.hasError || !snapshot.hasData) {
             return const Center(child: Text('Error: Product not found'));
           }
 
           final product = snapshot.data!;
-          return CustomScrollView(
-            slivers: [
-              _buildSliverAppBar(product),
-              SliverToBoxAdapter(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
+          return Stack(
+            children: [
+              CustomScrollView(
+                slivers: [
+                  _buildSliverAppBar(product),
+                  SliverToBoxAdapter(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildProductInfo(product),
+                          _buildSizeColorOptions(product),
+                          SizedBox(
+                              height:
+                                  MediaQuery.of(context).padding.bottom + 100),
+                        ],
+                      ),
+                    ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildProductInfo(product),
-                      _buildSizeColorOptions(product),
-                      _buildQuantityAndAddToCart(product),
-                      SizedBox(height: MediaQuery.of(context).padding.bottom),
-                    ],
-                  ),
-                ),
+                ],
               ),
+              _buildBottomBar(product),
             ],
           );
         },
@@ -61,85 +68,101 @@ class ProductDetailPage extends StatelessWidget {
     return SliverAppBar(
       expandedHeight: MediaQuery.of(Get.context!).size.height * 0.4,
       pinned: true,
-      backgroundColor: AppColors.mainColor.withOpacity(0.1),
+      backgroundColor: Colors.black.withOpacity(0.3),
       flexibleSpace: FlexibleSpaceBar(
-        background: CarouselSlider(
-          options: CarouselOptions(
-            height: MediaQuery.of(Get.context!).size.height,
-            viewportFraction: 1.0,
-            enlargeCenterPage: false,
-            enableInfiniteScroll: false,
-          ),
-          items: product.imageUrl.map((imageUrl) {
-            return Builder(
-              builder: (BuildContext context) {
-                return Image.network(
-                  imageUrl,
-                  fit: BoxFit.cover,
-                  width: double.infinity,
+        background: Stack(
+          children: [
+            CarouselSlider(
+              options: CarouselOptions(
+                height: MediaQuery.of(Get.context!).size.height,
+                viewportFraction: 1.0,
+                enlargeCenterPage: false,
+                enableInfiniteScroll: false,
+              ),
+              items: product.imageUrl.map((imageUrl) {
+                return Builder(
+                  builder: (BuildContext context) {
+                    return Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                    );
+                  },
                 );
-              },
-            );
-          }).toList(),
+              }).toList(),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.center,
+                  colors: [
+                    Colors.black.withOpacity(0.7),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
-      leading: IconButton(
-        icon: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(Icons.arrow_back, color: Colors.black),
+      leading: Container(
+        margin: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(8),
         ),
-        onPressed: () => Get.back(),
+        child: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Get.back(),
+        ),
       ),
       actions: [
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.shopping_cart, color: Colors.black),
+        Container(
+          margin: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.5),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.shopping_cart, color: Colors.white),
+                onPressed: () => Get.to(() => CartPage()),
               ),
-              onPressed: () => Get.to(() => CartPage()),
-            ),
-            Obx(() {
-              int itemCount = cartController.cartItems.length;
-              if (itemCount > 0) {
-                return Positioned(
-                  right: 8,
-                  top: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      color: Colors.red,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    constraints: const BoxConstraints(
-                      minWidth: 16,
-                      minHeight: 16,
-                    ),
-                    child: Text(
-                      itemCount > 9 ? '9+' : itemCount.toString(),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
+              Obx(() {
+                int itemCount = cartController.cartItems.length;
+                if (itemCount > 0) {
+                  return Positioned(
+                    right: 8,
+                    top: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      textAlign: TextAlign.center,
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
+                      child: Text(
+                        itemCount > 9 ? '9+' : itemCount.toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
-                  ),
-                );
-              } else {
-                return const SizedBox.shrink();
-              }
-            }),
-          ],
+                  );
+                } else {
+                  return const SizedBox.shrink();
+                }
+              }),
+            ],
+          ),
         ),
       ],
     );
@@ -151,44 +174,116 @@ class ProductDetailPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.name,
-                    style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'By: ${product.vendor}',
-                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                  ),
-                ],
-              ),
-              Obx(() => IconButton(
-                    icon: Icon(
-                      productController.isFavorite(product.id)
-                          ? Icons.favorite
-                          : Icons.favorite_border,
-                      color: productController.isFavorite(product.id)
-                          ? Colors.red
-                          : Colors.grey[600],
-                    ),
-                    onPressed: () {
-                      productController.toggleFavorite(product.id);
-                    },
-                  )),
-            ],
+          Text(
+            product.name,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            'By: ${product.vendor}',
+            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
           ),
           const SizedBox(height: 10),
           _buildExpandableDescription(product),
         ],
+      ),
+    );
+  }
+
+  Widget _buildBottomBar(CartModel product) {
+    return Positioned(
+      bottom: 0,
+      left: 0,
+      right: 0,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Obx(() => IconButton(
+                      icon: Icon(
+                        productController.isFavorite(product.id)
+                            ? Icons.favorite
+                            : Icons.favorite_border,
+                        color: productController.isFavorite(product.id)
+                            ? Colors.red
+                            : Colors.grey[600],
+                      ),
+                      onPressed: () =>
+                          productController.toggleFavorite(product.id),
+                    )),
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: _buildQuantitySelector(),
+                ),
+                const SizedBox(width: 8),
+              ],
+            ),
+            SizedBox(
+              width: 180,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: () {
+                  if (productController.selectedColor.value.isNotEmpty &&
+                      productController.selectedSize.value.isNotEmpty) {
+                    cartController.addToCart(CartModel(
+                      id: product.id,
+                      name: product.name,
+                      description: product.description,
+                      variant: [
+                        CartVariant(
+                          color: productController.selectedColor.value,
+                          size: productController.selectedSize.value,
+                        )
+                      ],
+                      imageUrl: product.imageUrl,
+                      category: product.category,
+                      vendor: product.vendor,
+                      price: product.price,
+                      quantity: productController.selectedQuantity.value,
+                    ));
+
+                    Get.snackbar('Added to Cart',
+                        '${product.name} was added to your cart.');
+                  } else {
+                    Get.snackbar('Error', 'Please select a color and size');
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.mainColor,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                child: const Text(
+                  'Add to Cart',
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -231,7 +326,6 @@ class ProductDetailPage extends StatelessWidget {
             ),
         ],
       );
-
     });
   }
 

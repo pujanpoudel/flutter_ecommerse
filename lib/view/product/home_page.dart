@@ -78,7 +78,7 @@ class HomePageState extends State<HomePage> {
           slivers: [
             SliverToBoxAdapter(child: _buildHeader()),
             const SliverToBoxAdapter(
-              child: SizedBox(height: 16),
+              child: SizedBox(height: 15),
             ),
             SliverToBoxAdapter(child: _buildCarousel()),
             SliverToBoxAdapter(child: _buildCategorySection()),
@@ -135,12 +135,17 @@ class HomePageState extends State<HomePage> {
                     },
                     child: Row(
                       children: [
-                        Text(
-                          controller.user.value.address ?? '',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                        SizedBox(
+                          width: 150,
+                          child: Text(
+                            controller.user.value.address ?? '',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         Icon(
@@ -167,7 +172,7 @@ class HomePageState extends State<HomePage> {
                 child: const Text('Edit Address'),
               ),
             ),
-          const SizedBox(height:5),
+          const SizedBox(height: 5),
           TextField(
             decoration: InputDecoration(
               filled: true,
@@ -199,92 +204,91 @@ class HomePageState extends State<HomePage> {
         return Column(
           children: [
             CarouselSlider(
-        items: carouselProducts.map((product) {
-          return Builder(
-            builder: (BuildContext context) {
-              return GestureDetector(
-                onTap: () {
-                  Get.to(() => ProductDetailPage(productId: product.id));
-                },
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(15),  // Ensure all corners are rounded
-                  child: Container(
-                    width: MediaQuery.of(context).size.width,
-                    margin: const EdgeInsets.symmetric(horizontal: 5.0),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                    ),
-                    child: Stack(
-                      children: [
-                        // Product image
-                        Positioned.fill(
-                          child: Image.network(
-                            (product.image as List).isNotEmpty
-                                ? (product.image)[0]
-                                : product.image as String,
-                            fit: BoxFit.cover,
+              items: carouselProducts.map((product) {
+                return Builder(
+                  builder: (BuildContext context) {
+                    return GestureDetector(
+                      onTap: () {
+                        Get.to(() => ProductDetailPage(productId: product.id));
+                      },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(15),
+                        clipBehavior: Clip.antiAlias,
+                        child: Container(
+                          width: MediaQuery.of(context).size.width,
+                          margin: const EdgeInsets.symmetric(horizontal: 5.0),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
                           ),
-                        ),
-                        // Gradient overlay and text
-                        Positioned(
-                          bottom: 0,
-                          left: 0,
-                          right: 0,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.bottomCenter,
-                                end: Alignment.topCenter,
-                                colors: [
-                                  Colors.black.withOpacity(0.8),
-                                  Colors.transparent,
-                                ],
+                          child: Stack(
+                            children: [
+                              Positioned.fill(
+                                child: Image.network(
+                                  (product.image as List).isNotEmpty
+                                      ? (product.image)[0]
+                                      : product.image as String,
+                                  fit: BoxFit.cover,
+                                ),
                               ),
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 10.0, horizontal: 20.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  product.name,
-                                  style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold),
+                              Positioned(
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.bottomCenter,
+                                      end: Alignment.topCenter,
+                                      colors: [
+                                        Colors.black.withOpacity(0.8),
+                                        Colors.transparent,
+                                      ],
+                                    ),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 10.0, horizontal: 20.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        product.name,
+                                        style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      const SizedBox(height: 5),
+                                      Text(
+                                        'NRP ${product.price.round()}',
+                                        style: const TextStyle(
+                                            color: Colors.white, fontSize: 16),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                                const SizedBox(height: 5),
-                                Text(
-                                  'NRP ${product.price.round()}',
-                                  style: const TextStyle(
-                                      color: Colors.white, fontSize: 16),
-                                ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
-          );
-        }).toList(),
-      carouselController: carouselController,
-      options: CarouselOptions(
-      autoPlay: true,
-      enlargeCenterPage: true,
-      aspectRatio: 2.0,
-      onPageChanged: (index, reason) {
-      setState(() {
-      _current = index;
-      });
-      },
-      ),
-      ),
-
-      const SizedBox(height: 10),
+                      ),
+                    );
+                  },
+                );
+              }).toList(),
+              carouselController: carouselController,
+              options: CarouselOptions(
+                autoPlay: true,
+                enlargeCenterPage: true,
+                aspectRatio: 2.0,
+                onPageChanged: (index, reason) {
+                  setState(() {
+                    _current = index;
+                  });
+                },
+              ),
+            ),
+            const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: carouselProducts.asMap().entries.map((entry) {
@@ -325,79 +329,87 @@ class HomePageState extends State<HomePage> {
           onRefresh: () async {
             await productController.refreshCategories();
           },
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0),
-                child: Text('Categories',
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              ),
-              const SizedBox(height: 8),
-              _buildCategoryChips(),
-            ],
-          ),
+          child: _buildCategoryChips(),
         );
       }
     });
   }
 
   Widget _buildCategoryChips() {
-    final displayedCategories = _showAllCategories
-        ? productController.categories
-        : productController.categories.take(5).toList();
-
+    final displayedCategories = productController.categories.take(8).toList();
     return Column(
       children: [
-        SizedBox(
-          height: 50,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: _showAllCategories
-                ? displayedCategories.length
-                : (displayedCategories.length < 5
-                    ? displayedCategories.length
-                    : 6),
-            itemBuilder: (context, index) {
-              if (!_showAllCategories && index == 5) {
-                return Padding(
-                  padding: const EdgeInsets.only(left: 8.0, right: 16.0),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        _showAllCategories = true;
-                      });
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.mainColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
+        if (!_showAllCategories)
+          SizedBox(
+            height: 50,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: displayedCategories.length < 5
+                  ? displayedCategories.length
+                  : 6,
+              itemBuilder: (context, index) {
+                if (index == 5) {
+                  return Padding(
+                    padding: const EdgeInsets.only(left: 8.0, right: 16.0),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _showAllCategories = true;
+                        });
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.mainColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                      child: const Text(
+                        'Show All',
+                        style: TextStyle(color: Colors.white),
                       ),
                     ),
-                    child: const Text('Show All'),
+                  );
+                }
+                return Padding(
+                  padding: EdgeInsets.only(
+                    left: index == 0 ? 16.0 : 8.0,
+                    right: index == displayedCategories.length - 1 ? 16.0 : 0.0,
                   ),
+                  child: _buildCategoryChip(displayedCategories[index]),
                 );
-              }
-              return Padding(
-                padding: EdgeInsets.only(
-                  left: index == 0 ? 16.0 : 8.0,
-                  right: index == displayedCategories.length - 1 ? 16.0 : 0.0,
-                ),
-                child: _buildCategoryChip(displayedCategories[index]),
-              );
-            },
+              },
+            ),
           ),
-        ),
         if (_showAllCategories)
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: productController.categories
-                  .map((category) => _buildCategoryChip(category))
-                  .toList(),
+              children: [
+                ...productController.categories
+                    .map((category) => _buildCategoryChip(category)),
+                Padding(
+                  padding: const EdgeInsets.only(left: 8.0),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _showAllCategories = false;
+                      });
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.mainColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                    ),
+                    child: const Text(
+                      'Collapse',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
       ],
@@ -444,8 +456,8 @@ class HomePageState extends State<HomePage> {
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               childAspectRatio: 0.75,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
+              crossAxisSpacing: 5,
+              mainAxisSpacing: 5,
             ),
             delegate: SliverChildBuilderDelegate(
               (context, index) {
@@ -654,7 +666,7 @@ class HomePageState extends State<HomePage> {
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          'NRP${product.price.round()}',
+                          'NRP ${product.price.round()}',
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,

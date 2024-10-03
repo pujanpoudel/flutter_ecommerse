@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:quick_cart/search/search.dart';
 import 'package:quick_cart/utils/colors.dart';
 import 'package:quick_cart/view/cart/cart_page.dart';
 import 'package:quick_cart/view/product/fav_product_page.dart';
@@ -27,19 +29,28 @@ class MainLayout extends StatelessWidget {
               currentIndex: currentIndex,
               onTap: (index) {
                 if (index == 0) {
+                  HapticFeedback.heavyImpact();
                   Get.to(() => const HomePage());
                 }
                 if (index == 1) {
-                  // Get.to(() => SearchPage());
+                  HapticFeedback.heavyImpact();
+
+                  Get.to(() => const SearchPage());
                 }
                 if (index == 2) {
+                  HapticFeedback.heavyImpact();
+
                   Get.to(() => CartPage());
                 }
                 if (index == 3) {
-                  Get.to(() => FavoriteProductsPage());
+                  HapticFeedback.heavyImpact();
+
+                  Get.to(() => const FavoriteProductsPage());
                 }
                 if (index == 4) {
-                  Get.to(() => ProfilePage());
+                  HapticFeedback.heavyImpact();
+
+                  Get.to(() => const ProfilePage());
                 }
               },
               items: const [

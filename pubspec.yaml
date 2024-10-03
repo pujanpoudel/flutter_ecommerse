@@ -1,11 +1,10 @@
 name: quick_cart
 description: "An innovative ecommerse mobile app developed with microservices architecture"
 
-
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.3.3 <4.0.0'
+  sdk: ">=3.3.3 <4.0.0"
 
 dependencies:
   flutter:

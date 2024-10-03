@@ -209,6 +209,10 @@ class AuthRepo extends GetxService {
     return await sharedPreferences.remove('user_token');
   }
 
+  bool checkUserToken() {
+    return sharedPreferences.containsKey('user_token');
+  }
+
   bool isRememberMeChecked() {
     return sharedPreferences.containsKey('user_password');
   }

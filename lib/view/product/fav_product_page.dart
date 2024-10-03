@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:quick_cart/controller/cart_controller.dart';
@@ -10,7 +11,6 @@ import 'package:quick_cart/utils/bottom_nav_bar_widget.dart';
 import 'package:quick_cart/utils/colors.dart';
 import 'package:quick_cart/view/product/product_detail_page.dart';
 import 'home_page.dart';
-import 'package:flutter/services.dart';
 
 class FavoriteProductsPage extends StatefulWidget {
   const FavoriteProductsPage({super.key});
@@ -26,6 +26,7 @@ class FavoriteProductsPageState extends State<FavoriteProductsPage> {
   final RxList<Product> selectedProducts = <Product>[].obs;
   bool _isNavBarVisible = true;
   bool isSelecting = false;
+  List<Product> favoriteProducts = [];
 
   @override
   void initState() {
@@ -49,13 +50,9 @@ class FavoriteProductsPageState extends State<FavoriteProductsPage> {
     super.dispose();
   }
 
-  String trimText(String text, int maxLength) {
-    if (text.length <= maxLength) return text;
-    return '${text.substring(0, maxLength - 3)}...';
-  }
-
   @override
   Widget build(BuildContext context) {
+    List<Product> favoriteProducts = productController.getFavoriteProducts();
     return MainLayout(
       currentIndex: 3,
       isNavBarVisible: _isNavBarVisible,
@@ -87,7 +84,7 @@ class FavoriteProductsPageState extends State<FavoriteProductsPage> {
                             color: AppColors.mainColor, size: 50));
                   }
 
-                  final favoriteProducts = productController.products
+                  favoriteProducts = productController.products
                       .where((p) =>
                           productController.favoriteProductIds.contains(p.id))
                       .toList();
@@ -98,19 +95,21 @@ class FavoriteProductsPageState extends State<FavoriteProductsPage> {
 
                   return GridView.builder(
                     controller: _scrollController,
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(10),
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       childAspectRatio: 0.75,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
+                      crossAxisSpacing: 5,
+                      mainAxisSpacing: 5,
                     ),
                     itemCount: favoriteProducts.length,
-                    itemBuilder: (context, index) => _buildFavoriteProductCard(
-                      favoriteProducts[index],
-                      selectedProducts,
-                    ),
+                    itemBuilder: (context, index) => Obx(() {
+                      return _buildFavoriteProductCard(
+                        favoriteProducts[index],
+                        selectedProducts,
+                      );
+                    }),
                   );
                 }),
               ),
@@ -125,35 +124,66 @@ class FavoriteProductsPageState extends State<FavoriteProductsPage> {
 
   Widget _buildSelectionBar() {
     if (!isSelecting) return const SizedBox.shrink();
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            '${selectedProducts.length} selected',
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: AppColors.mainColor,
-            ),
+          Obx(
+            () {
+              final allSelected =
+                  selectedProducts.length == favoriteProducts.length;
+
+              return TextButton(
+                onPressed: () => allSelected
+                    ? _clearSelection()
+                    : _selectAllProducts(favoriteProducts),
+                child: Text(
+                  allSelected
+                      ? 'Deselect All (${selectedProducts.length} selected)'
+                      : 'Select All (${selectedProducts.length} selected)',
+                ),
+              );
+            },
           ),
           Row(
             children: [
               TextButton(
-                onPressed: _selectAllProducts,
-                child: const Text('Select All'),
+                onPressed: _clearSelection,
+                child: const Text(
+                  'Exit',
+                  style: TextStyle(color: AppColors.blackColor),
+                ),
               ),
               TextButton(
-                onPressed: _clearSelection,
-                child: const Text('Clear'),
+                onPressed: () {
+                  final productIds =
+                      selectedProducts.map((product) => product.id).toList();
+                  productController.removeFavorites(productIds);
+
+                  selectedProducts.clear();
+                },
+                child: const Icon(
+                  Icons.delete,
+                  color: Colors.red,
+                ),
               ),
             ],
           ),
         ],
       ),
     );
+  }
+
+  void _selectAllProducts(List<Product> displayedProducts) {
+    selectedProducts.assignAll(displayedProducts);
+  }
+
+  void _clearSelection() {
+    selectedProducts.clear();
+    setState(() {
+      isSelecting = false;
+    });
   }
 
   Widget _buildEmptyState() {
@@ -198,78 +228,72 @@ class FavoriteProductsPageState extends State<FavoriteProductsPage> {
     );
   }
 
-  void _selectAllProducts() {
-    final allFavoriteProducts = productController.products
-        .where((p) => productController.favoriteProductIds.contains(p.id))
-        .toList();
-    selectedProducts.assignAll(allFavoriteProducts);
-  }
-
-  void _clearSelection() {
-    selectedProducts.clear();
-    setState(() {
-      isSelecting = false;
-    });
-  }
-
   Widget _buildFloatingActionButton() {
-    return Obx(() {
-      if (selectedProducts.isEmpty) {
-        return const SizedBox.shrink();
-      } else {
-        return FloatingActionButton.extended(
-          onPressed: () {
-            for (var product in selectedProducts) {
-              cartController.addToCart(CartModel(
-                id: product.id,
-                name: product.name,
-                description: product.description,
-                variant: [
-                  CartVariant(
-                    color: productController.selectedColor.value,
-                    size: productController.selectedSize.value,
-                  )
-                ],
-                imageUrl: product.image.isNotEmpty ? [product.image.first] : [],
-                category: product.category.name,
-                vendor: product.vendor.storeName,
-                price: product.price,
-                quantity: productController.selectedQuantity.value,
-              ));
+    return FloatingActionButton.extended(
+      onPressed: favoriteProducts.isNotEmpty
+          ? () {
+              print('Selected Products: $selectedProducts');
+              print('Favorite Products: $favoriteProducts');
+
+              List<Product> productsToAdd = selectedProducts.isNotEmpty
+                  ? selectedProducts
+                  : favoriteProducts;
+
+              for (var product in productsToAdd) {
+                cartController.addToCart(CartModel(
+                  id: product.id,
+                  name: product.name,
+                  description: product.description,
+                  variant: [
+                    CartVariant(
+                      color: productController.selectedColor.value,
+                      size: productController.selectedSize.value,
+                    )
+                  ],
+                  imageUrl:
+                      product.image.isNotEmpty ? [product.image.first] : [],
+                  category: product.category.name,
+                  vendor: product.vendor.storeName,
+                  price: product.price,
+                  quantity: productController.selectedQuantity.value,
+                ));
+              }
+              Get.snackbar(
+                'Added to Cart',
+                '${productsToAdd.length} items have been added to your cart.',
+                snackPosition: SnackPosition.TOP,
+                backgroundColor: Colors.green.withOpacity(0.7),
+                colorText: Colors.white,
+              );
+              _clearSelection();
             }
-            Get.snackbar(
-              'Items Added to Cart',
-              '${selectedProducts.length} items have been added to your cart.',
-              snackPosition: SnackPosition.TOP,
-              backgroundColor: Colors.green.withOpacity(0.7),
-              colorText: Colors.white,
-            );
-            _clearSelection();
-          },
-          icon: const Icon(Icons.shopping_cart, color: Colors.white),
-          label: Text('Add ${selectedProducts.length} to cart'),
-          backgroundColor: AppColors.mainColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
-          ),
-        );
-      }
-    });
+          : null,
+      icon: const Icon(Icons.shopping_cart, color: Colors.white),
+      label: Obx(() => Text(
+            selectedProducts.isNotEmpty
+                ? 'Add ${selectedProducts.length} items to cart'
+                : 'Add all items to cart',
+            style: const TextStyle(color: Colors.white),
+          )),
+      backgroundColor: AppColors.mainColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(30),
+      ),
+    );
   }
 
   Widget _buildFavoriteProductCard(
       Product product, RxList<Product> selectedProducts) {
     final bool isSelected = selectedProducts.contains(product);
-
     return GestureDetector(
       onTap: () {
         if (isSelecting) {
-          // Toggle selection when tapping in selection mode
           if (isSelected) {
             selectedProducts.remove(product);
           } else {
             selectedProducts.add(product);
           }
+
           if (selectedProducts.isEmpty) {
             setState(() {
               isSelecting = false;
@@ -281,8 +305,8 @@ class FavoriteProductsPageState extends State<FavoriteProductsPage> {
       },
       onLongPress: () {
         if (!isSelecting) {
-          // Trigger haptic feedback when entering selection mode
-          HapticFeedback.mediumImpact();
+          HapticFeedback.heavyImpact();
+
           setState(() {
             isSelecting = true;
           });
@@ -311,50 +335,86 @@ class FavoriteProductsPageState extends State<FavoriteProductsPage> {
                     child: Image.network(
                       product.image.isNotEmpty ? product.image.first : '',
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Center(child: Icon(Icons.error));
-                      },
                     ),
                   ),
-                  if (isSelecting)
-                    Positioned(
+                  if (isSelected)
+                    const Positioned(
                       top: 8,
-                      right: 8,
-                      child: GestureDetector(
-                        onTap: () {
-                          if (isSelected) {
-                            selectedProducts.remove(product);
-                          } else {
-                            selectedProducts.add(product);
-                          }
-                          if (selectedProducts.isEmpty) {
-                            setState(() {
-                              isSelecting = false;
-                            });
-                          }
-                        },
-                        child: Icon(
-                          isSelected
-                              ? Icons.check_circle
-                              : Icons.circle_outlined,
-                          color: isSelected
-                              ? AppColors.mainColor
-                              : Colors.grey[400],
-                          size: 30,
+                      left: 8,
+                      child:
+                          Icon(Icons.check_circle, color: AppColors.mainColor),
+                    ),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: GestureDetector(
+                      onTap: () {
+                        productController.toggleFavorite(product.id);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.5),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.close,
+                          color: Colors.white,
+                          size: 20,
                         ),
                       ),
                     ),
+                  ),
                 ],
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                trimText(product.name, 25),
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+              padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          product.name,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[800],
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          'NRP ${product.price.round()}',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.mainColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Obx(() => IconButton(
+                        icon: Icon(
+                          productController.isFavorite(product.id)
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          color: productController.isFavorite(product.id)
+                              ? Colors.red
+                              : Colors.grey[600],
+                        ),
+                        onPressed: () {
+                          productController.toggleFavorite(product.id);
+                        },
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        alignment: Alignment.topCenter,
+                      )),
+                ],
               ),
             ),
           ],

@@ -19,6 +19,7 @@ class CartController extends GetxController {
   var selectedQuantity = 1.obs;
   var selectedProducts = <Product>[].obs;
   final RxList<CartModel> cartItems = <CartModel>[].obs;
+  final RxBool isSelectionMode = false.obs;
 
   @override
   void onInit() {
@@ -44,7 +45,6 @@ class CartController extends GetxController {
         element.id == item.id &&
         element.variant?.first.color == item.variant?.first.color &&
         element.variant?.first.size == item.variant?.first.size);
-
     if (index != -1) {
       cartItems[index].quantity += item.quantity;
     } else {
@@ -92,22 +92,47 @@ class CartController extends GetxController {
     }
   }
 
-  void toggleItemSelection(String itemId) {
-    if (selectedItems.contains(itemId)) {
-      selectedItems.remove(itemId);
-    } else {
-      selectedItems.add(itemId);
-    }
+  void selectAllItems() {
+    selectedItems.assignAll(cartItems.map((item) => item.id).toSet());
+    checkSelectionMode();
   }
 
-  bool isItemSelected(String itemId) {
-    return selectedItems.contains(itemId);
+  void clearSelection() {
+    selectedItems.clear();
+    checkSelectionMode();
   }
 
   void removeSelectedItems() {
     cartItems.removeWhere((item) => selectedItems.contains(item.id));
-    selectedItems.clear();
-    saveCartItems();
+    clearSelection();
+  }
+
+  void toggleItemSelection(String id) {
+    if (selectedItems.contains(id)) {
+      selectedItems.remove(id);
+    } else {
+      selectedItems.add(id);
+    }
+    checkSelectionMode();
+  }
+
+  void checkSelectionMode() {
+    if (selectedItems.isEmpty) {
+      isSelectionMode.value = false;
+    } else if (!isSelectionMode.value) {
+      isSelectionMode.value = true;
+    }
+  }
+
+  List<Product> get selectedProductList => selectedProducts.toList();
+
+  double get totalAmount =>
+      cartItems.fold(0, (sum, item) => sum + (item.price * item.quantity));
+
+  int get cartItemCount => cartItems.length;
+
+  bool isItemSelected(String itemId) {
+    return selectedItems.contains(itemId);
   }
 
   bool isInCart(String productId, {String? color, String? size}) {
@@ -184,19 +209,4 @@ class CartController extends GetxController {
     }
     return 0;
   }
-
-  double get totalAmount =>
-      cartItems.fold(0, (sum, item) => sum + (item.price * item.quantity));
-
-  int get cartItemCount => cartItems.length;
-
-  void toggleProductSelection(Product product) {
-    if (selectedProducts.contains(product)) {
-      selectedProducts.remove(product);
-    } else {
-      selectedProducts.add(product);
-    }
-  }
-
-  List<Product> get selectedProductList => selectedProducts.toList();
 }

@@ -82,10 +82,13 @@ class ProductRepo extends GetxService {
     return fetchedCategories;
   }
 
-  Future<List<Product>> getProductsByCategories(List<String> categoryIds) async {
+  Future<List<Product>> getProductsByCategories(
+      List<String> categoryIds) async {
     try {
+      final categoryIdsString = categoryIds.join('&');
+
       final response = await GetConnect().get(
-        '$baseUrlProduct/get/products?category=$categories',
+        '$baseUrlProduct/get/products?category=$categoryIdsString',
       );
 
       if (response.statusCode != 200) {
@@ -102,13 +105,14 @@ class ProductRepo extends GetxService {
         List<Product> products = (data['data'] as List)
             .map((productJson) => Product.fromJson(productJson))
             .toList();
+        _products.assignAll(products);
         return products;
       } else {
         throw Exception('Invalid data format in the response');
       }
     } catch (e) {
       error.value = e.toString();
-      print(error.value);
+      print('Error in getProductsByCategories: ${error.value}');
       return [];
     }
   }
