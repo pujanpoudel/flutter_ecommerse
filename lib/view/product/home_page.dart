@@ -29,6 +29,7 @@ class HomePageState extends State<HomePage> {
   bool _isNavBarVisible = true;
   bool _showAllCategories = false;
   bool _isExpanded = false;
+  String? selectedCategory;
 
   @override
   void initState() {
@@ -138,7 +139,7 @@ class HomePageState extends State<HomePage> {
                         SizedBox(
                           width: 150,
                           child: Text(
-                            controller.user.value.address ?? '',
+                            controller.user.value.address ?? 'Not specified',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 16,
@@ -336,7 +337,8 @@ class HomePageState extends State<HomePage> {
   }
 
   Widget _buildCategoryChips() {
-    final displayedCategories = productController.categories.take(8).toList();
+    final displayedCategories = productController.categories.toList();
+
     return Column(
       children: [
         if (!_showAllCategories)
@@ -344,31 +346,32 @@ class HomePageState extends State<HomePage> {
             height: 50,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              itemCount: displayedCategories.length < 5
+              itemCount: displayedCategories.length < 10
                   ? displayedCategories.length
-                  : 6,
+                  : 11,
               itemBuilder: (context, index) {
-                if (index == 5) {
+                if (index == 10) {
                   return Padding(
-                    padding: const EdgeInsets.only(left: 8.0, right: 16.0),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _showAllCategories = true;
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.mainColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: TextButton(
+                        onPressed: () {
+                          setState(() {
+                            _showAllCategories = true;
+                          });
+                        },
+                        style: TextButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
                         ),
-                      ),
-                      child: const Text(
-                        'Show All',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  );
+                        child: const Text(
+                          'Show All',
+                          style: TextStyle(
+                              color: AppColors.mainColor,
+                              decoration: TextDecoration.underline),
+                        ),
+                      ));
                 }
                 return Padding(
                   padding: EdgeInsets.only(
@@ -387,28 +390,29 @@ class HomePageState extends State<HomePage> {
               spacing: 8,
               runSpacing: 8,
               children: [
-                ...productController.categories
+                ...displayedCategories
                     .map((category) => _buildCategoryChip(category)),
                 Padding(
-                  padding: const EdgeInsets.only(left: 8.0),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        _showAllCategories = false;
-                      });
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.mainColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
+                    padding: const EdgeInsets.only(left: 8.0),
+                    child: TextButton(
+                      onPressed: () {
+                        setState(() {
+                          _showAllCategories = false;
+                        });
+                      },
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
                       ),
-                    ),
-                    child: const Text(
-                      'Collapse',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ),
+                      child: const Text(
+                        'Collapse',
+                        style: TextStyle(
+                            color: AppColors.mainColor,
+                            decoration: TextDecoration.underline),
+                      ),
+                    )),
               ],
             ),
           ),
@@ -418,20 +422,23 @@ class HomePageState extends State<HomePage> {
 
   Widget _buildCategoryChip(Category category) {
     return Obx(() => ChoiceChip(
+          showCheckmark: false,
           label: Text(category.name),
-          selected: productController.selectedCategories.contains(category),
+          selected: productController.selectedCategory.value == category.name,
           onSelected: (selected) {
             if (selected) {
-              productController.selectedCategories.add(category);
+              print('Selected category: ${category.name}');
+              productController.updateSelectedCategory(category.name);
             } else {
-              productController.selectedCategories.remove(category);
+              print('Resetting category selection');
+              productController.resetSelectedCategory();
             }
             productController.getProductsBySelectedCategories();
           },
           backgroundColor: AppColors.mainColor.withOpacity(0.1),
           selectedColor: AppColors.mainColor,
           labelStyle: TextStyle(
-            color: productController.selectedCategories.contains(category)
+            color: productController.selectedCategory.value == category.name
                 ? Colors.white
                 : AppColors.mainColor,
           ),

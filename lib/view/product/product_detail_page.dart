@@ -19,7 +19,11 @@ class ProductDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: FutureBuilder<CartModel?>(
-        future: productController.getProductAsCartModel(productId),
+        future: productController.getProductAsCartModel(
+          productId,
+          selectedColor: '',
+          selectedSize: '',
+        ),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
@@ -28,7 +32,6 @@ class ProductDetailPage extends StatelessWidget {
           } else if (snapshot.hasError || !snapshot.hasData) {
             return const Center(child: Text('Error: Product not found'));
           }
-
           final product = snapshot.data!;
           return Stack(
             children: [
@@ -46,7 +49,10 @@ class ProductDetailPage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildProductInfo(product),
-                          _buildSizeColorOptions(product),
+                          if (product.variant != null &&
+                              product.variant!.size != null &&
+                              product.variant!.color != null)
+                            _buildSizeColorOptions(product),
                           SizedBox(
                               height:
                                   MediaQuery.of(context).padding.bottom + 100),
@@ -197,90 +203,145 @@ class ProductDetailPage extends StatelessWidget {
 
   Widget _buildBottomBar(CartModel product) {
     return Positioned(
-      bottom: 0,
+      bottom: 5,
       left: 0,
       right: 0,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, -5),
-            ),
-          ],
+          color: AppColors.mainColor.withOpacity(.05),
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Column(
           children: [
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Obx(() => IconButton(
-                      icon: Icon(
-                        productController.isFavorite(product.id)
-                            ? Icons.favorite
-                            : Icons.favorite_border,
-                        color: productController.isFavorite(product.id)
-                            ? Colors.red
-                            : Colors.grey[600],
-                      ),
-                      onPressed: () =>
-                          productController.toggleFavorite(product.id),
-                    )),
+                Expanded(
+                  child: Container(
+                    height: 50,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.withOpacity(0.3)),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Obx(() => IconButton(
+                              icon: Icon(
+                                productController.isFavorite(product.id)
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                                color: productController.isFavorite(product.id)
+                                    ? Colors.red
+                                    : Colors.grey[600],
+                              ),
+                              onPressed: () =>
+                                  productController.toggleFavorite(product.id),
+                            )),
+                        const SizedBox(width: 8),
+                        Text(
+                          "Favorite",
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: Colors.grey[800],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
                 Container(
+                  height: 50,
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
+                    border: Border.all(color: Colors.grey.withOpacity(0.3)),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: _buildQuantitySelector(),
                 ),
-                const SizedBox(width: 8),
               ],
             ),
-            SizedBox(
-              width: 180,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: () {
-                  if (productController.selectedColor.value.isNotEmpty &&
-                      productController.selectedSize.value.isNotEmpty) {
-                    cartController.addToCart(CartModel(
-                      id: product.id,
-                      name: product.name,
-                      description: product.description,
-                      variant: [
-                        CartVariant(
-                          color: productController.selectedColor.value,
-                          size: productController.selectedSize.value,
-                        )
-                      ],
-                      imageUrl: product.imageUrl,
-                      category: product.category,
-                      vendor: product.vendor,
-                      price: product.price,
-                      quantity: productController.selectedQuantity.value,
-                    ));
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Get.snackbar('Buy Now', '${product.name} To be added');
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF4CAF50),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text(
+                        'Buy Now',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: SizedBox(
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (productController.selectedColor.value.isNotEmpty &&
+                            productController.selectedSize.value.isNotEmpty) {
+                          cartController.addToCart(CartModel(
+                            id: product.id,
+                            name: product.name,
+                            description: product.description,
+                            variant: (CartVariant(
+                              color: [productController.selectedColor.value],
+                              size: [productController.selectedSize.value],
+                            )),
+                            imageUrl: product.imageUrl,
+                            category: product.category,
+                            vendor: product.vendor,
+                            price: product.price,
+                            quantity: productController.selectedQuantity.value,
+                          ));
 
-                    Get.snackbar('Added to Cart',
-                        '${product.name} was added to your cart.');
-                  } else {
-                    Get.snackbar('Error', 'Please select a color and size');
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.mainColor,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+                          Get.snackbar('Added to Cart',
+                              '${product.name} was added to your cart.');
+                        } else {
+                          Get.snackbar(
+                              'Error', 'Please select a color and size');
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.mainColor,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text(
+                        'Add to Cart',
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white),
+                      ),
+                    ),
+                  ),
                 ),
-                child: const Text(
-                  'Add to Cart',
-                  style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black),
-                ),
-              ),
+              ],
             ),
           ],
         ),
@@ -344,9 +405,8 @@ class ProductDetailPage extends StatelessWidget {
   }
 
   Widget _buildColorSelector(CartModel product) {
-    List<String?> availableColors =
-        product.variant?.map((variant) => variant.color).toSet().toList() ?? [];
-
+    List<String>? availableColors =
+        product.variant != null ? product.variant!.color : [];
     return Row(
       children: [
         const Text(
@@ -357,12 +417,12 @@ class ProductDetailPage extends StatelessWidget {
         Expanded(
           child: Wrap(
             spacing: 8,
-            children: availableColors.map((color) {
+            children: availableColors!.map((color) {
               return Obx(() {
                 bool isSelected =
                     color == productController.selectedColor.value;
                 return ChoiceChip(
-                  label: Text(color!),
+                  label: Text(color),
                   selected: isSelected,
                   selectedColor: AppColors.mainColor,
                   backgroundColor: Colors.grey[200],
@@ -388,8 +448,7 @@ class ProductDetailPage extends StatelessWidget {
 
   Widget _buildSizeSelector(CartModel product) {
     List<String?> availableSizes =
-        product.variant?.map((variant) => variant.size).toSet().toList() ?? [];
-
+        product.variant?.size?.map((s) => s).toList() ?? [];
     return Row(
       children: [
         const Text(
@@ -421,74 +480,6 @@ class ProductDetailPage extends StatelessWidget {
           ),
         )
       ],
-    );
-  }
-
-  Widget _buildQuantityAndAddToCart(CartModel product) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildQuantitySelector(),
-                const SizedBox(height: 4),
-                Obx(() {
-                  String selectedSize = productController.selectedSize.value;
-                  String selectedColor = productController.selectedColor.value;
-                  int stock = cartController.getStockForSelectedOptions(
-                      selectedSize, selectedColor);
-                  return Text(
-                    'Available: $stock',
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  );
-                }),
-              ],
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: ElevatedButton(
-              onPressed: () {
-                if (productController.selectedColor.value.isNotEmpty &&
-                    productController.selectedSize.value.isNotEmpty) {
-                  cartController.addToCart(CartModel(
-                    id: product.id,
-                    name: product.name,
-                    description: product.description,
-                    variant: [
-                      CartVariant(
-                        color: productController.selectedColor.value,
-                        size: productController.selectedSize.value,
-                      )
-                    ],
-                    imageUrl: product.imageUrl,
-                    category: product.category,
-                    vendor: product.vendor,
-                    price: product.price,
-                    quantity: productController.selectedQuantity.value,
-                  ));
-
-                  Get.snackbar('Added to Cart',
-                      '${product.name} was added to your cart.');
-                } else {
-                  Get.snackbar('Error', 'Please select a color and size');
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.mainColor,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-              child: const Text(
-                'Add to Cart',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 

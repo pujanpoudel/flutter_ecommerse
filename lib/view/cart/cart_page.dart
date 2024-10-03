@@ -197,20 +197,18 @@ class CartPageState extends State<CartPage> {
                                           MainAxisAlignment.start,
                                       children: [
                                         if (item.variant != null &&
-                                            item.variant!.isNotEmpty &&
-                                            item.variant![0].color != null)
+                                            item.variant!.color != null)
                                           Text(
-                                            'Color: ${item.variant![0].color}',
+                                            'Color: ${item.variant!.color}',
                                             style: TextStyle(
                                               fontSize: 14,
                                               color: Colors.grey[600],
                                             ),
                                           ),
                                         if (item.variant != null &&
-                                            item.variant!.isNotEmpty &&
-                                            item.variant![0].size != null)
+                                            item.variant!.size != null)
                                           Text(
-                                            'Size: ${item.variant![0].size}',
+                                            'Size: ${item.variant!.size}',
                                             style: TextStyle(
                                               fontSize: 14,
                                               color: Colors.grey[600],

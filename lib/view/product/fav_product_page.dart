@@ -244,12 +244,10 @@ class FavoriteProductsPageState extends State<FavoriteProductsPage> {
                   id: product.id,
                   name: product.name,
                   description: product.description,
-                  variant: [
-                    CartVariant(
-                      color: productController.selectedColor.value,
-                      size: productController.selectedSize.value,
-                    )
-                  ],
+                  variant: CartVariant(
+                    color: [productController.selectedColor.value],
+                    size: [productController.selectedSize.value],
+                  ),
                   imageUrl:
                       product.image.isNotEmpty ? [product.image.first] : [],
                   category: product.category.name,

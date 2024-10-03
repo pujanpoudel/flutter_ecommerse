@@ -227,9 +227,7 @@ class CheckoutPageState extends State<CheckoutPage> {
   }
 
   CartVariant? _getSelectedVariant(CartModel cartItem) {
-    return cartItem.variant?.isNotEmpty == true
-        ? cartItem.variant!.first
-        : null;
+    return cartItem.variant;
   }
 
   Widget _buildProductTile(CartModel cartItem) {

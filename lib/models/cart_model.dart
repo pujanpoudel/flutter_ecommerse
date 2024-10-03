@@ -2,7 +2,7 @@ class CartModel {
   final String id;
   final String name;
   final String? description;
-  final List<CartVariant>? variant;
+  final CartVariant? variant;
   final List<String> imageUrl;
   final String category;
   final String vendor;
@@ -26,8 +26,7 @@ class CartModel {
         name: json['name'],
         description: json['description'],
         variant: json['variant'] != null
-            ? List<CartVariant>.from(
-                json['variant'].map((x) => CartVariant?.fromJson(x)))
+            ? CartVariant.fromJson(json['variant'])
             : null,
         imageUrl: List<String>.from(json['imageUrl']),
         category: json['category'],
@@ -50,21 +49,21 @@ class CartModel {
 }
 
 class CartVariant {
-  String? color;
-  String? size;
-  int? stock;
+  List<String>? color;
+  List<String>? size;
+  int stock;
   int quantity;
 
   CartVariant({
     this.color,
     this.size,
-    this.stock,
+    this.stock = 0,
     this.quantity = 1,
   });
 
   factory CartVariant.fromJson(Map<String, dynamic> json) => CartVariant(
-        size: json['size'],
-        color: json['color'],
+        size: List<String>.from(json['size']),
+        color: List<String>.from(json['color']),
         stock: json['stock'],
       );
 

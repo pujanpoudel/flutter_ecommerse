@@ -17,6 +17,7 @@ class ProductController extends GetxController {
   final RxBool isCategoriesLoading = false.obs;
   final RxString categoriesError = ''.obs;
   RxList<Category> selectedCategories = RxList<Category>([]);
+  var selectedCategory = ''.obs;
   var selectedSize = ''.obs;
   var selectedColor = ''.obs;
   var selectedQuantity = 1.obs;
@@ -24,7 +25,6 @@ class ProductController extends GetxController {
   var favoriteProductIds = <String>[].obs;
   var product = Rxn<Product>();
   final RxList<CartModel> cartItems = <CartModel>[].obs;
-  var selectedProducts = <Product>[].obs;
 
   @override
   void onInit() {
@@ -94,22 +94,37 @@ class ProductController extends GetxController {
     await getCategories();
   }
 
+  void updateSelectedCategory(String categoryName) {
+    selectedCategory.value = categoryName;
+  }
+
+  void resetSelectedCategory() {
+    selectedCategory.value = '';
+  }
+
   Future<void> getProductsBySelectedCategories() async {
     try {
       if (selectedCategories.isEmpty) {
+        print('No categories selected, fetching all products...');
         await getProducts();
         return;
       }
+      print(
+          'Selected categories: ${selectedCategories.map((cat) => cat.name).join(', ')}');
+
       isLoading.value = true;
       error.value = '';
       List<String> selectedCategoryIds =
           selectedCategories.map((category) => category.id.toString()).toList();
+
+      print('Fetching products for categories with IDs: $selectedCategoryIds');
       final fetchedProducts =
           await productRepo.getProductsByCategories(selectedCategoryIds);
       products.assignAll(fetchedProducts);
+      print('Products fetched: ${fetchedProducts.length}');
     } catch (e) {
       error.value = 'Failed to load products: $e';
-      print('Error in getProductsBySelectedCategories: ${error.value}');
+      print('Error in getProductsBySelectedCategories: $e');
     } finally {
       isLoading.value = false;
     }
@@ -175,30 +190,40 @@ class ProductController extends GetxController {
 
   bool isFavorite(String productId) => favoriteProductIds.contains(productId);
 
-  Future<CartModel?> getProductAsCartModel(String productId) async {
+  Future<CartModel?> getProductAsCartModel(String productId,
+      {required String selectedColor,
+      required String selectedSize,
+      int quantity = 1}) async {
     try {
       final product = await getProductById(productId);
       if (product != null) {
-        List<CartVariant>? productVariants = product.variant!.isNotEmpty
-            ? product.variant
-                ?.map((variant) => CartVariant(
-                      color: variant.color,
-                      size: variant.size,
-                      stock: variant.stock,
-                    ))
-                .toList()
+        final selectedVariant = product.variant?.firstWhere(
+          (variant) =>
+              variant.color == selectedColor && variant.size == selectedSize,
+          orElse: () => Variant(color: '', size: '', stock: 0),
+        );
+
+        CartVariant? productVariant = selectedVariant != null
+            ? CartVariant(
+                color: selectedVariant.color != null
+                    ? [selectedVariant.color!]
+                    : [],
+                size:
+                    selectedVariant.size != null ? [selectedVariant.size!] : [],
+                stock: selectedVariant.stock!,
+              )
             : null;
 
         return CartModel(
           id: product.id,
           name: product.name,
           description: product.description,
-          variant: productVariants,
+          variant: productVariant,
           imageUrl: product.image,
           category: product.category.name,
           vendor: product.vendor.storeName,
           price: product.price,
-          quantity: 1,
+          quantity: quantity,
         );
       }
       return null;
