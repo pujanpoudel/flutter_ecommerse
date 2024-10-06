@@ -17,14 +17,14 @@ class ProductController extends GetxController {
   final RxBool isCategoriesLoading = false.obs;
   final RxString categoriesError = ''.obs;
   RxList<Category> selectedCategories = RxList<Category>([]);
-  var selectedCategory = ''.obs;
-  var selectedSize = ''.obs;
-  var selectedColor = ''.obs;
+  final Rx<String> selectedColor = ''.obs;
+  final Rx<String> selectedSize = ''.obs;
   var selectedQuantity = 1.obs;
   var showFullDescription = false.obs;
   var favoriteProductIds = <String>[].obs;
   var product = Rxn<Product>();
   final RxList<CartModel> cartItems = <CartModel>[].obs;
+  var selectedProducts = <Product>[].obs;
 
   @override
   void onInit() {
@@ -94,40 +94,30 @@ class ProductController extends GetxController {
     await getCategories();
   }
 
-  void updateSelectedCategory(String categoryName) {
-    selectedCategory.value = categoryName;
-  }
-
-  void resetSelectedCategory() {
-    selectedCategory.value = '';
-  }
-
   Future<void> getProductsBySelectedCategories() async {
+    if (selectedCategories.isEmpty) {
+      await getProducts();
+      return;
+    }
+    List<String> selectedCategoryIds =
+        selectedCategories.map((category) => category.id.toString()).toList();
     try {
-      if (selectedCategories.isEmpty) {
-        print('No categories selected, fetching all products...');
-        await getProducts();
-        return;
-      }
-      print(
-          'Selected categories: ${selectedCategories.map((cat) => cat.name).join(', ')}');
-
       isLoading.value = true;
-      error.value = '';
-      List<String> selectedCategoryIds =
-          selectedCategories.map((category) => category.id.toString()).toList();
-
-      print('Fetching products for categories with IDs: $selectedCategoryIds');
-      final fetchedProducts =
+      products.value =
           await productRepo.getProductsByCategories(selectedCategoryIds);
-      products.assignAll(fetchedProducts);
-      print('Products fetched: ${fetchedProducts.length}');
     } catch (e) {
       error.value = 'Failed to load products: $e';
-      print('Error in getProductsBySelectedCategories: $e');
     } finally {
       isLoading.value = false;
     }
+  }
+
+  bool hasColorVariant() {
+    return selectedColor.value.isNotEmpty;
+  }
+
+  bool hasSizeVariant() {
+    return selectedSize.value.isNotEmpty;
   }
 
   Future<void> loadFavorites() async {
@@ -190,40 +180,30 @@ class ProductController extends GetxController {
 
   bool isFavorite(String productId) => favoriteProductIds.contains(productId);
 
-  Future<CartModel?> getProductAsCartModel(String productId,
-      {required String selectedColor,
-      required String selectedSize,
-      int quantity = 1}) async {
+  Future<CartModel?> getProductAsCartModel(String productId) async {
     try {
       final product = await getProductById(productId);
       if (product != null) {
-        final selectedVariant = product.variant?.firstWhere(
-          (variant) =>
-              variant.color == selectedColor && variant.size == selectedSize,
-          orElse: () => Variant(color: '', size: '', stock: 0),
-        );
-
-        CartVariant? productVariant = selectedVariant != null
-            ? CartVariant(
-                color: selectedVariant.color != null
-                    ? [selectedVariant.color!]
-                    : [],
-                size:
-                    selectedVariant.size != null ? [selectedVariant.size!] : [],
-                stock: selectedVariant.stock!,
-              )
+        List<CartVariant>? productVariants = product.variant!.isNotEmpty
+            ? product.variant
+                ?.map((variant) => CartVariant(
+                      color: variant.color,
+                      size: variant.size,
+                      stock: variant.stock,
+                    ))
+                .toList()
             : null;
 
         return CartModel(
           id: product.id,
           name: product.name,
           description: product.description,
-          variant: productVariant,
+          variant: productVariants,
           imageUrl: product.image,
           category: product.category.name,
           vendor: product.vendor.storeName,
           price: product.price,
-          quantity: quantity,
+          quantity: 1,
         );
       }
       return null;

@@ -208,7 +208,7 @@ class CheckoutPageState extends State<CheckoutPage> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  // _cartController.submitOrder();
+                  _cartController.submitOrder();
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.mainColor,
@@ -227,7 +227,9 @@ class CheckoutPageState extends State<CheckoutPage> {
   }
 
   CartVariant? _getSelectedVariant(CartModel cartItem) {
-    return cartItem.variant;
+    return cartItem.variant?.isNotEmpty == true
+        ? cartItem.variant!.first
+        : null;
   }
 
   Widget _buildProductTile(CartModel cartItem) {

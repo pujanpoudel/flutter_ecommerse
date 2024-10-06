@@ -165,20 +165,16 @@ class AuthController extends GetxController {
   }
 
   Future<void> loadUserProfile() async {
-    final token = authRepo.getUserToken(); // Get the token
+    final token = authRepo.getUserToken();
     if (token.isNotEmpty) {
       try {
-        // Fetch user profile data from the authRepo
         final userProfile = await authRepo.getUserProfile(token);
         if (userProfile != null) {
-          // Update the user data in the controller
           user.value = userProfile;
           fullNameController.text = userProfile.fullName ?? '';
           emailController.text = userProfile.email ?? '';
           phoneNumberController.text = userProfile.phone ?? '';
           addressController.text = userProfile.address ?? '';
-
-          // Debugging logs
           print('User Full Name: ${userProfile.fullName}');
           print('User Email: ${userProfile.email}');
           print('User Phone: ${userProfile.phone}');

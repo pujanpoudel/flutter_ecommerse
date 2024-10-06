@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 class EsewaConfig {
   final String clientId;
   final String secretId;
@@ -10,7 +8,6 @@ class EsewaConfig {
     required this.secretId,
     required this.environment,
   });
-
 }
 
 extension ConfigExt on EsewaConfig {

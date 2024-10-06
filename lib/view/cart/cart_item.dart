@@ -40,7 +40,7 @@ class _CartItemState extends State<CartItem> {
                   style: const TextStyle(
                       fontSize: 16, fontWeight: FontWeight.bold)),
               Text(widget.item.variant != null
-                  ? 'Color: ${widget.item.variant?.color} - Size: ${widget.item.variant?.size}'
+                  ? 'Color: ${widget.item.variant?.first.color} - Size: ${widget.item.variant?.first.size}'
                   : 'No variant selected'),
               Row(
                 children: [

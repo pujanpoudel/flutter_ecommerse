@@ -29,7 +29,6 @@ class HomePageState extends State<HomePage> {
   bool _isNavBarVisible = true;
   bool _showAllCategories = false;
   bool _isExpanded = false;
-  String? selectedCategory;
 
   @override
   void initState() {
@@ -139,7 +138,7 @@ class HomePageState extends State<HomePage> {
                         SizedBox(
                           width: 150,
                           child: Text(
-                            controller.user.value.address ?? 'Not specified',
+                            controller.user.value.address ?? '',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 16,
@@ -337,8 +336,7 @@ class HomePageState extends State<HomePage> {
   }
 
   Widget _buildCategoryChips() {
-    final displayedCategories = productController.categories.toList();
-
+    final displayedCategories = productController.categories.take(8).toList();
     return Column(
       children: [
         if (!_showAllCategories)
@@ -346,13 +344,13 @@ class HomePageState extends State<HomePage> {
             height: 50,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              itemCount: displayedCategories.length < 10
+              itemCount: displayedCategories.length < 5
                   ? displayedCategories.length
-                  : 11,
+                  : 6,
               itemBuilder: (context, index) {
-                if (index == 10) {
+                if (index == 5) {
                   return Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
+                      padding: const EdgeInsets.only(left: 8.0, right: 16.0),
                       child: TextButton(
                         onPressed: () {
                           setState(() {
@@ -368,8 +366,8 @@ class HomePageState extends State<HomePage> {
                         child: const Text(
                           'Show All',
                           style: TextStyle(
-                              color: AppColors.mainColor,
-                              decoration: TextDecoration.underline),
+                            color: AppColors.mainColor,
+                          ),
                         ),
                       ));
                 }
@@ -390,7 +388,7 @@ class HomePageState extends State<HomePage> {
               spacing: 8,
               runSpacing: 8,
               children: [
-                ...displayedCategories
+                ...productController.categories
                     .map((category) => _buildCategoryChip(category)),
                 Padding(
                     padding: const EdgeInsets.only(left: 8.0),
@@ -409,8 +407,8 @@ class HomePageState extends State<HomePage> {
                       child: const Text(
                         'Collapse',
                         style: TextStyle(
-                            color: AppColors.mainColor,
-                            decoration: TextDecoration.underline),
+                          color: AppColors.mainColor,
+                        ),
                       ),
                     )),
               ],
@@ -422,23 +420,20 @@ class HomePageState extends State<HomePage> {
 
   Widget _buildCategoryChip(Category category) {
     return Obx(() => ChoiceChip(
-          showCheckmark: false,
           label: Text(category.name),
-          selected: productController.selectedCategory.value == category.name,
+          selected: productController.selectedCategories.contains(category),
           onSelected: (selected) {
             if (selected) {
-              print('Selected category: ${category.name}');
-              productController.updateSelectedCategory(category.name);
+              productController.selectedCategories.add(category);
             } else {
-              print('Resetting category selection');
-              productController.resetSelectedCategory();
+              productController.selectedCategories.remove(category);
             }
             productController.getProductsBySelectedCategories();
           },
           backgroundColor: AppColors.mainColor.withOpacity(0.1),
           selectedColor: AppColors.mainColor,
           labelStyle: TextStyle(
-            color: productController.selectedCategory.value == category.name
+            color: productController.selectedCategories.contains(category)
                 ? Colors.white
                 : AppColors.mainColor,
           ),
