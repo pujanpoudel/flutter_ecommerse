@@ -1,42 +1,45 @@
 class AuthModel {
-  final int? id;
+  String? avatarId;
   String? fullName;
   String? phone;
   String? email;
   String? password;
+  String? confirmPassword;
   String? address;
   final DateTime? createdAt;
 
   AuthModel({
-    this.id,
     this.fullName,
-    this.phone,
     this.email,
-    this.password,
+    this.phone,
     this.address,
+    this.password,
+    this.confirmPassword,
     this.createdAt,
   });
 
   factory AuthModel.fromJson(Map<String, dynamic> json) {
     return AuthModel(
-      id: json['id'],
       fullName: json['full_name'],
-      phone: json['phone'],
       email: json['email'],
-      password: json['password'],
+      phone: json['phone'],
       address: json['address'],
-      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : null,
+      password: json['password'],
+      confirmPassword: json['confirm_password'],
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
+          : null,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
       'full_name': fullName,
-      'phone': phone,
       'email': email,
-      'password': password,
+      'phone': phone,
       'address': address,
+      'password': password,
+      'confirm_password': confirmPassword,
       'created_at': createdAt?.toIso8601String(),
     };
   }
@@ -47,17 +50,30 @@ class AuthModel {
     String? phone,
     String? email,
     String? password,
+    String? confirmPassword,
     String? address,
+    String? avatarID,
     DateTime? createdAt,
   }) {
     return AuthModel(
-      id: id ?? this.id,
       fullName: fullName ?? this.fullName,
       phone: phone ?? this.phone,
       email: email ?? this.email,
       password: password ?? this.password,
+      confirmPassword: confirmPassword ?? this.confirmPassword,
       address: address ?? this.address,
       createdAt: createdAt ?? this.createdAt,
     );
+  }
+
+  Map<String, dynamic> toApiJson() {
+    return {
+      'email': email,
+      'full_name': fullName,
+      'phone': phone,
+      'address': address,
+      'password': password,
+      'confirm_password': confirmPassword,
+    };
   }
 }

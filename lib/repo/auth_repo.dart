@@ -6,18 +6,25 @@ import '../utils/app_constants.dart';
 class AuthRepo extends GetxService {
   final String baseUrl = AppConstants.BASE_URL;
   final SharedPreferences sharedPreferences;
-
   AuthRepo({required this.sharedPreferences});
 
-  Future<Response<dynamic>> signUp(String fullName, String email, String password, String address, String phoneNumber, String text) async {
+  Future<Response<dynamic>> signUp(
+    String fullName,
+    String email,
+    String password,
+    String confirmPassword,
+    String phoneNumber,
+    String address,
+  ) async {
     try {
       final response = await GetConnect().post(
         '$baseUrl/signup',
         AuthModel(
           fullName: fullName,
-          phone: phoneNumber,
           email: email,
           password: password,
+          confirmPassword: confirmPassword,
+          phone: phoneNumber,
           address: address,
         ).toJson(),
       );
@@ -36,7 +43,8 @@ class AuthRepo extends GetxService {
     }
   }
 
-  Future<Response<dynamic>> signIn(String email, String password, bool rememberMe) async {
+  Future<Response<dynamic>> signIn(
+      String email, String password, bool rememberMe) async {
     try {
       final response = await GetConnect().post(
         '$baseUrl/login',
@@ -65,6 +73,14 @@ class AuthRepo extends GetxService {
     }
   }
 
+  Future<void> signOut({required bool rememberMe}) async {
+    await clearUserToken();
+    if (!rememberMe) {
+      await clearUserEmail();
+      await clearUserPassword();
+    }
+  }
+
   Future<Response<dynamic>> resetPassword(String email) async {
     try {
       final response = await GetConnect().post(
@@ -84,39 +100,77 @@ class AuthRepo extends GetxService {
     }
   }
 
-  Future<Response<dynamic>> getUserProfile(String token) async {
+  Future<AuthModel?> getUserProfile(String token) async {
     try {
+      if (token.isEmpty) {
+        throw Exception('User token is missing.');
+      }
       final response = await GetConnect().get(
-        '$baseUrl/accounts/me',
+        '$baseUrl/me',
         headers: {'Authorization': 'Bearer $token'},
       );
-      return response;
+      print('GetUserProfile Response code: ${response.statusCode}');
+      print('GetUserProfile Response body: ${response.body}');
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final userProfile = AuthModel.fromJson(response.body['data']);
+        return userProfile;
+      } else {
+        throw Exception('Failed to fetch user profile: ${response.statusText}');
+      }
     } catch (e) {
       print('GetUserProfile Error: $e');
       rethrow;
     }
   }
 
-  Future<Response<dynamic>> updateUserProfile(AuthModel user, String token) async {
+  Future<Response<dynamic>> updateUserProfile(
+    AuthModel value, {
+    required String fullName,
+    required String phone,
+    required String address,
+  }) async {
     try {
-      final response = await GetConnect().put(
-        '$baseUrl/accounts/me',
-        user.toJson(),
-        headers: {'Authorization': 'Bearer $token'},
+      String token = getUserToken();
+      if (token.isEmpty) {
+        throw Exception('User token is missing.');
+      }
+      AuthModel updatedUser = AuthModel(
+        fullName: fullName,
+        phone: phone,
+        address: address,
       );
-      return response;
+
+      final response = await GetConnect().put(
+        '$baseUrl/update',
+        updatedUser.toJson(),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+      print('UpdateUserProfile Response code: ${response.statusCode}');
+      print('UpdateUserProfile Response body: ${response.body}');
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return response;
+      } else {
+        throw Exception('Failed to update profile: ${response.statusText}');
+      }
     } catch (e) {
       print('UpdateUserProfile Error: $e');
       rethrow;
     }
   }
 
-  Future<bool> saveProfilePicture(String path) async {
-    return await sharedPreferences.setString('profile_picture', path);
+  Future<void> setFirstRunComplete() async {
+    await sharedPreferences.setBool('is_first_run', false);
   }
 
-  String? getProfilePicture() {
-    return sharedPreferences.getString('profile_picture');
+  bool isFirstRun() {
+    return sharedPreferences.getBool('is_first_run') ?? true;
+  }
+
+  bool isLoggedIn() {
+    return sharedPreferences.containsKey('user_token');
   }
 
   Future<bool> saveUserEmail(String email) async {
@@ -151,23 +205,15 @@ class AuthRepo extends GetxService {
     return sharedPreferences.getString('user_token') ?? "";
   }
 
-  bool isLoggedIn() {
-    return sharedPreferences.containsKey('user_token');
-  }
-
   Future<bool> clearUserToken() async {
     return await sharedPreferences.remove('user_token');
   }
 
-  bool isRememberMeChecked() {
-    return sharedPreferences.containsKey('user_password');
+  bool checkUserToken() {
+    return sharedPreferences.containsKey('user_token');
   }
 
-  Future<void> signOut({required bool rememberMe}) async {
-    await clearUserToken();
-    if (!rememberMe) {
-      await clearUserEmail();
-      await clearUserPassword();
-    }
+  bool isRememberMeChecked() {
+    return sharedPreferences.containsKey('user_password');
   }
 }

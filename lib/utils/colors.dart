@@ -13,4 +13,5 @@ class AppColors {
   static const Color yellowColor = Color(0xFFffd379);
   static const Color whiteColor = Color.fromARGB(255, 231, 227, 222);
   static const Color creamColor = Color.fromARGB(255, 246, 235, 215);
+  static const Color blackColor = Color(0xFF000000);
 }

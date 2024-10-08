@@ -1,18 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import '../../controller/auth_controller.dart';
 import '../../utils/colors.dart';
 
-class SignUpPage extends StatelessWidget {
+class SignUpPage extends StatefulWidget {
+  const SignUpPage({super.key});
+
+  @override
+  State<SignUpPage> createState() => _SignUpPageState();
+}
+
+class _SignUpPageState extends State<SignUpPage> {
   final AuthController controller =
       Get.put(AuthController(authRepo: Get.find()));
+
   final RxBool obscureTextPassword = true.obs;
+
   final RxBool obscureTextConfirmPassword = true.obs;
 
-  SignUpPage({super.key});
+  final RxBool passwordsMatch = true.obs;
+
+  void _checkPasswordsMatch() {
+    passwordsMatch.value = controller.passwordController.text ==
+        controller.confirmPasswordController.text;
+  }
+
+  @override
+  void dispose() {
+    controller.passwordController.removeListener(_checkPasswordsMatch);
+    controller.confirmPasswordController.removeListener(_checkPasswordsMatch);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    controller.passwordController.addListener(_checkPasswordsMatch);
+    controller.confirmPasswordController.addListener(_checkPasswordsMatch);
     return Scaffold(
       backgroundColor: AppColors.whiteColor,
       body: SafeArea(
@@ -52,15 +76,30 @@ class SignUpPage extends StatelessWidget {
                       obscureTextPassword.value = !obscureTextPassword.value;
                     })),
                 const SizedBox(height: 5),
-                Obx(() => _buildPasswordField(
-                    label: 'Confirm Password',
-                    hint: 'Confirm your password',
-                    obscureText: obscureTextConfirmPassword.value,
-                    controller: controller.confirmPasswordController,
-                    toggleObscureText: () {
-                      obscureTextConfirmPassword.value =
-                          !obscureTextConfirmPassword.value;
-                    })),
+                Obx(() => Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildPasswordField(
+                          label: 'Confirm Password',
+                          hint: 'Confirm your password',
+                          obscureText: obscureTextConfirmPassword.value,
+                          controller: controller.confirmPasswordController,
+                          toggleObscureText: () {
+                            obscureTextConfirmPassword.value =
+                                !obscureTextConfirmPassword.value;
+                          },
+                          hasError: !passwordsMatch.value,
+                        ),
+                        if (!passwordsMatch.value)
+                          const Padding(
+                            padding: EdgeInsets.only(left: 10, top: 5),
+                            child: Text(
+                              'Passwords do not match',
+                              style: TextStyle(color: Colors.red, fontSize: 12),
+                            ),
+                          ),
+                      ],
+                    )),
                 const SizedBox(height: 5),
                 _buildInputField(
                     label: 'Phone Number',
@@ -92,8 +131,8 @@ class SignUpPage extends StatelessWidget {
                             ),
                           ),
                           child: controller.isLoading.value
-                              ? const CircularProgressIndicator(
-                                  color: Colors.white)
+                              ? LoadingAnimationWidget.waveDots(
+                                  color: AppColors.whiteColor, size: 50)
                               : const Text('Sign Up'),
                         )),
                   ),
@@ -206,12 +245,14 @@ class SignUpPage extends StatelessWidget {
     required bool obscureText,
     required TextEditingController controller,
     required VoidCallback toggleObscureText,
+    bool hasError = false,
   }) {
     return Container(
       padding: const EdgeInsets.all(5),
       decoration: BoxDecoration(
         color: AppColors.creamColor,
         borderRadius: BorderRadius.circular(10),
+        border: hasError ? Border.all(color: Colors.red, width: 2) : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

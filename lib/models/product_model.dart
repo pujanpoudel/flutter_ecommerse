@@ -2,47 +2,56 @@ class Product {
   final String id;
   final String name;
   final double price;
-  final String description;
-  final String image;
+  final String? description;
+  final List<String> image;
   final Category category;
-  final int stock;
   final bool status;
-  final String? size;
-  final Color color;
   final Vendor vendor;
   final Type type;
+  final int totalStock;
+  final List<Variant>? variant;
 
   Product({
     required this.id,
     required this.name,
     required this.price,
-    required this.description,
+    this.description,
     required this.image,
     required this.category,
-    required this.stock,
     required this.status,
-    this.size,
-    required this.color,
     required this.vendor,
     required this.type,
+    required this.totalStock,
+    this.variant,
   });
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'price': price,
+        'description': description,
+        'image': image,
+        'category': category.toJson(),
+        'status': status,
+        'vendor': vendor.toJson(),
+        'type': type.toJson(),
+        'total_stock': totalStock,
+        'variants': List<dynamic>.from(variant!.map((x) => x.toJson())),
+      };
 
-  factory Product.fromJson(Map<String, dynamic> json) {
-    return Product(
-      id: json['id'],
-      name: json['name'],
-      price: json['price'],
-      description: json['description'],
-      image: json['image'],
-      category: Category.fromJson(json['category']),
-      stock: json['stock'],
-      status: json['status'],
-      size: json['size'],
-      color: Color.fromJson(json['color']),
-      vendor: Vendor.fromJson(json['vendor']),
-      type: Type.fromJson(json['type']),
-    );
-  }
+  factory Product.fromJson(Map<String, dynamic> json) => Product(
+        id: json['id'],
+        name: json['name'],
+        price: json['price'].toDouble(),
+        description: json['description'],
+        image: List<String>.from(json['image']),
+        category: Category.fromJson(json['category']),
+        status: json['status'],
+        vendor: Vendor.fromJson(json['vendor']),
+        type: Type.fromJson(json['type']),
+        totalStock: json['total_stock'],
+        variant: List<Variant>.from(
+            json['variants'].map((x) => Variant?.fromJson(x))),
+      );
 }
 
 class Category {
@@ -56,30 +65,17 @@ class Category {
     required this.description,
   });
 
-  factory Category.fromJson(Map<String, dynamic> json) {
-    return Category(
-      id: json['id'],
-      name: json['name'],
-      description: json['description'],
-    );
-  }
-}
+  factory Category.fromJson(Map<String, dynamic> json) => Category(
+        id: json['id'],
+        name: json['name'],
+        description: json['description'],
+      );
 
-class Color {
-  final String id;
-  final String hex;
-
-  Color({
-    required this.id,
-    required this.hex,
-  });
-
-  factory Color.fromJson(Map<String, dynamic> json) {
-    return Color(
-      id: json['id'],
-      hex: json['hex'],
-    );
-  }
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'description': description,
+      };
 }
 
 class Vendor {
@@ -91,12 +87,15 @@ class Vendor {
     required this.storeName,
   });
 
-  factory Vendor.fromJson(Map<String, dynamic> json) {
-    return Vendor(
-      id: json['id'],
-      storeName: json['store_name'],
-    );
-  }
+  factory Vendor.fromJson(Map<String, dynamic> json) => Vendor(
+        id: json['id'],
+        storeName: json['store_name'],
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'store_name': storeName,
+      };
 }
 
 class Type {
@@ -110,11 +109,39 @@ class Type {
     required this.description,
   });
 
-  factory Type.fromJson(Map<String, dynamic> json) {
-    return Type(
-      id: json['id'],
-      name: json['name'],
-      description: json['description'],
-    );
-  }
+  factory Type.fromJson(Map<String, dynamic> json) => Type(
+        id: json['id'],
+        name: json['name'],
+        description: json['description'],
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'description': description,
+      };
+}
+
+class Variant {
+  final String? size;
+  final String? color;
+  final int? stock;
+
+  Variant({
+    this.size,
+    this.color,
+    this.stock,
+  });
+
+  factory Variant.fromJson(Map<String, dynamic> json) => Variant(
+        size: json['size'],
+        color: json['color'],
+        stock: json['stock'],
+      );
+
+  Map<String, dynamic> toJson() => {
+        'size': size,
+        'color': color,
+        'stock': stock,
+      };
 }

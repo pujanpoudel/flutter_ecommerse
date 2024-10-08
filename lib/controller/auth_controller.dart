@@ -1,23 +1,27 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:multiavatar/multiavatar.dart';
 import 'package:quick_cart/models/auth_model.dart';
 import 'package:quick_cart/repo/auth_repo.dart';
 import 'package:quick_cart/view/auth/forgot_password_page.dart';
 import 'package:quick_cart/view/auth/sign_in_page.dart';
 import 'package:quick_cart/view/auth/sign_up_page.dart';
+import 'package:quick_cart/view/landing%20page/landing_page.dart';
 import 'package:quick_cart/view/product/home_page.dart';
+import 'package:quick_cart/view/profile/profile_page.dart';
 import 'package:quick_cart/view/verification/email_verification_page.dart';
 import 'package:quick_cart/view/verification/otp_verification_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthController extends GetxController {
   final AuthRepo authRepo;
 
   var user = AuthModel().obs;
+  var fullNameController = TextEditingController();
   var emailController = TextEditingController();
   var passwordController = TextEditingController();
   var confirmPasswordController = TextEditingController();
-  var fullNameController = TextEditingController();
   var phoneNumberController = TextEditingController();
   var addressController = TextEditingController();
   var isLoading = false.obs;
@@ -25,6 +29,7 @@ class AuthController extends GetxController {
   var rememberMe = false.obs;
   var profilePicturePath = ''.obs;
   var isProfilePageVisible = false.obs;
+  String avatarKey = "userAvatar";
 
   AuthController({required this.authRepo});
 
@@ -32,8 +37,8 @@ class AuthController extends GetxController {
   void onInit() {
     super.onInit();
     checkRememberMe();
-    fetchUserProfile();
-    loadProfilePicture();
+    loadUserProfile();
+    loadSavedAvatar();
   }
 
   void checkRememberMe() {
@@ -42,10 +47,6 @@ class AuthController extends GetxController {
       passwordController.text = authRepo.getUserPassword();
       rememberMe.value = true;
     }
-  }
-
-  void loadProfilePicture() {
-    profilePicturePath.value = authRepo.getProfilePicture() ?? '';
   }
 
   void toggleObscureText() {
@@ -63,20 +64,22 @@ class AuthController extends GetxController {
         fullName: fullNameController.text,
         email: emailController.text,
         password: passwordController.text,
-        address: addressController.text,
+        confirmPassword: confirmPasswordController.text,
         phone: phoneNumberController.text,
+        address: addressController.text,
       );
 
       final response = await authRepo.signUp(
         signUpBody.fullName!,
         signUpBody.email!,
         signUpBody.password!,
-        signUpBody.address!,
+        signUpBody.confirmPassword!,
         signUpBody.phone!,
-        confirmPasswordController.text,
+        signUpBody.address!,
       );
 
       isLoading.value = false;
+      navigateToVerifyEmail();
 
       if (response.statusCode == 200) {
         final data = response.body['data'];
@@ -137,7 +140,6 @@ class AuthController extends GetxController {
       await authRepo.clearUserEmail();
       await authRepo.clearUserPassword();
 
-      // Clear the controllers' text
       emailController.clear();
       passwordController.clear();
     }
@@ -162,77 +164,129 @@ class AuthController extends GetxController {
     }
   }
 
-  Future<void> fetchUserProfile() async {
-    isLoading.value = true;
-    try {
-      String token = authRepo.getUserToken();
-      final response = await authRepo.getUserProfile(token);
-      if (response.statusCode == 200) {
-        user.value = AuthModel.fromJson(response.body['data']);
-        fullNameController.text = user.value.fullName ?? '';
-        emailController.text = user.value.email ?? '';
-        phoneNumberController.text = user.value.phone ?? '';
-        addressController.text = user.value.address ?? '';
-      } else {
-        _showProfilePageSnackbar('Error', 'Failed to load user profile');
+  Future<void> loadUserProfile() async {
+    final token = authRepo.getUserToken();
+    if (token.isNotEmpty) {
+      try {
+        final userProfile = await authRepo.getUserProfile(token);
+        if (userProfile != null) {
+          user.value = userProfile;
+          fullNameController.text = userProfile.fullName ?? '';
+          emailController.text = userProfile.email ?? '';
+          phoneNumberController.text = userProfile.phone ?? '';
+          addressController.text = userProfile.address ?? '';
+          print('User Full Name: ${userProfile.fullName}');
+          print('User Email: ${userProfile.email}');
+          print('User Phone: ${userProfile.phone}');
+          print('User Address: ${userProfile.address}');
+        } else {
+          print('Failed to load user profile: No data returned');
+        }
+      } catch (e) {
+        print('Error loading user profile: $e');
       }
-    } catch (e) {
-      _showProfilePageSnackbar('Error', 'Failed to load user profile');
-    } finally {
-      isLoading.value = false;
+    } else {
+      print('User token is empty');
     }
   }
 
-  Future<void> updateProfile({
-    String? fullName,
-    String? email,
-    String? phone,
-    String? address,
-  }) async {
-    isLoading.value = true;
+  void updateProfile() async {
     try {
-      String token = authRepo.getUserToken();
-      AuthModel updatedUser = user.value.copyWith(
-        fullName: fullName ?? user.value.fullName,
-        email: email ?? user.value.email,
-        phone: phone ?? user.value.phone,
-        address: address ?? user.value.address,
+      String fullName = fullNameController.text;
+      String phone = phoneNumberController.text;
+      String address = addressController.text;
+
+      Response response = await authRepo.updateUserProfile(
+        user.value,
+        fullName: fullName,
+        phone: phone,
+        address: address,
       );
-      final response = await authRepo.updateUserProfile(updatedUser, token);
+
       if (response.statusCode == 200) {
-        user.value = updatedUser;
-        _showProfilePageSnackbar('Success', 'Profile updated successfully');
+        Get.snackbar(
+          'Profile Updated',
+          'Your profile has been successfully updated',
+        );
+        Get.off(() => const ProfilePage());
       } else {
-        _showProfilePageSnackbar('Error', 'Failed to update profile');
+        Get.snackbar('Error', 'Failed to update profile');
       }
     } catch (e) {
-      _showProfilePageSnackbar('Error', 'Failed to update profile');
-    } finally {
-      isLoading.value = false;
+      print('Error in updateProfile: $e');
+      Get.snackbar('Error', 'Failed to update profile');
     }
   }
 
-  Future<void> pickProfilePicture() async {
-    final picker = ImagePicker();
-    try {
-      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-      if (pickedFile != null) {
-        profilePicturePath.value = pickedFile.path;
-        await authRepo.saveProfilePicture(pickedFile.path);
-      }
-    } catch (e) {
-      _showProfilePageSnackbar('Error', 'Failed to pick profile picture');
+  void refreshAvatar() {
+    String newAvatar = multiavatar(user.value.fullName ?? 'User');
+    user.update((val) {
+      val?.avatarId = newAvatar;
+    });
+    update();
+  }
+
+  String generateRandomString(int length) {
+    const chars =
+        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    Random random = Random();
+
+    return String.fromCharCodes(
+      Iterable.generate(
+        length,
+        (_) => chars.codeUnitAt(random.nextInt(chars.length)),
+      ),
+    );
+  }
+
+  void updateProfilePicture(String path) {
+    profilePicturePath.value = path;
+    user.update((val) {
+      val?.fullName = path;
+    });
+    update();
+  }
+
+  void clearProfilePicture() {
+    profilePicturePath.value = '';
+    String defaultAvatar = multiavatar(user.value.fullName ?? 'User');
+    user.update((val) {
+      val?.fullName = defaultAvatar;
+    });
+    update();
+  }
+
+  Future<void> loadSavedAvatar() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? savedAvatar = prefs.getString(avatarKey);
+
+    if (savedAvatar != null) {
+      user.update((user) {
+        user?.fullName = savedAvatar;
+      });
     }
   }
 
-  void _showProfilePageSnackbar(String title, String message) {
-    if (isProfilePageVisible.value) {
-      Get.snackbar(title, message);
+  Future<void> checkLoginStatus() async {
+    bool isFirstRun = authRepo.isFirstRun();
+    bool isLoggedIn = authRepo.isLoggedIn();
+
+    if (isFirstRun) {
+      await authRepo.setFirstRunComplete();
+      Get.off(() => const LandingPage());
+    } else if (isLoggedIn) {
+      Get.off(() => const HomePage());
+    } else {
+      Get.off(() => SignInPage());
     }
   }
 
   void navigateToSignUp() {
-    Get.to(() => SignUpPage());
+    Get.to(() => const SignUpPage());
+  }
+
+  void navigateToProfilePage() {
+    Get.to(() => const ProfilePage());
   }
 
   void navigateToSignIn() {
@@ -240,7 +294,7 @@ class AuthController extends GetxController {
   }
 
   void navigateToHomePage() {
-    Get.to(() => HomePage());
+    Get.to(() => const HomePage());
   }
 
   void navigateToVerifyEmail() {

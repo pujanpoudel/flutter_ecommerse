@@ -62,7 +62,7 @@ class EmailVerifiedPage extends StatelessWidget {
               const SizedBox(height: 60),
               ElevatedButton(
                 onPressed: () {
-                  Get.to(() => HomePage());
+                  Get.to(() => const HomePage());
                 },
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.white,

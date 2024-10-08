@@ -1,18 +1,16 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:quick_cart/repo/auth_repo.dart';
-import 'package:quick_cart/view/auth/sign_in_page.dart';
-import 'package:quick_cart/view/landing%20page/landing_page.dart';
+import 'package:quick_cart/controller/auth_controller.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  _SplashScreenState createState() => _SplashScreenState();
+  SplashScreenState createState() => SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
+class SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
@@ -21,6 +19,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
+
     _controller = AnimationController(
       duration: const Duration(seconds: 1),
       vsync: this,
@@ -31,19 +30,9 @@ class _SplashScreenState extends State<SplashScreen>
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
     _controller.forward();
-
-    Timer(const Duration(seconds: 2), _navigateToNextPage);
-  }
-
-  void _navigateToNextPage() async {
-    final authRepo = Get.find<AuthRepo>();
-    bool isLoggedIn = authRepo.isLoggedIn();
-
-    if (isLoggedIn) {
-      Get.to(() => SignInPage());
-    } else {
-      Get.to(() => LandingPage());
-    }
+    Timer(const Duration(seconds: 2), () {
+      Get.find<AuthController>().checkLoginStatus();
+    });
   }
 
   @override
