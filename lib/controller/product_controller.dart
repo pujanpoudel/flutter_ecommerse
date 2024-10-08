@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:get/get.dart';
 import 'package:quick_cart/models/cart_model.dart';
 import 'package:quick_cart/repo/product_repo.dart';
@@ -7,7 +9,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ProductController extends GetxController {
   final ProductRepo productRepo;
   ProductController({required this.productRepo});
-
   final RxList<Product> products = <Product>[].obs;
   final RxBool isLoading = false.obs;
   final RxString error = ''.obs;
@@ -17,14 +18,14 @@ class ProductController extends GetxController {
   final RxBool isCategoriesLoading = false.obs;
   final RxString categoriesError = ''.obs;
   RxList<Category> selectedCategories = RxList<Category>([]);
-  var selectedSize = ''.obs;
-  var selectedColor = ''.obs;
+  final Rx<String> selectedColor = ''.obs;
+  final Rx<String> selectedSize = ''.obs;
   var selectedQuantity = 1.obs;
   var showFullDescription = false.obs;
-  var favoriteProductIds = <String>[].obs;
   var product = Rxn<Product>();
   final RxList<CartModel> cartItems = <CartModel>[].obs;
-  var selectedProducts = <Product>[].obs;
+  final RxList<Product> favoriteProducts = <Product>[].obs;
+  final RxList<Product> selectedProducts = <Product>[].obs;
 
   @override
   void onInit() {
@@ -75,6 +76,7 @@ class ProductController extends GetxController {
     await getProducts(page: 1);
     refreshCategories();
   }
+  //categorites
 
   Future<void> getCategories() async {
     try {
@@ -95,60 +97,30 @@ class ProductController extends GetxController {
   }
 
   Future<void> getProductsBySelectedCategories() async {
+    if (selectedCategories.isEmpty) {
+      await getProducts();
+      return;
+    }
+    List<String> selectedCategoryIds =
+        selectedCategories.map((category) => category.id.toString()).toList();
     try {
-      if (selectedCategories.isEmpty) {
-        await getProducts();
-        return;
-      }
       isLoading.value = true;
-      error.value = '';
-      List<String> selectedCategoryIds =
-          selectedCategories.map((category) => category.id.toString()).toList();
-      final fetchedProducts =
+      products.value =
           await productRepo.getProductsByCategories(selectedCategoryIds);
-      products.assignAll(fetchedProducts);
     } catch (e) {
       error.value = 'Failed to load products: $e';
-      print('Error in getProductsBySelectedCategories: ${error.value}');
     } finally {
       isLoading.value = false;
     }
   }
 
-  Future<void> loadFavorites() async {
-    final prefs = await SharedPreferences.getInstance();
-    final favoriteIds = prefs.getStringList('favoriteProductIds') ?? [];
-    favoriteProductIds.assignAll(favoriteIds.toSet());
+  //cart
+  bool hasColorVariant() {
+    return selectedColor.value.isNotEmpty;
   }
 
-  Future<void> toggleFavorite(String productId) async {
-    if (favoriteProductIds.contains(productId)) {
-      favoriteProductIds.remove(productId);
-    } else {
-      favoriteProductIds.add(productId);
-    }
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(
-      'favoriteProductIds',
-      favoriteProductIds.toList(),
-    );
-  }
-
-  List<Product> getFavoriteProducts() {
-    return products
-        .where((product) => favoriteProductIds.contains(product.id))
-        .toList();
-  }
-
-  Future<void> removeFavorites(List<String> productIds) async {
-    for (var productId in productIds) {
-      if (favoriteProductIds.contains(productId)) {
-        favoriteProductIds.remove(productId);
-      }
-    }
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(
-        'favoriteProductIds', favoriteProductIds.toList());
+  bool hasSizeVariant() {
+    return selectedSize.value.isNotEmpty;
   }
 
   void updateSelectedSize(String size) {
@@ -173,7 +145,60 @@ class ProductController extends GetxController {
     }
   }
 
-  bool isFavorite(String productId) => favoriteProductIds.contains(productId);
+//favorites
+  Future<void> loadFavorites() async {
+    final prefs = await SharedPreferences.getInstance();
+    final favoritesJsonList = prefs.getStringList('favoriteProducts') ?? [];
+    favoriteProducts.assignAll(
+      favoritesJsonList.map((jsonString) {
+        final Map<String, dynamic> json = jsonDecode(jsonString);
+        return Product.fromJson(json);
+      }).toList(),
+    );
+  }
+
+  Future<void> saveFavorites() async {
+    final prefs = await SharedPreferences.getInstance();
+    final favoritesJsonList = favoriteProducts
+        .map((product) => jsonEncode(product.toJson()))
+        .toList();
+    await prefs.setStringList('favoriteProducts', favoritesJsonList);
+  }
+
+  Future<void> toggleFavorite(Product product) async {
+    if (favoriteProducts.any((p) => p.id == product.id)) {
+      favoriteProducts.removeWhere((p) => p.id == product.id);
+    } else {
+      favoriteProducts.add(product);
+    }
+    await saveFavorites();
+  }
+
+  bool isFavorite(String productId) {
+    return favoriteProducts.any((product) => product.id == productId);
+  }
+
+  List<Product> getFavoriteProducts() {
+    return products
+        .where((product) => favoriteProducts.contains(product))
+        .toList();
+  }
+
+  Future<void> removeFavorites(List<Product> products) async {
+    for (var product in products) {
+      favoriteProducts.removeWhere((p) => p.id == product.id);
+    }
+    await saveFavorites();
+  }
+
+  Future<void> addSelectedToFavorites(List<Product> selectedProducts) async {
+    for (var product in selectedProducts) {
+      if (!favoriteProducts.any((p) => p.id == product.id)) {
+        favoriteProducts.add(product);
+      }
+    }
+    await saveFavorites();
+  }
 
   Future<CartModel?> getProductAsCartModel(String productId) async {
     try {

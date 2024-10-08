@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
 import 'package:quick_cart/controller/cart_controller.dart';
+import 'package:quick_cart/controller/product_controller.dart';
 import 'package:quick_cart/models/cart_model.dart';
 import 'package:quick_cart/utils/bottom_nav_bar_widget.dart';
 import 'package:quick_cart/utils/colors.dart';
@@ -9,8 +10,7 @@ import 'package:quick_cart/view/product/checkout_page.dart';
 import 'package:quick_cart/view/product/home_page.dart';
 
 class CartPage extends StatefulWidget {
-  CartPage({super.key});
-  final CartController cartController = Get.find<CartController>();
+  const CartPage({super.key});
 
   @override
   CartPageState createState() => CartPageState();
@@ -19,7 +19,8 @@ class CartPage extends StatefulWidget {
 class CartPageState extends State<CartPage> {
   final CartController cartController = Get.find<CartController>();
   final ScrollController _scrollController = ScrollController();
-  final RxList<String> selectedItems = <String>[].obs;
+  final ProductController productController = Get.find<ProductController>();
+
   bool _isNavBarVisible = true;
   bool _isSelectionMode = false;
 
@@ -145,179 +146,178 @@ class CartPageState extends State<CartPage> {
   }
 
   Widget _buildCartItemList() {
-    return ListView(
-      controller: _scrollController,
-      padding: const EdgeInsets.all(16),
-      children: [
-        ...cartController.cartItems.map((item) => GestureDetector(
-              onLongPress: () {
-                if (!_isSelectionMode) {
-                  _toggleSelectionMode();
-                }
-                cartController.toggleItemSelection(item.id);
-              },
-              child: Column(
-                children: [
-                  Stack(
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Image.network(
-                                item.imageUrl.first,
-                                width: 100,
-                                height: 100,
-                                fit: BoxFit.cover,
+    return Obx(() => ListView(
+          controller: _scrollController,
+          padding: const EdgeInsets.all(16),
+          children: cartController.cartItems
+              .map((item) => GestureDetector(
+                    onLongPress: () {
+                      if (!_isSelectionMode) {
+                        _toggleSelectionMode();
+                      }
+                      cartController.toggleItemSelection(item.id);
+                    },
+                    child: Column(
+                      children: [
+                        Stack(
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey),
+                                borderRadius: BorderRadius.circular(8),
                               ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      item.name,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
+                                    Image.network(
+                                      item.imageUrl.first,
+                                      width: 100,
+                                      height: 100,
+                                      fit: BoxFit.cover,
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            item.name,
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.start,
+                                            children: [
+                                              if (item.variant != null &&
+                                                  item.variant!.isNotEmpty &&
+                                                  item.variant![0].color !=
+                                                      null)
+                                                Text(
+                                                  'Color: ${item.variant![0].color}',
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    color: Colors.grey[600],
+                                                  ),
+                                                ),
+                                              if (item.variant != null &&
+                                                  item.variant!.isNotEmpty &&
+                                                  item.variant![0].size != null)
+                                                Text(
+                                                  'Size: ${item.variant![0].size}',
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    color: Colors.grey[600],
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            'NRS ${item.price.round()}',
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.mainColor,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
                                     ),
                                     Column(
                                       crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.start,
+                                          CrossAxisAlignment.end,
                                       children: [
-                                        if (item.variant != null &&
-                                            item.variant!.isNotEmpty &&
-                                            item.variant![0].color != null)
-                                          Text(
-                                            'Color: ${item.variant![0].color}',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color: Colors.grey[600],
+                                        IconButton(
+                                          icon: const Icon(Icons.delete,
+                                              color: Colors.red),
+                                          onPressed: () {
+                                            cartController.removeFromCart(item);
+                                          },
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Row(
+                                          children: [
+                                            IconButton(
+                                              icon: const Icon(Icons.remove),
+                                              onPressed: () {
+                                                if (item.quantity > 1) {
+                                                  CartVariant? selectedVariant =
+                                                      cartController
+                                                          .getSelectedVariant(
+                                                              item);
+                                                  cartController.updateQuantity(
+                                                    item.id,
+                                                    item.quantity - 1,
+                                                    color:
+                                                        selectedVariant!.color,
+                                                    size: selectedVariant.size,
+                                                  );
+                                                }
+                                              },
                                             ),
-                                          ),
-                                        if (item.variant != null &&
-                                            item.variant!.isNotEmpty &&
-                                            item.variant![0].size != null)
-                                          Text(
-                                            'Size: ${item.variant![0].size}',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color: Colors.grey[600],
+                                            Text(
+                                              item.quantity.toString(),
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                              ),
                                             ),
-                                          ),
+                                            IconButton(
+                                              icon: const Icon(Icons.add),
+                                              onPressed: () {
+                                                CartVariant? selectedVariant =
+                                                    cartController
+                                                        .getSelectedVariant(
+                                                            item);
+                                                cartController.updateQuantity(
+                                                  item.id,
+                                                  item.quantity + 1,
+                                                  color: selectedVariant?.color,
+                                                  size: selectedVariant?.size,
+                                                );
+                                              },
+                                            ),
+                                          ],
+                                        ),
                                       ],
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'NRS ${item.price.round()}',
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.mainColor,
-                                      ),
-                                    ),
+                                    )
                                   ],
                                 ),
                               ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.delete,
-                                        color: Colors.red),
-                                    onPressed: () {
-                                      CartVariant? selectedVariant =
-                                          cartController
-                                              .getSelectedVariant(item);
-                                      cartController.updateQuantity(
-                                        item.id,
-                                        item.quantity - 1,
-                                        color: selectedVariant?.color,
-                                        size: selectedVariant?.size,
-                                      );
-                                    },
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(Icons.remove),
-                                        onPressed: () {
-                                          if (item.quantity > 1) {
-                                            CartVariant? selectedVariant =
-                                                cartController
-                                                    .getSelectedVariant(item);
-                                            cartController.updateQuantity(
-                                              item.id,
-                                              item.quantity - 1,
-                                              color: selectedVariant!.color,
-                                              size: selectedVariant.size,
-                                            );
-                                          }
-                                        },
-                                      ),
-                                      Text(
-                                        item.quantity.toString(),
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                        ),
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.add),
-                                        onPressed: () {
-                                          CartVariant? selectedVariant =
-                                              cartController
-                                                  .getSelectedVariant(item);
-                                          cartController.updateQuantity(
-                                            item.id,
-                                            item.quantity + 1,
-                                            color: selectedVariant?.color,
-                                            size: selectedVariant?.size,
-                                          );
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                            ),
+                            if (_isSelectionMode)
+                              Positioned.fill(
+                                child: Obx(
+                                    () => cartController.isItemSelected(item.id)
+                                        ? Container(
+                                            color:
+                                                Colors.black.withOpacity(0.3),
+                                            child: const Icon(
+                                              Icons.check,
+                                              color: Colors.white,
+                                              size: 40,
+                                            ),
+                                          )
+                                        : const SizedBox.shrink()),
                               ),
-                            ],
-                          ),
+                          ],
                         ),
-                      ),
-                      if (_isSelectionMode)
-                        Positioned.fill(
-                          child:
-                              Obx(() => cartController.isItemSelected(item.id)
-                                  ? Container(
-                                      color: Colors.black.withOpacity(0.3),
-                                      child: const Icon(
-                                        Icons.check,
-                                        color: Colors.white,
-                                        size: 40,
-                                      ),
-                                    )
-                                  : const SizedBox.shrink()),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 5),
-                ],
-              ),
-            )),
-      ],
-    );
+                        const SizedBox(height: 5),
+                      ],
+                    ),
+                  ))
+              .toList(),
+        ));
   }
 
   Widget _buildEmptyCart() {
@@ -350,7 +350,7 @@ class CartPageState extends State<CartPage> {
           const SizedBox(height: 30),
           ElevatedButton(
             onPressed: () {
-              Get.to(const HomePage());
+              Get.to(() => const HomePage());
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.mainColor,
@@ -370,14 +370,12 @@ class CartPageState extends State<CartPage> {
       if (cartController.cartItems.isEmpty) {
         return const SizedBox.shrink();
       }
-
       double totalAmount = cartController.totalAmount;
       double discount = 0.0;
       if (cartController.cartItems.length > 5) {
         discount = totalAmount * 0.1;
         totalAmount *= 0.9;
       }
-
       return Container(
         padding: const EdgeInsets.all(16),
         color: const Color.fromARGB(255, 245, 245, 245),

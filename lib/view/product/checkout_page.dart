@@ -208,7 +208,7 @@ class CheckoutPageState extends State<CheckoutPage> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  // _cartController.submitOrder();
+                  _cartController.submitOrder();
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.mainColor,

@@ -24,6 +24,19 @@ class Product {
     required this.totalStock,
     this.variant,
   });
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'price': price,
+        'description': description,
+        'image': image,
+        'category': category.toJson(),
+        'status': status,
+        'vendor': vendor.toJson(),
+        'type': type.toJson(),
+        'total_stock': totalStock,
+        'variants': List<dynamic>.from(variant!.map((x) => x.toJson())),
+      };
 
   factory Product.fromJson(Map<String, dynamic> json) => Product(
         id: json['id'],
@@ -39,20 +52,6 @@ class Product {
         variant: List<Variant>.from(
             json['variants'].map((x) => Variant?.fromJson(x))),
       );
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'price': price,
-        'description': description,
-        'image': image,
-        'category': category.toJson(),
-        'status': status,
-        'vendor': vendor.toJson(),
-        'type': type.toJson(),
-        'total_stock': totalStock,
-        'variants': List<dynamic>.from(variant!.map((x) => x.toJson())),
-      };
 }
 
 class Category {

@@ -14,8 +14,8 @@ class CartController extends GetxController {
   RxString selectedPaymentMethod = 'eSewa'.obs;
   RxSet<String> selectedItems = <String>{}.obs;
   var product = Rxn<Product>();
-  var selectedSize = ''.obs;
-  var selectedColor = ''.obs;
+  final Rx<String> selectedColor = ''.obs;
+  final Rx<String> selectedSize = ''.obs;
   var selectedQuantity = 1.obs;
   var selectedProducts = <Product>[].obs;
   final RxList<CartModel> cartItems = <CartModel>[].obs;
@@ -41,10 +41,17 @@ class CartController extends GetxController {
   }
 
   void addToCart(CartModel item) {
+    bool variantsMatch(CartVariant? v1, CartVariant? v2) {
+      if (v1 == null && v2 == null) return true;
+      if (v1 == null || v2 == null) return false;
+      return (v1.color == v2.color || v1.color == null || v2.color == null) &&
+          (v1.size == v2.size || v1.size == null || v2.size == null);
+    }
+
     final index = cartItems.indexWhere((element) =>
         element.id == item.id &&
-        element.variant?.first.color == item.variant?.first.color &&
-        element.variant?.first.size == item.variant?.first.size);
+        variantsMatch(element.variant?.firstOrNull, item.variant?.firstOrNull));
+
     if (index != -1) {
       cartItems[index].quantity += item.quantity;
     } else {
@@ -53,9 +60,9 @@ class CartController extends GetxController {
     saveCartItems();
   }
 
-  void removeFromCart(String productId) {
-    cartItems.removeWhere((item) => item.id == productId);
-    selectedItems.remove(productId);
+  void removeFromCart(CartModel item) {
+    cartItems.removeWhere((element) => element.id == item.id);
+    cartItems.remove(item);
     saveCartItems();
   }
 
@@ -72,24 +79,40 @@ class CartController extends GetxController {
             .any((variant) => variant.color == color && variant.size == size));
 
     if (index != -1) {
-      final itemVariant = cartItems[index].variant!.firstWhere(
+      final List<CartModel> updatedItems = List.from(cartItems);
+      final item = updatedItems[index];
+      final itemVariant = item.variant!.firstWhere(
           (variant) => variant.color == color && variant.size == size);
       if (quantity > itemVariant.stock!) {
         quantity = itemVariant.stock!;
       }
-
       itemVariant.quantity = quantity;
-
-      if (itemVariant.quantity <= 0) {
-        cartItems[index].variant!.remove(itemVariant);
-        if (cartItems[index].variant!.isEmpty) {
-          cartItems.removeAt(index);
+      item.quantity = quantity;
+      if (quantity <= 0) {
+        item.variant!.remove(itemVariant);
+        if (item.variant!.isEmpty) {
+          updatedItems.removeAt(index);
           selectedItems.remove(productId);
         }
       }
-
+      cartItems.value = updatedItems;
       saveCartItems();
     }
+  }
+
+  CartVariant? getSelectedVariant(CartModel item) {
+    if (item.variant == null || item.variant!.isEmpty) {
+      return null;
+    }
+    return item.variant!.first;
+  }
+
+  void updateSelectedSize(String size) {
+    selectedSize.value = size;
+  }
+
+  void updateSelectedColor(String color) {
+    selectedColor.value = color;
   }
 
   void selectAllItems() {
@@ -142,32 +165,18 @@ class CartController extends GetxController {
             .any((variant) => variant.color == color && variant.size == size));
   }
 
-  int getQuantity(String productId, {String? color, String? size}) {
-    final item = cartItems.firstWhere(
-        (item) =>
-            item.id == productId &&
-            item.variant!.any(
-                (variant) => variant.color == color && variant.size == size),
-        orElse: () => CartModel(
-              id: productId,
-              name: '',
-              description: '',
-              variant: [
-                CartVariant(size: size ?? '', color: color ?? '', stock: 0)
-              ],
-              imageUrl: [],
-              category: '',
-              vendor: '',
-              price: 0,
-              quantity: 0,
-            ));
-    return item.quantity;
-  }
+  int getItemQuantity(String productId, {String? color, String? size}) {
+    final item = cartItems.firstWhereOrNull((item) =>
+        item.id == productId &&
+        item.variant!
+            .any((variant) => variant.color == color && variant.size == size));
 
-  CartVariant? getSelectedVariant(CartModel cartItem) {
-    return cartItem.variant?.isNotEmpty == true
-        ? cartItem.variant!.first
-        : null;
+    if (item != null) {
+      final variant = item.variant!.firstWhereOrNull(
+          (variant) => variant.color == color && variant.size == size);
+      return variant?.quantity ?? 0;
+    }
+    return 0;
   }
 
   void submitOrder() {
@@ -200,10 +209,18 @@ class CartController extends GetxController {
     }
   }
 
-  int getStockForSelectedOptions(String selectedSize, String selectedColor) {
-    if (product.value != null) {
-      Variant? selectedVariant = product.value!.variant?.firstWhereOrNull(
-        (v) => v.size == selectedSize && v.color == selectedColor,
+  int getStockForSelectedOptions(String? selectedSize, String? selectedColor) {
+    if (product.value != null && product.value!.variant != null) {
+      Variant? selectedVariant = product.value!.variant!.firstWhereOrNull(
+        (v) {
+          if (selectedSize == null) {
+            return v.color == selectedColor;
+          } else if (selectedColor == null) {
+            return v.size == selectedSize;
+          } else {
+            return v.size == selectedSize && v.color == selectedColor;
+          }
+        },
       );
       return selectedVariant?.stock ?? 0;
     }

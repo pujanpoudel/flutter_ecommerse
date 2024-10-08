@@ -136,7 +136,6 @@ class HomePageState extends State<HomePage> {
                     child: Row(
                       children: [
                         SizedBox(
-                          width: 150,
                           child: Text(
                             controller.user.value.address ?? '',
                             style: const TextStyle(
@@ -169,7 +168,10 @@ class HomePageState extends State<HomePage> {
                 onPressed: () {
                   Get.to(EditProfilePage());
                 },
-                child: const Text('Edit Address'),
+                child: const Text(
+                  'Edit Address',
+                  style: TextStyle(color: AppColors.mainColor),
+                ),
               ),
             ),
           const SizedBox(height: 5),
@@ -350,25 +352,26 @@ class HomePageState extends State<HomePage> {
               itemBuilder: (context, index) {
                 if (index == 5) {
                   return Padding(
-                    padding: const EdgeInsets.only(left: 8.0, right: 16.0),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _showAllCategories = true;
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.mainColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
+                      padding: const EdgeInsets.only(left: 8.0, right: 16.0),
+                      child: TextButton(
+                        onPressed: () {
+                          setState(() {
+                            _showAllCategories = true;
+                          });
+                        },
+                        style: TextButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
                         ),
-                      ),
-                      child: const Text(
-                        'Show All',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  );
+                        child: const Text(
+                          'Show All',
+                          style: TextStyle(
+                            color: AppColors.mainColor,
+                          ),
+                        ),
+                      ));
                 }
                 return Padding(
                   padding: EdgeInsets.only(
@@ -390,25 +393,26 @@ class HomePageState extends State<HomePage> {
                 ...productController.categories
                     .map((category) => _buildCategoryChip(category)),
                 Padding(
-                  padding: const EdgeInsets.only(left: 8.0),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        _showAllCategories = false;
-                      });
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.mainColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
+                    padding: const EdgeInsets.only(left: 8.0),
+                    child: TextButton(
+                      onPressed: () {
+                        setState(() {
+                          _showAllCategories = false;
+                        });
+                      },
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
                       ),
-                    ),
-                    child: const Text(
-                      'Collapse',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ),
+                      child: const Text(
+                        'Collapse',
+                        style: TextStyle(
+                          color: AppColors.mainColor,
+                        ),
+                      ),
+                    )),
               ],
             ),
           ),
@@ -686,7 +690,7 @@ class HomePageState extends State<HomePage> {
                               : Colors.grey[600],
                         ),
                         onPressed: () {
-                          productController.toggleFavorite(product.id);
+                          productController.toggleFavorite(product);
                         },
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
