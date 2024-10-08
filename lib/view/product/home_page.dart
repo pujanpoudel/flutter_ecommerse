@@ -136,7 +136,6 @@ class HomePageState extends State<HomePage> {
                     child: Row(
                       children: [
                         SizedBox(
-                          width: 150,
                           child: Text(
                             controller.user.value.address ?? '',
                             style: const TextStyle(
@@ -169,7 +168,10 @@ class HomePageState extends State<HomePage> {
                 onPressed: () {
                   Get.to(EditProfilePage());
                 },
-                child: const Text('Edit Address'),
+                child: const Text(
+                  'Edit Address',
+                  style: TextStyle(color: AppColors.mainColor),
+                ),
               ),
             ),
           const SizedBox(height: 5),
@@ -688,7 +690,7 @@ class HomePageState extends State<HomePage> {
                               : Colors.grey[600],
                         ),
                         onPressed: () {
-                          productController.toggleFavorite(product.id);
+                          productController.toggleFavorite(product);
                         },
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),

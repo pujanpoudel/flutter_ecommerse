@@ -249,10 +249,21 @@ class CartPageState extends State<CartPage> {
                                           children: [
                                             IconButton(
                                               icon: const Icon(Icons.remove),
-                                              onPressed: item.quantity <= 1
-                                                  ? null
-                                                  : () => _updateQuantity(
-                                                      item, item.quantity - 1),
+                                              onPressed: () {
+                                                if (item.quantity > 1) {
+                                                  CartVariant? selectedVariant =
+                                                      cartController
+                                                          .getSelectedVariant(
+                                                              item);
+                                                  cartController.updateQuantity(
+                                                    item.id,
+                                                    item.quantity - 1,
+                                                    color:
+                                                        selectedVariant!.color,
+                                                    size: selectedVariant.size,
+                                                  );
+                                                }
+                                              },
                                             ),
                                             Text(
                                               item.quantity.toString(),
@@ -263,8 +274,18 @@ class CartPageState extends State<CartPage> {
                                             ),
                                             IconButton(
                                               icon: const Icon(Icons.add),
-                                              onPressed: () => _updateQuantity(
-                                                  item, item.quantity + 1),
+                                              onPressed: () {
+                                                CartVariant? selectedVariant =
+                                                    cartController
+                                                        .getSelectedVariant(
+                                                            item);
+                                                cartController.updateQuantity(
+                                                  item.id,
+                                                  item.quantity + 1,
+                                                  color: selectedVariant?.color,
+                                                  size: selectedVariant?.size,
+                                                );
+                                              },
                                             ),
                                           ],
                                         ),
@@ -297,20 +318,6 @@ class CartPageState extends State<CartPage> {
                   ))
               .toList(),
         ));
-  }
-
-  void _updateQuantity(CartModel item, int newQuantity) {
-    CartVariant? selectedVariant = cartController.getSelectedVariant(item);
-    int maxQuantity = selectedVariant?.stock ?? double.maxFinite.toInt();
-
-    if (newQuantity > 0 && newQuantity <= maxQuantity) {
-      cartController.updateQuantity(
-        item.id,
-        newQuantity,
-        color: selectedVariant?.color,
-        size: selectedVariant?.size,
-      );
-    }
   }
 
   Widget _buildEmptyCart() {
@@ -363,14 +370,12 @@ class CartPageState extends State<CartPage> {
       if (cartController.cartItems.isEmpty) {
         return const SizedBox.shrink();
       }
-
       double totalAmount = cartController.totalAmount;
       double discount = 0.0;
       if (cartController.cartItems.length > 5) {
         discount = totalAmount * 0.1;
         totalAmount *= 0.9;
       }
-
       return Container(
         padding: const EdgeInsets.all(16),
         color: const Color.fromARGB(255, 245, 245, 245),

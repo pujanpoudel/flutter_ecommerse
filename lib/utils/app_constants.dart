@@ -1,13 +1,13 @@
+// ignore_for_file: constant_identifier_names
+
 class AppConstants {
   static const String APP_NAME = "Quick Cart";
   static const int APP_VERSION = 1;
 
-  static const String BASE_URL =
-      "https://logindev.sudarshan-uprety.com.np/accounts";
+  static const String BASE_URL = "http://192.168.1.113:9000/accounts";
 
   static const String BASE_URL_PRODUCT =
-      "https://jykimvw5nj.execute-api.ap-south-1.amazonaws.com/uat"; //uat
-  // "https://me7bumyhff.execute-api.ap-south-1.amazonaws.com/dev";
+      "https://jykimvw5nj.execute-api.ap-south-1.amazonaws.com/uat";
 
   //user and auth endpoints
   static const String SIGNUP_URL = "/signup";

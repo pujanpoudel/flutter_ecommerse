@@ -26,13 +26,12 @@ class FavoriteProductsPageState extends State<FavoriteProductsPage> {
   final RxList<Product> selectedProducts = <Product>[].obs;
   bool _isNavBarVisible = true;
   bool isSelecting = false;
-  List<Product> favoriteProducts = [];
-
+  late List<Product> favoriteProducts;
   @override
   void initState() {
     super.initState();
+    favoriteProducts = productController.favoriteProducts;
     productController.loadFavorites();
-
     _scrollController.addListener(() {
       if (_scrollController.position.userScrollDirection ==
           ScrollDirection.reverse) {
@@ -84,10 +83,7 @@ class FavoriteProductsPageState extends State<FavoriteProductsPage> {
                             color: AppColors.mainColor, size: 50));
                   }
 
-                  favoriteProducts = productController.products
-                      .where((p) =>
-                          productController.favoriteProductIds.contains(p.id))
-                      .toList();
+                  favoriteProducts = productController.favoriteProducts;
 
                   if (favoriteProducts.isEmpty) {
                     return _buildEmptyState();
@@ -157,10 +153,7 @@ class FavoriteProductsPageState extends State<FavoriteProductsPage> {
               ),
               TextButton(
                 onPressed: () {
-                  final productIds =
-                      selectedProducts.map((product) => product.id).toList();
-                  productController.removeFavorites(productIds);
-
+                  productController.removeFavorites(selectedProducts.toList());
                   selectedProducts.clear();
                 },
                 child: const Icon(
@@ -229,17 +222,36 @@ class FavoriteProductsPageState extends State<FavoriteProductsPage> {
   }
 
   Widget _buildFloatingActionButton() {
+    if (favoriteProducts.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return FloatingActionButton.extended(
       onPressed: favoriteProducts.isNotEmpty
           ? () {
-              print('Selected Products: $selectedProducts');
-              print('Favorite Products: $favoriteProducts');
-
               List<Product> productsToAdd = selectedProducts.isNotEmpty
                   ? selectedProducts
                   : favoriteProducts;
 
               for (var product in productsToAdd) {
+                _initializeDefaultSelections(product);
+                bool hasColorVariant = product.variant!
+                    .any((v) => v.color != null && v.color!.isNotEmpty);
+                bool hasSizeVariant = product.variant!
+                    .any((v) => v.size != null && v.size!.isNotEmpty);
+                bool isColorSelected = hasColorVariant &&
+                    productController.selectedColor.value.isNotEmpty;
+                bool isSizeSelected = hasSizeVariant &&
+                    productController.selectedSize.value.isNotEmpty;
+                if ((hasColorVariant && !isColorSelected) ||
+                    (hasSizeVariant && !isSizeSelected)) {
+                  Get.snackbar('Error',
+                      'Please select both color and size variants for ${product.name}.',
+                      snackPosition: SnackPosition.TOP,
+                      backgroundColor: const Color.fromARGB(19, 152, 64, 20));
+                  return;
+                }
+
                 cartController.addToCart(CartModel(
                   id: product.id,
                   name: product.name,
@@ -265,6 +277,7 @@ class FavoriteProductsPageState extends State<FavoriteProductsPage> {
                 backgroundColor: Colors.green.withOpacity(0.7),
                 colorText: Colors.white,
               );
+
               _clearSelection();
             }
           : null,
@@ -280,6 +293,33 @@ class FavoriteProductsPageState extends State<FavoriteProductsPage> {
         borderRadius: BorderRadius.circular(30),
       ),
     );
+  }
+
+  void _initializeDefaultSelections(Product product) {
+    List<String> availableColors = product.variant
+            ?.where(
+                (variant) => variant.color != null && variant.color!.isNotEmpty)
+            .map((variant) => variant.color!)
+            .toSet()
+            .toList() ??
+        [];
+    List<String> availableSizes = product.variant
+            ?.where(
+                (variant) => variant.size != null && variant.size!.isNotEmpty)
+            .map((variant) => variant.size!)
+            .toSet()
+            .toList() ??
+        [];
+
+    if (availableColors.isNotEmpty &&
+        productController.selectedColor.value.isEmpty) {
+      productController.updateSelectedColor(availableColors.first);
+    }
+
+    if (availableSizes.isNotEmpty &&
+        productController.selectedSize.value.isEmpty) {
+      productController.updateSelectedSize(availableSizes.first);
+    }
   }
 
   Widget _buildFavoriteProductCard(
@@ -349,7 +389,7 @@ class FavoriteProductsPageState extends State<FavoriteProductsPage> {
                     right: 8,
                     child: GestureDetector(
                       onTap: () {
-                        productController.toggleFavorite(product.id);
+                        productController.toggleFavorite(product);
                       },
                       child: Container(
                         padding: const EdgeInsets.all(4),
@@ -398,22 +438,22 @@ class FavoriteProductsPageState extends State<FavoriteProductsPage> {
                       ],
                     ),
                   ),
-                  Obx(() => IconButton(
-                        icon: Icon(
-                          productController.isFavorite(product.id)
-                              ? Icons.favorite
-                              : Icons.favorite_border,
-                          color: productController.isFavorite(product.id)
-                              ? Colors.red
-                              : Colors.grey[600],
-                        ),
-                        onPressed: () {
-                          productController.toggleFavorite(product.id);
-                        },
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                        alignment: Alignment.topCenter,
-                      )),
+                  IconButton(
+                    icon: Icon(
+                      productController.isFavorite(product.id)
+                          ? Icons.favorite
+                          : Icons.favorite_border,
+                      color: productController.isFavorite(product.id)
+                          ? Colors.red
+                          : Colors.grey[600],
+                    ),
+                    onPressed: () {
+                      productController.toggleFavorite(product);
+                    },
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    alignment: Alignment.topCenter,
+                  ),
                 ],
               ),
             ),
