@@ -35,7 +35,7 @@ class MainLayout extends StatelessWidget {
                 if (index == 1) {
                   HapticFeedback.heavyImpact();
 
-                  Get.to(() => const SearchPage());
+                  Get.to(() => SearchPage());
                 }
                 if (index == 2) {
                   HapticFeedback.heavyImpact();
