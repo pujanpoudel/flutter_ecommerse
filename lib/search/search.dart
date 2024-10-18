@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quick_cart/models/product_model.dart';
+import 'package:quick_cart/repo/product_repo.dart';
 import 'package:quick_cart/utils/app_constants.dart';
 import 'package:quick_cart/view/product/product_detail_page.dart';
 
 class SearchController extends GetxController {
+  final ProductRepo productRepo = Get.find<ProductRepo>();
   var searchResults = <Product>[].obs;
   var isLoading = false.obs;
   var currentPage = 1.obs;
@@ -13,6 +15,7 @@ class SearchController extends GetxController {
   Future<void> performSearch(String query, {bool resetPage = true}) async {
     if (resetPage) {
       currentPage.value = 1;
+      searchResults.clear();
     }
     isLoading.value = true;
     try {
@@ -25,15 +28,18 @@ class SearchController extends GetxController {
             'Failed to load search results: ${response.statusText}');
       }
 
-      final List<dynamic> jsonData = response.body['results'];
-      if (resetPage) {
-        searchResults.value =
-            jsonData.map((item) => Product.fromJson(item)).toList();
-      } else {
-        searchResults
-            .addAll(jsonData.map((item) => Product.fromJson(item)).toList());
+      final jsonResponse = response.body;
+      if (jsonResponse['success'] != true) {
+        throw Exception(
+            jsonResponse['message'] ?? 'Failed to fetch search results');
       }
 
+      final data = jsonResponse['data'];
+      final List<dynamic> productsJson = data['data'];
+      final newProducts =
+          productsJson.map((item) => Product.fromJson(item)).toList();
+
+      searchResults.addAll(newProducts);
       currentPage.value++;
     } catch (e) {
       Get.snackbar('Error', e.toString(), snackPosition: SnackPosition.BOTTOM);
@@ -54,7 +60,7 @@ class SearchPage extends GetView<SearchController> {
   final TextEditingController _searchTextController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  SearchPage({super.key}) {
+  SearchPage({Key? key}) : super(key: key) {
     _scrollController.addListener(() {
       if (_scrollController.position.pixels ==
           _scrollController.position.maxScrollExtent) {
@@ -114,7 +120,7 @@ class SearchPage extends GetView<SearchController> {
                             )
                           : const Icon(Icons.image_not_supported),
                       title: Text(product.name),
-                      subtitle: Text(product.description!),
+                      subtitle: Text(product.description ?? ''),
                       trailing: Text('\$${product.price.toStringAsFixed(2)}'),
                       onTap: () {
                         Get.to(() => ProductDetailPage(productId: product.id));

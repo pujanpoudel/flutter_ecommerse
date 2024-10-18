@@ -18,7 +18,7 @@ class AuthRepo extends GetxService {
   ) async {
     try {
       final response = await GetConnect().post(
-        '$baseUrl/signup',
+        '$baseUrl/accounts/signup',
         AuthModel(
           fullName: fullName,
           email: email,
@@ -47,7 +47,7 @@ class AuthRepo extends GetxService {
       String email, String password, bool rememberMe) async {
     try {
       final response = await GetConnect().post(
-        '$baseUrl/login',
+        '$baseUrl/accounts/login',
         {
           'email': email,
           'password': password,
@@ -84,7 +84,7 @@ class AuthRepo extends GetxService {
   Future<Response<dynamic>> resetPassword(String email) async {
     try {
       final response = await GetConnect().post(
-        '$baseUrl/forget/password',
+        '$baseUrl/accounts/forget/password',
         {
           'email': email,
         },
@@ -106,7 +106,7 @@ class AuthRepo extends GetxService {
         throw Exception('User token is missing.');
       }
       final response = await GetConnect().get(
-        '$baseUrl/me',
+        '$baseUrl/accounts/me',
         headers: {'Authorization': 'Bearer $token'},
       );
       print('GetUserProfile Response code: ${response.statusCode}');
@@ -141,7 +141,7 @@ class AuthRepo extends GetxService {
       );
 
       final response = await GetConnect().put(
-        '$baseUrl/update',
+        '$baseUrl/accounts/update',
         updatedUser.toJson(),
         headers: {
           'Authorization': 'Bearer $token',
