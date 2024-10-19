@@ -21,6 +21,8 @@ class ProductRepo extends GetxService {
       final response = await GetConnect().get(
         '$baseUrlProduct/get/products?page=$page',
       );
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
       if (response.statusCode != 200) {
         throw Exception('Failed to fetch products');
       }
@@ -43,7 +45,6 @@ class ProductRepo extends GetxService {
       }
     } catch (e) {
       error.value = e.toString();
-      print(error.value);
     } finally {
       isLoading.value = false;
     }
@@ -58,6 +59,7 @@ class ProductRepo extends GetxService {
       final response = await GetConnect().get(
         '$baseUrlProduct/get/categories',
       );
+
       if (response.statusCode != 200) {
         throw Exception('Failed to fetch categories');
       }
@@ -75,7 +77,6 @@ class ProductRepo extends GetxService {
       _categories.assignAll(fetchedCategories);
     } catch (e) {
       error.value = e.toString();
-      print(error.value);
     } finally {
       isLoading.value = false;
     }
@@ -112,7 +113,6 @@ class ProductRepo extends GetxService {
       }
     } catch (e) {
       error.value = e.toString();
-      print('Error in getProductsByCategories: ${error.value}');
       return [];
     }
   }
@@ -129,7 +129,6 @@ class ProductRepo extends GetxService {
       return Product.fromJson(productData);
     } catch (e) {
       error.value = 'Failed to fetch product details: ${e.toString()}';
-      print(error.value);
       return null;
     }
   }
