@@ -39,7 +39,6 @@ class ProductController extends GetxController {
     try {
       isLoading.value = true;
       error.value = '';
-
       List<Product> newProducts = await productRepo.getProducts(page: page);
       if (page == 1) {
         products.assignAll(newProducts);
